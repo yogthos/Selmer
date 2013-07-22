@@ -1,7 +1,6 @@
 (ns selmer.test-parser)
 
-(declare parse)
-(declare expr-tag)
+(declare parse expr-tag)
 
 (defn render [template params]  
   (->> (for [element template] 
