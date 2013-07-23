@@ -1,6 +1,7 @@
 (ns selmer.parser
   (:require [clojure.string :as s]
-            [selmer.filters :refer [get-filter]])
+            [selmer.filters :refer [get-filter]]
+            [selmer.tags :refer [tags]])
   (:import [java.io PushbackReader CharArrayReader]))
 
 ;;; TODO - implement filter/tag parsers
@@ -31,7 +32,9 @@ but tags and filters are turned into maps to be compiled"
         (case next-step
           ;; Found end of string
           ;; TODO - error if there's still a closing tag to find
-          :end ast
+          :end (if (seq buffered-str)
+                 (conj ast buffered-str)
+                 ast)
           :read-filter (recur :read-filter
                               (conj ast buffered-str)
                               to-find)
@@ -285,8 +288,8 @@ but tags and filters are turned into maps to be compiled"
   [{:keys [tag args body]}]
   (fn [context-map]
     (if args
-      (apply (get-tag tag) args body)
-      (apply (get-tag) body))))
+      (apply (get-tag tag) context-map args body)
+      (apply (get-tag) context-map body))))
 
 ;;; End of tag compiling
 
