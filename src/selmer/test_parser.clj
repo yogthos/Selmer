@@ -20,11 +20,11 @@
   (let [{:keys [template last-modified]} (get @templates filename)
         last-modified-file (.lastModified (java.io.File. filename))]
     (if (and last-modified (= last-modified last-modified-file))
-      template
+      (render template args)
       (let [template (parse filename)]
         (swap! templates assoc filename {:template template
                                          :last-modified last-modified-file})
-        template))))
+        (render template args)))))
 
 (defn read-char [rdr]
   (let [ch (.read rdr)]
