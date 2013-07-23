@@ -75,18 +75,22 @@
 #_(render (tag-content "endfor" (java.io.StringReader. "foo {{name.first}} bar {% endfor %}")) {:name {:first "Bob"}})
 ;"foo Bob bar "
 
+(defn for-hanlder [[id _ ids] rdr]
+  (let [content (tag-content "endfor" rdr)        
+        id (map keyword (.split id "\\."))
+        ids (keyword ids)]
+    (fn [args]      
+      (for [value (get args ids)]
+        (render content (assoc args id value))))))
+
 (def expr-tags
-  {:for {:handler 
-         (fn [args rdr]
-           (let [content (tag-content "endfor" rdr)]
-             (fn [args] (render content args))))}
+  {:for {:handler for-hanlder}
    :block {:handler
            (fn [args rdr]
              (let [content (tag-content "endblock" rdr)]
                (fn [args] (render content args))))}})
 
-(defn expr-tag [{:keys [tag-name args]} rdr]
-  (println tag-name args (get-in expr-tags [(keyword tag-name) :handler]))
+(defn expr-tag [{:keys [tag-name args]} rdr]  
   ((get-in expr-tags [(keyword tag-name) :handler]) args rdr))
 
 (defn handle-tag [rdr]
