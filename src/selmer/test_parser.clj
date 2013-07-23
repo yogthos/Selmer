@@ -31,12 +31,12 @@
     (if-not (== -1 ch) (char ch))))
 
 (defn for-handler [[id _ items] rdr]
-  (let [content (tag-content :endfor rdr)
+  (let [content (:endfor (tag-content rdr :endfor))
         id (map keyword (.split id "\\."))
         items (keyword items)]
     (fn [args]
       (let [buf (StringBuilder.)]
-        (doseq [value (get args items)]          
+        (doseq [value (get args items)]
           (.append buf (render content (assoc-in args id value))))
         (.toString buf)))))
 
@@ -44,7 +44,7 @@
   {:for {:handler for-handler}
    :block {:handler
            (fn [args rdr]
-             (let [content (tag-content :endblock rdr)]
+             (let [content (tag-content rdr :endblock)]
                (fn [args] (render content args))))}})
 
 (defn expr-tag [{:keys [tag-name args] :as tag} rdr]
@@ -52,7 +52,7 @@
     (handler args rdr)
     (throw (Exception. (str "unrecognized tag: " tag-name)))))
 
-(defn filter-tag [{:keys [tag-value]}]  
+(defn filter-tag [{:keys [tag-value]}]
   (let [value (map keyword (.split tag-value "\\."))]
     (fn [args] (get-in args value))))
 
@@ -68,8 +68,8 @@
            ch2 (read-char rdr)]
       (when-not (and (or (= filter-close ch1) (= tag-second ch1))
                      (= tag-close ch2))
-        (.append buf ch1)        
-        (recur ch2 (read-char rdr))))    
+        (.append buf ch1)
+        (recur ch2 (read-char rdr))))
     (let [content (->>  (.split (.toString buf ) " ") (remove empty?) (map (memfn trim)))]
       (merge {:tag-type tag-type}
              (if (= :filter tag-type)
@@ -81,37 +81,48 @@
 ;{:args ("i" "in" "nums"), :tag-name "for", :tag-type :expr}
 
 #_(read-tag-info (java.io.StringReader. "{ nums }}"))
-;{:tag-value "nums", :tag-type :value}
 
-(defn tag-content [end-tag rdr]
-  (let [content (transient [])
-        buf (StringBuilder.)]
-    (loop [ch (read-char rdr)]
-      (if (= tag-open ch)
-        (let [{:keys [tag-name tag-type] :as tag} (read-tag-info rdr)]
-          (when (not= end-tag tag-name)
-            (conj! content (.toString buf))
-            (.setLength buf 0)
-            (conj! content (if (= :filter tag-type)
-                             (filter-tag tag)
-                             (expr-tag tag rdr)))
-            (recur (read-char rdr))))
+(defn parse-tag [{:keys [tag-type] :as tag} rdr]
+  (if (= :filter tag-type)
+    (filter-tag tag)
+    (expr-tag tag rdr)))
+
+(defn tag-content [rdr & end-tags]
+  (let [buf (StringBuilder.)]    
+    (loop [ch       (read-char rdr)
+           tags     {}
+           content  []
+           end-tags end-tags]
+      (cond 
+        (empty? end-tags)
+        tags 
+        
+        (= tag-open ch)
+        (let [{:keys [tag-name tag-type] :as tag} (read-tag-info rdr)]            
+          (if (some #{tag-name} end-tags)              
+            (let [tags     (assoc tags tag-name (conj content (.toString buf)))
+                  end-tags (rest (drop-while #(not= tag-name %) end-tags))]                                
+              (.setLength buf 0)
+              (recur (read-char rdr) tags [] end-tags))
+            (let [content (-> content 
+                                  (conj (.toString buf))
+                                  (conj (parse-tag tag rdr)))]
+              (.setLength buf 0)
+              (recur (read-char rdr) tags content end-tags))))
+        :else
         (do
           (.append buf ch)
-          (recur (read-char rdr)))))
-    (conj! content (.toString buf))
-    (persistent! content)))
+          (recur (read-char rdr) tags content end-tags))))))
 
-#_(tag-content "endfor" (java.io.StringReader. "foo {{name}} bar {% endfor %}"))
+#_(tag-content (java.io.StringReader. "foo bar {%else%} baz{% endif %}") :else :endif)
+#_(tag-content (java.io.StringReader. "foo {{name}} bar  baz {{test}} bat{% endfor %}") :endfor)
 
-#_(render (tag-content "endfor" (java.io.StringReader. "foo {{name.first}} bar {% endfor %}")) {:name {:first "Bob"}})
+#_(render (tag-content (java.io.StringReader. "foo {{name.first}} bar {% endfor %}") :endfor) {:name {:first "Bob"}})
 ;"foo Bob bar "
 
 (defn handle-tag [rdr]
   (let [tag (read-tag-info rdr)]
-    (if (= :filter (:tag-type tag))
-      (filter-tag tag)
-      (expr-tag tag rdr))))
+    (parse-tag tag rdr)))
 
 (defn parse [file]
   (with-open [rdr (clojure.java.io/reader file)]
@@ -122,7 +133,7 @@
             (if (= tag-open ch)
               (do
                 ;we hit a tag so we append the buffer content to the template
-                ; and empty the buffer, then we proceed to parse the tag                  
+                ; and empty the buffer, then we proceed to parse the tag
                 (conj! template (.toString buf))
                 (.setLength buf 0)
                 (conj! template (handle-tag rdr))
