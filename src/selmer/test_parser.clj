@@ -27,6 +27,7 @@
 
 #_((value-tag {:tag-value "foo.bar.baz"}) {:foo {:bar {:baz "ok"}}})
 #_((value-tag {:tag-value "foo"}) {:foo "ok"})
+;ok
 
 (defn read-tag-info [rdr]
   (let [buf (StringBuilder.)
@@ -44,7 +45,10 @@
                 :params (rest content)})))))
 
 #_(read-tag-info (java.io.StringReader. "% for i in nums %}"))
+;{:params ("i" "in" "nums"), :tag-name "for", :tag-type :expr}
+
 #_(read-tag-info (java.io.StringReader. "{ nums }}"))
+;{:tag-value "nums", :tag-type :value}
 
 (defn tag-content [close-tag rdr]
   (let [content (transient [])
@@ -69,6 +73,7 @@
 #_(tag-content "endfor" (java.io.StringReader. "foo {{name}} bar {% endfor %}"))
 
 #_(render (tag-content "endfor" (java.io.StringReader. "foo {{name.first}} bar {% endfor %}")) {:name {:first "Bob"}})
+;"foo Bob bar "
 
 (def expr-tags
   {:for {:content true
