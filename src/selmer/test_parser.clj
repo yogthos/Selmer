@@ -18,7 +18,7 @@
   (let [ch (.read rdr)]
     (if-not (== -1 ch) (char ch))))
 
-(defn for-hanlder [[id _ items] rdr]
+(defn for-handler [[id _ items] rdr]
   (let [content (tag-content :endfor rdr)
         id (map keyword (.split id "\\."))
         items (keyword items)]
@@ -29,7 +29,7 @@
         (.toString buf)))))
 
 (def expr-tags
-  {:for {:handler for-hanlder}
+  {:for {:handler for-handler}
    :block {:handler
            (fn [args rdr]
              (let [content (tag-content :endblock rdr)]
