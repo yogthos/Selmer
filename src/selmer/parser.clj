@@ -2,7 +2,7 @@
   (:require [clojure.string :as s]
             [selmer.filters :refer [get-filter]]
             [selmer.tags :refer [tags]])
-  (:import [java.io PushbackReader CharArrayReader]))
+  (:import [java.io PushbackReader CharArrayReader StringReader]))
 
 ;;; TODO - implement filter/tag parsers
 
@@ -223,7 +223,8 @@ but tags and filters are turned into maps to be compiled"
 
 (defn strip-doublequotes
   [^String s]
-  (if (= \" (first s) (.charAt s (dec (count s))))
+  (if (and (> (count s) 1)
+           (= \" (first s) (.charAt s (dec (count s)))))
     (.substring s 1 (dec (count s)))
     s))
 
@@ -260,7 +261,9 @@ but tags and filters are turned into maps to be compiled"
 
 (defn filter-str->fn
   [s]
-  (let [[filter-name & args] (s/split s #":")
+  (let [[filter-name & args]
+        ;; Ignore colons inside doublequotes
+        (re-seq #"(?:[^:\"]|\"[^\"]*\")+" s)
         args (fix-filter-args args)
         filter (get-filter filter-name)]
     (fn [x]
@@ -268,13 +271,14 @@ but tags and filters are turned into maps to be compiled"
 
 (defn compile-filter-body
   [s]
-  (let [[val & filters] (-> s
-                            s/trim
-                            (s/split #"\s*\|\s*"))
+  (let [[val & filters] (->> s
+                             (s/trim)
+                             ;; Ignore pipes and allow escaped doublequotes inside doublequotes
+                             (re-seq #"(?:[^|\"]|\"[^\"]*\")+"))
         accessor (split-filter-val val)
         filters (->> filters
-                     (map filter-str->fn)
-                     (reverse))]
+                      (map filter-str->fn)
+                      (reverse))]
     (fn [context-map]
       (let [x (get-in context-map accessor)]
         ;; Escape by default unless the last filter is 'safe'

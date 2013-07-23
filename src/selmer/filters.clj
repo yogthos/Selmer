@@ -12,42 +12,35 @@
   [name & args]
   (apply (get-filter name) args))
 
-(defn add-filter-fn!
+(defn add-filter!
   [name f]
   (swap! filters assoc (keyword name) f))
 
-(defmacro add-filter!
-  "Convenience macro to create a fn and then add it to the filters map.
-Example usage:
-
- (add-filter! :inc
-   [x]
-   (when (number? x)
-     (inc x)))"
-  [name args & body]
-  `(add-filter-fn!
-    ~name
-    (fn ~args
-      ~@body)))
-
-(add-filter-fn!
+(add-filter!
  :length
  count)
 
-(add-filter-fn!
+(add-filter!
  :upper
  s/upper-case)
 
-(add-filter-fn!
+(add-filter!
  :lower
  s/lower-case)
 
-(add-filter-fn!
+(add-filter!
  :capitalize
  s/capitalize)
 
 ;;; Do not escape html
 (add-filter!
  :safe
- [s]
- [:safe s])
+ (fn
+   [s]
+   [:safe s]))
+
+(add-filter!
+ :join
+ (fn
+   [coll sep]
+   (s/join sep coll)))
