@@ -40,6 +40,10 @@
           (.append buf (render content (assoc-in args id value))))
         (.toString buf)))))
 
+(defn if-handler [[] rdr]
+  (let [tags (tag-content rdr :else :endif)]
+    ))
+
 (def expr-tags
   {:for {:handler for-handler}
    :block {:handler
@@ -56,11 +60,6 @@
   (let [value (map keyword (.split tag-value "\\."))]
     (fn [args] (get-in args value))))
 
-#_((filter-tag {:tag-value "foo.bar.baz"}) {:foo {:bar {:baz "ok"}}})
-;ok
-#_((filter-tag {:tag-value "foo"}) {:foo "ok"})
-;ok
-
 (defn read-tag-info [rdr]
   (let [buf (StringBuilder.)
         tag-type (if (= filter-open (read-char rdr)) :filter :expr)]
@@ -76,11 +75,6 @@
                {:tag-value (first content)}
                {:tag-name (keyword (first content))
                 :args (rest content)})))))
-
-#_(read-tag-info (java.io.StringReader. "% for i in nums %}"))
-;{:args ("i" "in" "nums"), :tag-name "for", :tag-type :expr}
-
-#_(read-tag-info (java.io.StringReader. "{ nums }}"))
 
 (defn parse-tag [{:keys [tag-type] :as tag} rdr]
   (if (= :filter tag-type)
@@ -114,12 +108,6 @@
           (.append buf ch)
           (recur (read-char rdr) tags content end-tags))))))
 
-#_(tag-content (java.io.StringReader. "foo bar {%else%} baz{% endif %}") :else :endif)
-#_(tag-content (java.io.StringReader. "foo {{name}} bar  baz {{test}} bat{% endfor %}") :endfor)
-
-#_(render (tag-content (java.io.StringReader. "foo {{name.first}} bar {% endfor %}") :endfor) {:name {:first "Bob"}})
-;"foo Bob bar "
-
 (defn handle-tag [rdr]
   (let [tag (read-tag-info rdr)]
     (parse-tag tag rdr)))
@@ -146,7 +134,4 @@
         ;add the leftover content of the buffer and return the template
         (conj! template (.toString buf))
         (persistent! template))))
-
-#_(spit "out.html" (render (parse "home.html") {:name "Bob" :users [[{:name "test" }] [{:name "test1" }]]}))
-#_(println (render (parse "home.html") {:name "Bob" :users [[{:name "test" }] [{:name "test1" }]]}))
 
