@@ -2,9 +2,9 @@
 
 (declare parse expr-tag)
 
-(defn render [template params]  
+(defn render [template args]  
   (->> (for [element template] 
-         (if (string? element) element (element params)))
+         (if (string? element) element (element args)))
        (apply str)))
 
 (defn read-char [rdr]
@@ -23,9 +23,10 @@
 
 (defn value-tag [{:keys [tag-value]}]  
   (let [value (map keyword (.split tag-value "\\."))]
-    (fn [params] (get-in params value))))
+    (fn [args] (get-in args value))))
 
 #_((value-tag {:tag-value "foo.bar.baz"}) {:foo {:bar {:baz "ok"}}})
+;ok
 #_((value-tag {:tag-value "foo"}) {:foo "ok"})
 ;ok
 
@@ -42,10 +43,10 @@
              (if (= :value tag-type)
                {:tag-value (first content)}
                {:tag-name (first content)
-                :params (rest content)})))))
+                :args (rest content)})))))
 
 #_(read-tag-info (java.io.StringReader. "% for i in nums %}"))
-;{:params ("i" "in" "nums"), :tag-name "for", :tag-type :expr}
+;{:args ("i" "in" "nums"), :tag-name "for", :tag-type :expr}
 
 #_(read-tag-info (java.io.StringReader. "{ nums }}"))
 ;{:tag-value "nums", :tag-type :value}
@@ -56,8 +57,7 @@
     (loop [ch (read-char rdr)]
       (if (= \{ ch)
         (let [{:keys [tag-name tag-type] :as tag} (read-tag-info rdr)]          
-          (when (not= close-tag tag-name)
-            (println tag)
+          (when (not= close-tag tag-name)            
             (conj! content (.toString buf))
             (.setLength buf 0)
             (conj! content (if (= :value tag-type)
@@ -76,17 +76,24 @@
 ;"foo Bob bar "
 
 (def expr-tags
-  {:for {:content true
-         :close-tag "endfor"}})
+  {:for {:handler 
+         (fn [args rdr]
+           (let [content (tag-content "endfor" rdr)]
+             (fn [args] (render content args))))}
+   :block {:handler
+           (fn [args rdr]
+             (let [content (tag-content "endblock" rdr)]
+               (fn [args] (render content args))))}})
 
-(defn expr-tag [{:keys [tag-name params]} rdr]
-  (let [{:keys [content close-tag]} (get expr-tags tag-name)]
-    (if content
-      (tag-content close-tag rdr))))
+(defn expr-tag [{:keys [tag-name args]} rdr]
+  (println tag-name args (get-in expr-tags [(keyword tag-name) :handler]))
+  ((get-in expr-tags [(keyword tag-name) :handler]) args rdr))
 
 (defn handle-tag [rdr]
-  (let [tag (read-tag-info rdr)]
-    ((if (:value tag) value-tag expr-tag) tag)))
+  (let [tag (read-tag-info rdr)]    
+    (if (= :value (:tag-type tag))
+      (value-tag tag)
+      (expr-tag tag rdr))))
 
 (defn parse [file & state]
   (with-open [rdr (clojure.java.io/reader file)]
@@ -105,7 +112,7 @@
                 (do
                   (.append sb ch)
                   (recur state (.read rdr)))))))
+        (conj! template (.toString sb))
         (persistent! template))))
-
 
 #_(render (parse "home.html") {:name "Bob"})
