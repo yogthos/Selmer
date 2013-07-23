@@ -1,5 +1,5 @@
 (ns selmer.core-test
-  (:use clojure.test selmer.test-parser)
+  (:use clojure.test selmer.parser)
   (:import java.io.File))
 
 (def path (str "test" File/separator "templates" File/separator))
@@ -10,7 +10,7 @@
             {:name "Bob" :users [[{:name "test" }] [{:name "test1" }]]})))
 
 (deftest tag-info-test
-  (= {:args ("i" "in" "nums"), :tag-name :for, :tag-type :expr}
+  (= {:args ["i" "in" "nums"], :tag-name :for, :tag-type :expr}
      (read-tag-info (java.io.StringReader. "% for i in nums %}")))
   (= {:tag-value "nums", :tag-type :filter}
      (read-tag-info (java.io.StringReader. "{ nums }}"))))
