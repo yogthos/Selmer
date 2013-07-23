@@ -3,9 +3,10 @@
 (declare parse expr-tag)
 
 (defn render [template args]  
-  (->> (for [element template] 
-         (if (string? element) element (element args)))
-       (apply str)))
+  (let [buf (StringBuilder.)]
+    (doseq [element template]       
+      (.append buf (if (string? element) element (element args))))
+    (.toString buf)))
 
 (defn read-char [rdr]
   (let [ch (.read rdr)]
@@ -75,13 +76,14 @@
 #_(render (tag-content "endfor" (java.io.StringReader. "foo {{name.first}} bar {% endfor %}")) {:name {:first "Bob"}})
 ;"foo Bob bar "
 
-(defn for-hanlder [[id _ ids] rdr]
+(defn for-hanlder [[id _ items] rdr]
   (let [content (tag-content "endfor" rdr)        
         id (map keyword (.split id "\\."))
-        ids (keyword ids)]
+        items (keyword items)]   
     (fn [args]      
-      (for [value (get args ids)]
-        (render content (assoc args id value))))))
+      (->> (for [value (get args items)]          
+             (render content (assoc-in args id value)))
+           (apply str)))))
 
 (def expr-tags
   {:for {:handler for-hanlder}
@@ -119,4 +121,4 @@
         (conj! template (.toString sb))
         (persistent! template))))
 
-#_(render (parse "home.html") {:name "Bob"})
+#_(render (parse "home.html") {:name "Bob" :users [[{:name "test" }] [{:name "test1" }]]})
