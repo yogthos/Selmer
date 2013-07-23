@@ -47,25 +47,36 @@
           (.append buf (render content (assoc-in context-map id value))))
         (.toString buf)))))
 
+(defn render-if [context-map condition first-block second-block]  
+  (render
+    (cond 
+      (and condition first-block)
+      (:content first-block)
+      
+      (and (not condition) first-block)
+      (:content second-block)
+      
+      condition
+      (:content second-block)
+      
+      :else [""])
+    context-map))
+
 (defn if-handler [[condition] rdr]
   (let [tags (tag-content rdr :else :endif)
         condition (keyword condition)]
     (fn [context-map]
-      (render
-        (cond 
-          (and (condition context-map)
-               (:else tags))
-          (get-in tags [:else :content])
-          
-          (and (not (condition context-map))
-               (:else tags))
-          (get-in tags [:endif :content])
-          
-          (condition context-map)
-          (get-in tags [:endif :content])
-          
-          :else [""])
-        context-map))))
+      (render-if context-map (condition context-map) (:else tags) (:endif tags)))))
+
+(defn ifequal-handler [args rdr]
+  (let [tags (tag-content rdr :else :endifequal)
+        args (for [arg args]
+               (if (= \" (first arg)) 
+                 (.substring arg 1 (dec (count arg))) 
+                 (keyword arg)))]
+    (fn [context-map]
+      (let [condition (apply = (map #(if (keyword? %) (% context-map) %) args))]        
+        (render-if context-map condition (:else tags) (:endifequal tags))))))
 
 (defn block-handler [args rdr]
   (let [content (tag-content rdr :endblock)]
@@ -73,6 +84,7 @@
 
 (def expr-tags
   {:if if-handler
+   :ifequal ifequal-handler
    :for for-handler
    :block block-handler})
 
