@@ -105,8 +105,8 @@
               (.setLength buf 0)
               (recur (read-char rdr) tags [] end-tags))
             (let [content (-> content 
-                                  (conj (.toString buf))
-                                  (conj (parse-tag tag rdr)))]
+                              (conj (.toString buf))
+                              (conj (parse-tag tag rdr)))]
               (.setLength buf 0)
               (recur (read-char rdr) tags content end-tags))))
         :else
