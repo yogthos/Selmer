@@ -31,35 +31,53 @@
   (let [ch (.read rdr)]
     (if-not (== -1 ch) (char ch))))
 
-(defn for-handler [[id _ items] rdr]
-  (let [content (:content (:endfor (tag-content rdr :endfor)))
-        id (map keyword (.split id "\\."))
-        items (keyword items)]    
-    (fn [args]
-      (let [buf (StringBuilder.)]
-        (doseq [value (get args items)]
-          (.append buf (render content (assoc-in args id value))))
-        (.toString buf)))))
-
-(defn if-handler [[] rdr]
-  (let [tags (tag-content rdr :else :endif)]
-    ))
-
-(defn tag-handler [handler open-tag & end-tags]
+#_(defn tag-handler [handler open-tag & end-tags]
   (fn [args rdr]
     (if (not-empty end-tags)
       (let [content (apply (partial tag-content rdr) end-tags)]
         (handler args content)))))
 
+(defn for-handler [[id _ items] rdr]
+  (let [content (:content (:endfor (tag-content rdr :endfor)))
+        id (map keyword (.split id "\\."))
+        items (keyword items)]    
+    (fn [context-map]
+      (let [buf (StringBuilder.)]
+        (doseq [value (get context-map items)]
+          (.append buf (render content (assoc-in context-map id value))))
+        (.toString buf)))))
+
+(defn if-handler [[condition] rdr]
+  (let [tags (tag-content rdr :else :endif)
+        condition (keyword condition)]
+    (fn [context-map]
+      (render
+        (cond 
+          (and (condition context-map)
+               (:else tags))
+          (get-in tags [:else :content])
+          
+          (and (not (condition context-map))
+               (:else tags))
+          (get-in tags [:endif :content])
+          
+          (condition context-map)
+          (get-in tags [:endif :content])
+          
+          :else [""])
+        context-map))))
+
+(defn block-handler [args rdr]
+  (let [content (tag-content rdr :endblock)]
+    (fn [args] (render content args))))
+
 (def expr-tags
-  {:for {:handler for-handler}
-   :block {:handler
-           (fn [args rdr]
-             (let [content (tag-content rdr :endblock)]
-               (fn [args] (render content args))))}})
+  {:if if-handler
+   :for for-handler
+   :block block-handler})
 
 (defn expr-tag [{:keys [tag-name args] :as tag} rdr]
-  (if-let [handler (get-in expr-tags [tag-name :handler])]
+  (if-let [handler (tag-name expr-tags)]
     (handler args rdr)
     (throw (Exception. (str "unrecognized tag: " tag-name)))))
 
