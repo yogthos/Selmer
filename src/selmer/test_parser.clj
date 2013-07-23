@@ -6,6 +6,8 @@
 (def ^Character filter-close \})
 (def ^Character tag-second \%)
 
+(def templates (atom {}))
+
 (declare parse expr-tag tag-content)
 
 (defn render [template args]
@@ -13,6 +15,16 @@
     (doseq [element template]
       (.append buf (if (string? element) element (element args))))
     (.toString buf)))
+
+(defn render-file [filename args]
+  (let [{:keys [template last-modified]} (get @templates filename)
+        last-modified-file (.lastModified (java.io.File. filename))]
+    (if (and last-modified (= last-modified last-modified-file))
+      template
+      (let [template (parse filename)]
+        (swap! templates assoc filename {:template template
+                                         :last-modified last-modified-file})
+        template))))
 
 (defn read-char [rdr]
   (let [ch (.read rdr)]
