@@ -23,6 +23,18 @@
   (= "\n<h1>FOO!</h1>\n\n\n<h1>BAR!</h1>\n"
      (render (parse (str path "if.html")) {:foo true :bar "test"})))
 
+(deftest ifequal-tag-test
+  (= "\n<h1>equal!</h1>\n\n\n\n<p>not equal</p>\n"
+     (render (parse (str path "ifequal.html")) {:foo "bar"}))
+  (= "\n\n<h1>equal!</h1>\n\n\n<p>not equal</p>\n"
+     (render (parse (str path "ifequal.html")) {:foo "baz" :bar "baz"}))
+  (= "\n\n<h1>equal!</h1>\n\n\n<h1>equal!</h1>\n"
+     (render (parse (str path "ifequal.html")) {:baz "test"}))
+  (= "\n\n<h1>equal!</h1>\n\n\n<p>not equal</p>\n"
+     (render (parse (str path "ifequal.html")) {:baz "fail"})))
+
+;(render (parse (str path "if.html")) {:foo true :range (range 4)})
+
 (deftest filter-tag-test
   (= "ok"
      ((filter-tag {:tag-value "foo.bar.baz"}) {:foo {:bar {:baz "ok"}}}))
