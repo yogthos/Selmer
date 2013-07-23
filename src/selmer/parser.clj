@@ -32,9 +32,9 @@
     (if-not (== -1 ch) (char ch))))
 
 (defn for-handler [[id _ items] rdr]
-  (let [content (:endfor (tag-content rdr :endfor))
+  (let [content (:content (:endfor (tag-content rdr :endfor)))
         id (map keyword (.split id "\\."))
-        items (keyword items)]
+        items (keyword items)]    
     (fn [args]
       (let [buf (StringBuilder.)]
         (doseq [value (get args items)]
@@ -44,6 +44,12 @@
 (defn if-handler [[] rdr]
   (let [tags (tag-content rdr :else :endif)]
     ))
+
+(defn tag-handler [handler open-tag & end-tags]
+  (fn [args rdr]
+    (if (not-empty end-tags)
+      (let [content (apply (partial tag-content rdr) end-tags)]
+        (handler args content)))))
 
 (def expr-tags
   {:for {:handler for-handler}
@@ -92,9 +98,11 @@
         tags 
         
         (= tag-open ch)
-        (let [{:keys [tag-name tag-type] :as tag} (read-tag-info rdr)]            
-          (if (some #{tag-name} end-tags)              
-            (let [tags     (assoc tags tag-name (conj content (.toString buf)))
+        (let [{:keys [tag-name args] :as tag} (read-tag-info rdr)]            
+          (if (and tag-name (some #{tag-name} end-tags))              
+            (let [tags     (assoc tags tag-name 
+                                  {:args args 
+                                   :content (conj content (.toString buf))})
                   end-tags (rest (drop-while #(not= tag-name %) end-tags))]                                
               (.setLength buf 0)
               (recur (read-char rdr) tags [] end-tags))
