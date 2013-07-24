@@ -9,17 +9,17 @@
 (def ^Character filter-close \})
 (def ^Character tag-second \%)
 
-(definterface INode
-  (render ^String [^clojure.lang.IPersistentMap context-map]))
+(defprotocol INode
+  (render [this context-map] "Renders the context"))
 
-(deftype FunctionNode [^clojure.lang.IFn handler]
+(deftype FunctionNode [handler]
   INode
-  (render ^String [this ^clojure.lang.IPersistentMap context-map]
+  (render ^String [this context-map]
     (handler context-map)))
 
 (deftype TextNode [text]
   INode
-  (render ^String [this ^clojure.lang.IPersistentMap context-map]
+  (render ^String [this context-map]
     text))
 
 (def templates (atom {}))
@@ -28,13 +28,13 @@
 
 (defn render [template context-map]
   (let [buf (StringBuilder.)]
-    (doseq [^INode element template]
+    (doseq [^selmer.parser.INode element template]
       (.append buf (.render element context-map)))
     (.toString buf)))
 
 (defn render-file [filename context-map]
   (let [{:keys [template last-modified]} (get @templates filename)
-        last-modified-file (.lastModified ^java.io.File (java.io.File. ^String filename))]
+        last-modified-file (.lastModified (java.io.File. ^String filename))]
     (if (and last-modified (= last-modified last-modified-file))
       (render template context-map)
       (let [template (parse filename)]
