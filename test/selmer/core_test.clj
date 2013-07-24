@@ -26,7 +26,35 @@
   (= "\n<h1>FOO!</h1>\n\n\n<h1>NOT BAR!</h1>\n"
      (render (parse (str path "if.html")) {:foo true}))
   (= "\n<h1>FOO!</h1>\n\n\n<h1>BAR!</h1>\n"
-     (render (parse (str path "if.html")) {:foo true :bar "test"})))
+     (render (parse (str path "if.html")) {:foo true :bar "test"}))
+  
+  (is (= (render-string "{% if foo %}foo is true{% endif %}" {:foo true})
+         "foo is true"))
+  (is (= (render-string "{% if foo %}foo is true{% endif %}" {:foo false})
+         ""))
+  (is (= (render-string "{% if foo %}foo is true{% else %}foo is false{% endif %}"
+                 {:foo true})
+         "foo is true"))
+  (is (= (render-string "{% if foo %}foo is true{% else %}foo is false{% endif %}"
+                 {:foo false})
+         "foo is false"))
+  
+  (let [template
+        (parse
+          (java.io.StringReader.
+            "{% if foo %}
+             foo is true
+             {% if bar %}bar is also true{% endif %}
+             {% else %} foo is false
+             {% if baz %}but baz is true {% else %}baz is also false{% endif %}
+             {% endif %}"))]
+    (is (= (render template {:foo true :bar true :baz false})
+           "\n             foo is true\n             bar is also true\n             "))
+    (is (= (render template {:foo false :bar true :baz false})
+           " foo is false\n             baz is also false\n             "))
+    (is (= (render template {:foo false :bar true :baz true})
+           " foo is false\n             but baz is true \n             ")))
+  (is (thrown? Exception (render-string "foo {% else %} bar" {}))))
 
 (deftest ifequal-tag-test
   (= "\n<h1>equal!</h1>\n\n\n\n<p>not equal</p>\n"
@@ -53,4 +81,3 @@
 
 #_(spit "out.html" (render (parse (str path "nested-for.html")) {:name "Bob" :users [[{:name "test" }] [{:name "test1" }]]}))
 #_(println (render (parse (str path "nested-for.html")) {:name "Bob" :users [[{:name "test" }] [{:name "test1" }]]}))
-
