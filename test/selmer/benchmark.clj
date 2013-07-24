@@ -1,6 +1,7 @@
 (ns selmer.benchmark
   (:require [clojure.test :refer :all]
             [selmer.parser :refer :all]
+            [selmer.util :refer :all]
             [criterium.core :as criterium]))
 
 (def user (repeat 10 [{:name "test" }]))
