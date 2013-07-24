@@ -34,15 +34,14 @@
      (render (parse (java.io.StringReader. "<ul>{% for item in items %}<li>{{item}}</li>{% endfor %}</ul>"))
              {:items (range 5)})))
 
-;;TODO add forloop.first forloop.last support to if
-#_(deftest nested-forloop-first
+(deftest nested-forloop-first
   (is (= (render-string (str "{% for x in list1 %}"
-                      "{% for y in list2 %}"
-                      "{{x}}-{{y}}"
-                      "{% if forloop.first %}'{% endif %} "
-                      "{% endfor %}{% endfor %}")
-                 {:list1 '[a b c]
-                  :list2 '[1 2 3]})
+                             "{% for y in list2 %}"
+                             "{{x}}-{{y}}"
+                             "{% if forloop.first %}'{% endif %} "
+                             "{% endfor %}{% endfor %}")
+                        {:list1 '[a b c]
+                         :list2 '[1 2 3]})
          "a-1' a-2 a-3 b-1' b-2 b-3 c-1' c-2 c-3 ")))
 
 (deftest forloop-with-one-element

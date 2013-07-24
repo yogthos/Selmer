@@ -68,23 +68,29 @@
 (defn for-handler [[^String id _ items] rdr]
   (let [content (:content (:endfor (tag-content rdr :endfor)))
         id (map keyword (.split id "\\."))
-        items (keyword items)]    
+        items (keyword items)]
     (fn [context-map]
       (let [buf (StringBuilder.)
             items (get context-map items)
-            length (count items)]
+            length (count items)
+            parentloop (:parentloop context-map)]
         (doseq [[counter value] (map-indexed vector items)]
-          (->> (assoc (assoc-in context-map id value)
-                      :forloop
-                      {:counter0 counter
-                       :counter (inc counter)
-                       :revcounter (- length (inc counter))
-                       :revcounter0 (- length counter)})               
-               (render content)
-               (.append buf)))
+          (let [loop-info
+                {:length length
+                 :counter0 counter
+                 :counter (inc counter)
+                 :revcounter (- length (inc counter))
+                 :revcounter0 (- length counter)
+                 :first (= counter 0)
+                 :last (= counter (dec length))}]
+            (->> (assoc (assoc-in context-map id value)
+                        :forloop loop-info
+                        :parentloop loop-info)
+              (render content)
+              (.append buf))))
         (.toString buf)))))
 
-(defn render-if [context-map condition first-block second-block]  
+(defn render-if [context-map condition first-block second-block]
   (render
     (cond 
       (and condition first-block)
@@ -99,12 +105,13 @@
       :else [(TextNode. "")])
     context-map))
 
+
 (defn if-handler [[condition1 condition2] rdr]
   (let [tags (tag-content rdr :else :endif)
         not? (and condition1 condition2 (= condition1 "not"))
-        condition (keyword (or condition2 condition1))]    
+        condition (compile-filter-body (or condition2 condition1))]    
     (fn [context-map]
-      (let [condition (condition context-map)]        
+      (let [condition (Boolean/parseBoolean (condition context-map))]        
         (render-if context-map (if not? (not condition) condition) (:else tags) (:endif tags))))))
 
 (defn ifequal-handler [args rdr]
@@ -112,9 +119,9 @@
         args (for [^String arg args]
                (if (= \" (first arg)) 
                  (.substring arg 1 (dec (.length arg))) 
-                 (keyword arg)))]
+                 (map keyword (.split arg "\\."))))]
     (fn [context-map]
-      (let [condition (apply = (map #(if (keyword? %) (% context-map) %) args))]
+      (let [condition (apply = (map #(if (coll? %) (get-in context-map %) %) args))]
         (render-if context-map condition (:else tags) (:endifequal tags))))))
 
 (defn block-handler [args rdr]
