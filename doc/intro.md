@@ -10,6 +10,19 @@ This is going to be an unusually high priority. Templating performance issues ha
 
 We're currently aiming for Stencil'ish performance and seem to be within range of that at the moment.
 
+#### Current performance problems
+
+Snapshots from YourKit are showing:
+
+    clojure.core$assoc_in.invoke(Object, Object, Object) 41363 47
+      clojure.lang.RT.nth(Object, int, Object) 41363 47
+        clojure.lang.RT.nthFrom(Object, int, Object) 41363 47
+          java.lang.Class.isArray 41363 47
+
+Totalling something like 81% of the runtime by themselves. File.lastModified() takes up 5-8%.
+
+Not really sure what's going on here, but it's all part of the FunctionNode->for-handler->render/assoc chain.
+
 ### Why
 
 Server-side templating still matters. Server-side rendered content is still useful and necessary and not every website is destined to be a single-page application. Even in cases where a SPA is presumed, having partially rendered content can improve the experience for your users.
@@ -47,6 +60,14 @@ Provided a context of {:blah false}, it should render:
     <p>Trolololololololol</p><br><br><br><br><br><br><br><br><br>
     <!-- Do your eyes burn from un-semantic markup yet? -->
     <p>or not.</p>
+
+The negation should work as well:
+
+    {:blah false}
+    ;; and
+    {% if not blah %}LETS GO{% endif %}
+    ;; renders
+    LETS GO
 
 You should be able to test if the for loop block you're inside of is "first" or not. In future, we may want to allow arbitrary index checks:
 
