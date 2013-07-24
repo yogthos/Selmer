@@ -1,7 +1,12 @@
 (ns selmer.filters
-  (:require [clojure.string :as s])
+  "To create a filter use the function add-filter! which takes a name and a fn.
+The first argument to the fn is always the value obtained from the context
+map. The rest of the arguments are optional and are always strings."
+  (:require [clojure.string :as s]
+            [cheshire.core :as json :only [generate-string]])
   (:import [org.joda.time DateTime]
-           [org.joda.time.format DateTimeFormat DateTimeFormatter]))
+           [org.joda.time.format DateTimeFormat DateTimeFormatter]
+           [org.apache.commons.codec.digest DigestUtils]))
 
 ;;; TODO - maybe dont let exceptions happen in filters
 
@@ -132,9 +137,25 @@
            d))))))
 
 (add-filter!
+ :hash
+ (fn [^String s hash]
+   (case hash
+     "md5" (DigestUtils/md5Hex s)
+     "sha" (DigestUtils/shaHex s)
+     "sha256" (DigestUtils/sha256Hex s)
+     "sha384" (DigestUtils/sha384Hex s)
+     "sha512" (DigestUtils/sha512Hex s)
+     (throw (IllegalArgumentException. (str hash " is not a valid hash algorithm."))))))
+
+(add-filter!
  :join
  (fn [coll sep]
    (s/join sep coll)))
+
+(add-filter!
+ :json
+ (fn [s]
+   (json/generate-string s)))
 
 (add-filter!
  :last
