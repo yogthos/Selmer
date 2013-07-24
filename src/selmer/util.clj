@@ -1,4 +1,6 @@
-(ns selmer.util)
+(ns selmer.util
+  (:require [clojure.java.io :as io])
+  (:import java.io.File))
 
 (defn read-char [^java.io.Reader rdr]
   (let [ch (.read rdr)]
@@ -33,3 +35,11 @@
                {:tag-value (first content)}
                {:tag-name (keyword (first content))
                 :args (next content)})))))
+
+(defn resource-path
+  "returns the path to the public folder of the application"
+  [& [path]]
+  (if-let [path (io/resource (or path "."))]
+    (.getPath path)))
+
+
