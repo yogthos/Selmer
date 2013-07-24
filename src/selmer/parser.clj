@@ -1,33 +1,48 @@
 (ns selmer.parser
   (:require [selmer.filter-parser :refer [compile-filter-body]]))
 
+(set! *warn-on-reflection* true)
+
 (def ^Character tag-open \{)
 (def ^Character tag-close \})
 (def ^Character filter-open \{)
 (def ^Character filter-close \})
 (def ^Character tag-second \%)
 
+(definterface INode
+  (render ^String [^clojure.lang.IPersistentMap context-map]))
+
+(deftype FunctionNode [^clojure.lang.IFn handler]
+  INode
+  (render ^String [this ^clojure.lang.IPersistentMap context-map]
+    (handler context-map)))
+
+(deftype TextNode [text]
+  INode
+  (render ^String [this ^clojure.lang.IPersistentMap context-map]
+    text))
+
 (def templates (atom {}))
 
 (declare parse expr-tag tag-content)
 
-(defn render [template args]
+(defn render [template context-map]
   (let [buf (StringBuilder.)]
-    (doseq [element template]
-      (.append buf (if (string? element) element (element args))))
+    (doseq [^INode element template]
+      (.append buf (.render element context-map)))
     (.toString buf)))
 
-(defn render-file [filename args]
+(defn render-file [filename context-map]
   (let [{:keys [template last-modified]} (get @templates filename)
-        last-modified-file (.lastModified (java.io.File. filename))]
+        last-modified-file (.lastModified ^java.io.File (java.io.File. filename))]
     (if (and last-modified (= last-modified last-modified-file))
-      (render template args)
+      (render template context-map)
       (let [template (parse filename)]
         (swap! templates assoc filename {:template template
                                          :last-modified last-modified-file})
-        (render template args)))))
+        (render template context-map)))))
 
-(defn read-char [rdr]
+(defn read-char [^java.io.Reader rdr]
   (let [ch (.read rdr)]
     (if-not (== -1 ch) (char ch))))
 
@@ -37,7 +52,7 @@
       (let [content (apply (partial tag-content rdr) end-tags)]
         (handler args content)))))
 
-(defn for-handler [[id _ items] rdr]
+(defn for-handler [[^String id _ items] rdr]
   (let [content (:content (:endfor (tag-content rdr :endfor)))
         id (map keyword (.split id "\\."))
         items (keyword items)]    
@@ -59,7 +74,7 @@
       condition
       (:content second-block)
       
-      :else [""])
+      :else [(TextNode. "")])
     context-map))
 
 (defn if-handler [[condition] rdr]
@@ -70,9 +85,9 @@
 
 (defn ifequal-handler [args rdr]
   (let [tags (tag-content rdr :else :endifequal)
-        args (for [arg args]
+        args (for [^String arg args]
                (if (= \" (first arg)) 
-                 (.substring arg 1 (dec (count arg))) 
+                 (.substring arg 1 (dec (.length arg))) 
                  (keyword arg)))]
     (fn [context-map]
       (let [condition (apply = (map #(if (keyword? %) (% context-map) %) args))]        
@@ -105,7 +120,7 @@
                      (= tag-close ch2))
         (.append buf ch1)
         (recur ch2 (read-char rdr))))
-    (let [content (->>  (.split (.toString buf ) " ") (remove empty?) (map (memfn trim)))]
+    (let [content (->>  (.split (.toString buf ) " ") (remove empty?) (map (fn [^String s] (.trim s))))]
       (merge {:tag-type tag-type}
              (if (= :filter tag-type)
                {:tag-value (first content)}
@@ -132,23 +147,19 @@
           (if (and tag-name (some #{tag-name} end-tags))              
             (let [tags     (assoc tags tag-name 
                                   {:args args 
-                                   :content (conj content (.toString buf))})
+                                   :content (conj content (TextNode. (.toString buf)))})
                   end-tags (rest (drop-while #(not= tag-name %) end-tags))]                                
               (.setLength buf 0)
               (recur (if (empty? end-tags) nil (read-char rdr)) tags [] end-tags))
             (let [content (-> content 
-                              (conj (.toString buf))
-                              (conj (parse-tag tag rdr)))]
+                              (conj (TextNode. (.toString buf)))
+                              (conj (FunctionNode. (parse-tag tag rdr))))]
               (.setLength buf 0)
               (recur (read-char rdr) tags content end-tags))))
         :else
         (do
           (.append buf ch)
           (recur (read-char rdr) tags content end-tags))))))
-
-(defn handle-tag [rdr]
-  (let [tag (read-tag-info rdr)]
-    (parse-tag tag rdr)))
 
 (defn parse [file]
   (with-open [rdr (clojure.java.io/reader file)]
@@ -160,9 +171,9 @@
               (do
                 ;we hit a tag so we append the buffer content to the template
                 ; and empty the buffer, then we proceed to parse the tag
-                (conj! template (.toString buf))
+                (conj! template (TextNode. (.toString buf)))
                 (.setLength buf 0)
-                (conj! template (handle-tag rdr))
+                (conj! template (FunctionNode. (parse-tag (read-tag-info rdr) rdr)))
                 (recur (read-char rdr)))
               (do
                 ;default case, here we simply append the character and
@@ -170,6 +181,6 @@
                 (.append buf ch)
                 (recur (read-char rdr))))))
         ;add the leftover content of the buffer and return the template
-        (conj! template (.toString buf))
+        (conj! template (TextNode. (.toString buf)))
         (persistent! template))))
 
