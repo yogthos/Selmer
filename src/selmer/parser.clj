@@ -1,5 +1,6 @@
 (ns selmer.parser
-  (:require [selmer.filter-parser :refer [compile-filter-body]]))
+  (:require [selmer.filter-parser :refer [compile-filter-body]]
+            [selmer.util :refer :all]))
 
 (set! *warn-on-reflection* true)
 
@@ -45,17 +46,7 @@
                                          :last-modified last-modified-file})
         (render template context-map)))))
 
-(defn read-char [^java.io.Reader rdr]
-  (let [ch (.read rdr)]
-    (if-not (== -1 ch) (char ch))))
 
-(defn assoc-in*
-  "Works best for small collections seemingly."
-  [m ks v]
-  (let [k (first ks)]
-    (if (= (count ks) 0)
-      (assoc m k (assoc-in* (get m k) (next ks) v))
-      (assoc m k v))))
 
 (defn for-handler [[^String id _ items] rdr]
   (let [content (:content (:endfor (tag-content rdr :endfor)))
@@ -120,11 +111,16 @@
   (let [content (tag-content rdr :endblock)]
     (fn [args] (render content args))))
 
-(defn tag-handler [handler open-tag & end-tags]
-  (fn [args rdr]
-    (if (not-empty end-tags)
-      (let [content (apply (partial tag-content rdr) end-tags)]
-        (handler args content)))))
+#_(defn block-handler []
+  (tag-handler [context-map args content :block :endblock]
+    (render content context-map)))
+
+#_(defmacro tag-handler [handler args content open-tag & end-tags]
+  `(fn [args# rdr#]
+    (if (not-empty ~end-tags)
+      (let ['~content (apply (partial tag-content rdr#) ~end-tags)
+            '~args args#]
+        ~(handler '~context-map content)))))
 
 (def expr-tags
   {:if if-handler
