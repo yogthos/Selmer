@@ -32,6 +32,9 @@
       (.append buf (.render element context-map)))
     (.toString buf)))
 
+(defn render-string [s context-map]
+  (render (parse (java.io.StringReader. s)) context-map))
+
 (defn render-file [filename context-map]
   (let [{:keys [template last-modified]} (get @templates filename)
         last-modified-file (.lastModified (java.io.File. ^String filename))]
@@ -77,11 +80,13 @@
       :else [(TextNode. "")])
     context-map))
 
-(defn if-handler [[condition] rdr]
+(defn if-handler [[condition1 condition2] rdr]
   (let [tags (tag-content rdr :else :endif)
-        condition (keyword condition)]
+        not? (and condition1 condition2 (= condition1 "not"))
+        condition (keyword (or condition2 condition1))]    
     (fn [context-map]
-      (render-if context-map (condition context-map) (:else tags) (:endif tags)))))
+      (let [condition (condition context-map)]        
+        (render-if context-map (if not? (not condition) condition) (:else tags) (:endif tags))))))
 
 (defn ifequal-handler [args rdr]
   (let [tags (tag-content rdr :else :endifequal)
@@ -90,7 +95,7 @@
                  (.substring arg 1 (dec (.length arg))) 
                  (keyword arg)))]
     (fn [context-map]
-      (let [condition (apply = (map #(if (keyword? %) (% context-map) %) args))]        
+      (let [condition (apply = (map #(if (keyword? %) (% context-map) %) args))]
         (render-if context-map condition (:else tags) (:endifequal tags))))))
 
 (defn block-handler [args rdr]
@@ -143,12 +148,12 @@
         tags 
         
         (= tag-open ch)
-        (let [{:keys [tag-name args] :as tag} (read-tag-info rdr)]            
-          (if (and tag-name (some #{tag-name} end-tags))              
+        (let [{:keys [tag-name args] :as tag} (read-tag-info rdr)]
+          (if (and tag-name (some #{tag-name} end-tags))
             (let [tags     (assoc tags tag-name 
                                   {:args args 
                                    :content (conj content (TextNode. (.toString buf)))})
-                  end-tags (rest (drop-while #(not= tag-name %) end-tags))]                                
+                  end-tags (rest (drop-while #(not= tag-name %) end-tags))]
               (.setLength buf 0)
               (recur (if (empty? end-tags) nil (read-char rdr)) tags [] end-tags))
             (let [content (-> content 
