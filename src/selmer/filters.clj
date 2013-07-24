@@ -27,7 +27,7 @@
  (fn [x y & rest]
    (let [args (conj rest y x)]
      (try (apply +
-                 (map #(Long/valueOf %) args))
+                 (map #(Long/valueOf ^String %) args))
           (catch NumberFormatException _
             (apply str args))))))
 
@@ -82,10 +82,10 @@
 ;;; You can also format time with this.
 (add-filter!
  :date
- (fn [d fmt]
+ (fn [^DateTime d fmt]
    (when (instance? DateTime d)
-     (let [fmt (or (valid-date-formats fmt)
-                   (DateTimeFormat/forPattern fmt))]
+     (let [^DateTimeFormatter fmt (or (valid-date-formats fmt)
+                                      (DateTimeFormat/forPattern fmt))]
        (.print fmt d)))))
 
 ;;; Default if x is falsey
