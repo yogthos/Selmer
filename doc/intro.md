@@ -45,3 +45,14 @@ Provided a context of {:blah false}, it should render:
     <p>Trolololololololol</p><br><br><br><br><br><br><br><br><br>
     <!-- Do your eyes burn from un-semantic markup yet? -->
     <p>or not.</p>
+
+You should be able to test if the for loop block you're inside of is "first" or not. In future, we may want to allow arbitrary index checks:
+
+    <ul>
+    {% for item in coll %}
+    {% if forloop.first %}
+    <h1>Beginning of list</h1>
+    {% endif %}
+    <li>WHEEEEEE</li>
+    {% endfor %}
+    </ul>

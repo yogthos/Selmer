@@ -8,7 +8,7 @@
 (def nested-for-context {:users (repeat 10 user)})
 
 (deftest ^:benchmark bench-site []
-  (criterium/quick-bench
+  (criterium/bench
    (render-file "test/templates/nested-for.html"
                 nested-for-context)))
 
