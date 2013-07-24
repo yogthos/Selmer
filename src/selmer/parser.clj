@@ -49,12 +49,6 @@
   (let [ch (.read rdr)]
     (if-not (== -1 ch) (char ch))))
 
-#_(defn tag-handler [handler open-tag & end-tags]
-  (fn [args rdr]
-    (if (not-empty end-tags)
-      (let [content (apply (partial tag-content rdr) end-tags)]
-        (handler args content)))))
-
 (defn assoc-in*
   "Works best for small collections seemingly."
   [m ks v]
@@ -62,8 +56,6 @@
     (if (= (count ks) 0)
       (assoc m k (assoc-in* (get m k) (next ks) v))
       (assoc m k v))))
-
-(map-indexed vector ["foo" "Bar"])
 
 (defn for-handler [[^String id _ items] rdr]
   (let [content (:content (:endfor (tag-content rdr :endfor)))
@@ -127,6 +119,12 @@
 (defn block-handler [args rdr]
   (let [content (tag-content rdr :endblock)]
     (fn [args] (render content args))))
+
+(defn tag-handler [handler open-tag & end-tags]
+  (fn [args rdr]
+    (if (not-empty end-tags)
+      (let [content (apply (partial tag-content rdr) end-tags)]
+        (handler args content)))))
 
 (def expr-tags
   {:if if-handler
