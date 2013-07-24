@@ -161,9 +161,10 @@
   (is (= "" (render-string "{{f|upper}}" {}))))
 
 (deftest filter-date
-  (is (= ;;"1970-01-01_00:00:00"
-         "1969-12-31_18:00:00"
-         (render-string "{{f|date:\"yyyy-MM-dd_HH:mm:ss\"}}" {:f (java.util.Date. (long 0))}))))
+  (let [date (java.util.Date.)]
+    (is (= ;;"1970-01-01_00:00:00"
+          (.format (java.text.SimpleDateFormat. "yyyy-MM-dd_HH:mm:ss") date)
+           (render-string "{{f|date:\"yyyy-MM-dd_HH:mm:ss\"}}" {:f date})))))
 
 (deftest filter-hash-md5
   (is (= "acbd18db4cc2f85cedef654fccc4a4d8"
