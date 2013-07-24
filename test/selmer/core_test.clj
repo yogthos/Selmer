@@ -4,6 +4,12 @@
 
 (def path (str "test" File/separator "templates" File/separator))
 
+(deftest custom-tags
+  (render-string "[% for ele in foo %]<<[{ele}]>>[%endfor%]"
+                 {:foo [1 2 3]}
+                 {:tag-open \[
+                  :tag-close \]}))
+
 (deftest test-for
   (is (= (render-string "{% for ele in foo %}<<{{ele}}>>{%endfor%}"
                  {:foo [1 2 3]})

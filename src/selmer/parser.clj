@@ -3,44 +3,44 @@
 
 (set! *warn-on-reflection* true)
 
-(def ^Character tag-open \{)
-(def ^Character tag-close \})
-(def ^Character filter-open \{)
-(def ^Character filter-close \})
-(def ^Character tag-second \%)
+(def ^:dynamic ^Character *tag-open* \{)
+(def ^:dynamic ^Character *tag-close* \})
+(def ^:dynamic ^Character *filter-open* \{)
+(def ^:dynamic ^Character *filter-close* \})
+(def ^:dynamic ^Character *tag-second* \%)
 
 (defprotocol INode
-  (render [this context-map] "Renders the context"))
+  (render-node [this context-map] "Renders the context"))
 
 (deftype FunctionNode [handler]
   INode
-  (render ^String [this context-map]
+  (render-node ^String [this context-map]
     (handler context-map)))
 
 (deftype TextNode [text]
   INode
-  (render ^String [this context-map]
+  (render-node ^String [this context-map]
     text))
 
 (def templates (atom {}))
 
 (declare parse expr-tag tag-content)
 
-(defn render [template context-map]
+(defn render [template context-map]  
   (let [buf (StringBuilder.)]
     (doseq [^selmer.parser.INode element template]
-      (.append buf (.render element context-map)))
+        (.append buf (.render-node element context-map)))
     (.toString buf)))
 
-(defn render-string [s context-map]
-  (render (parse (java.io.StringReader. s)) context-map))
+(defn render-string [s context-map & [opts]]
+  (render (parse (java.io.StringReader. s) opts) context-map))
 
-(defn render-file [filename context-map]
+(defn render-file [filename context-map & [opts]]
   (let [{:keys [template last-modified]} (get @templates filename)
         last-modified-file (.lastModified (java.io.File. ^String filename))]
     (if (and last-modified (= last-modified last-modified-file))
       (render template context-map)
-      (let [template (parse filename)]
+      (let [template (parse filename opts)]
         (swap! templates assoc filename {:template template
                                          :last-modified last-modified-file})
         (render template context-map)))))
@@ -126,11 +126,11 @@
 
 (defn read-tag-info [rdr]
   (let [buf (StringBuilder.)
-        tag-type (if (= filter-open (read-char rdr)) :filter :expr)]
+        tag-type (if (= *filter-open* (read-char rdr)) :filter :expr)]
     (loop [ch1 (read-char rdr)
            ch2 (read-char rdr)]
-      (when-not (and (or (= filter-close ch1) (= tag-second ch1))
-                     (= tag-close ch2))
+      (when-not (and (or (= *filter-close* ch1) (= *tag-second* ch1))
+                     (= *tag-close* ch2))
         (.append buf ch1)
         (recur ch2 (read-char rdr))))
     (let [content (->>  (.split (.toString buf ) " ") (remove empty?) (map (fn [^String s] (.trim s))))]
@@ -155,7 +155,7 @@
         (nil? ch)
         tags 
         
-        (= tag-open ch)
+        (= *tag-open* ch)
         (let [{:keys [tag-name args] :as tag} (read-tag-info rdr)]
           (if (and tag-name (some #{tag-name} end-tags))
             (let [tags     (assoc tags tag-name 
@@ -174,13 +174,13 @@
           (.append buf ch)
           (recur (read-char rdr) tags content end-tags))))))
 
-(defn parse [file]
+(defn parse* [file]
   (with-open [rdr (clojure.java.io/reader file)]
       (let [template (transient [])
             buf      (StringBuilder.)]
         (loop [ch (read-char rdr)]
           (when ch
-            (if (= tag-open ch)
+            (if (= *tag-open* ch)
               (do
                 ;we hit a tag so we append the buffer content to the template
                 ; and empty the buffer, then we proceed to parse the tag
@@ -196,4 +196,12 @@
         ;add the leftover content of the buffer and return the template
         (conj! template (TextNode. (.toString buf)))
         (persistent! template))))
+
+(defn parse [file & [{:keys [tag-open tag-close filter-open filter-close tag-second]}]]
+  (binding [*tag-open*     (or tag-open *tag-open*)
+            *tag-close*    (or tag-close *tag-close*)
+            *filter-open*  (or filter-open *filter-open*)
+            *filter-close* (or filter-close *filter-close*)
+            *tag-second*   (or tag-second *tag-second*)]
+    (parse* file)))
 
