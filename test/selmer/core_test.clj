@@ -9,6 +9,11 @@
     (render (parse (str path "nested-for.html")) 
             {:name "Bob" :users [[{:name "test" }] [{:name "test1" }]]})))
 
+(deftest render-test
+  (= "<ul><li>0</li><li>1</li><li>2</li><li>3</li><li>4</li></ul>"
+     (render (parse (java.io.StringReader. "<ul>{% for item in items %}<li>{{item}}</li>{% endfor %}</ul>"))
+             {:items (range 5)})))
+
 (deftest tag-info-test
   (= {:args ["i" "in" "nums"], :tag-name :for, :tag-type :expr}
      (read-tag-info (java.io.StringReader. "% for i in nums %}")))
@@ -32,8 +37,6 @@
      (render (parse (str path "ifequal.html")) {:baz "test"}))
   (= "\n\n<h1>equal!</h1>\n\n\n<p>not equal</p>\n"
      (render (parse (str path "ifequal.html")) {:baz "fail"})))
-
-;(render (parse (str path "if.html")) {:foo true :range (range 4)})
 
 (deftest filter-tag-test
   (= "ok"

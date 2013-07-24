@@ -124,7 +124,7 @@
            content  []
            end-tags end-tags]
       (cond 
-        (empty? end-tags)
+        (nil? ch)
         tags 
         
         (= tag-open ch)
@@ -135,7 +135,7 @@
                                    :content (conj content (.toString buf))})
                   end-tags (rest (drop-while #(not= tag-name %) end-tags))]                                
               (.setLength buf 0)
-              (recur (read-char rdr) tags [] end-tags))
+              (recur (if (empty? end-tags) nil (read-char rdr)) tags [] end-tags))
             (let [content (-> content 
                               (conj (.toString buf))
                               (conj (parse-tag tag rdr)))]
