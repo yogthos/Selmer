@@ -64,6 +64,10 @@ map. The rest of the arguments are optional and are always strings."
       s
       (apply str (repeat r \space))))))
 
+(add-filter!
+ :count
+ count)
+
 (def valid-date-formats
   {"shortDate"       (DateTimeFormat/shortDate)
    "shortTime"       (DateTimeFormat/shortTime)
@@ -79,19 +83,28 @@ map. The rest of the arguments are optional and are always strings."
    "fullDateTime"    (DateTimeFormat/fullDateTime)
    })
 
-;;; Format a date, expects an instance of DateTime (Joda Time).
+;;; Format a date, expects an instance of DateTime (Joda Time) or Date.
 ;;; The format can be a key from valid-date-formats or a manually defined format
 ;;; Look in
 ;;; http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
 ;;; for formatting help.
 ;;; You can also format time with this.
+(defn ^DateTime fix-date
+  [d]
+  (cond (instance? DateTime d) d
+        (instance? java.util.Date d) (DateTime. d)
+        :else
+        (try (DateTime. d)
+             (catch Exception _
+               (throw (IllegalArgumentException. (str d " is not a valid date format.")))))))
+
 (add-filter!
  :date
- (fn [^DateTime d fmt]
-   (when (instance? DateTime d)
-     (let [^DateTimeFormatter fmt (or (valid-date-formats fmt)
-                                      (DateTimeFormat/forPattern fmt))]
-       (.print fmt d)))))
+ (fn [d fmt]
+   (let [fixed-date (fix-date d)
+         ^DateTimeFormatter fmt (or (valid-date-formats fmt)
+                                    (DateTimeFormat/forPattern fmt))]
+     (.print fmt fixed-date))))
 
 ;;; Default if x is falsey
 (add-filter!
@@ -203,7 +216,9 @@ map. The rest of the arguments are optional and are always strings."
 
 (add-filter!
  :lower
- s/lower-case)
+ (fn [s]
+   (when s
+     (s/lower-case s))))
 
 ;;; Use like the following:
 ;;; You have {{ num-cherries }} cherr{{ num-cherries|pluralize:y:ies }}
@@ -211,8 +226,9 @@ map. The rest of the arguments are optional and are always strings."
 ;;; You have {{ num-messages }} message{{ num-messages|pluralize }}
 (add-filter!
  :pluralize
- (fn [n & opts]
-   (let [plural (case (count opts)
+ (fn [n-or-coll & opts]
+   (let [n (if (number? n-or-coll) n-or-coll (count n-or-coll))
+         plural (case (count opts)
                   0 "s"
                   1 (first opts)
                   2 (second opts))
@@ -276,4 +292,6 @@ map. The rest of the arguments are optional and are always strings."
 
 (add-filter!
  :upper
- s/upper-case)
+ (fn [s]
+   (when s
+     (s/upper-case s))))
