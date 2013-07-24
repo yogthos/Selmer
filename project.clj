@@ -1,4 +1,4 @@
-(defproject selmer "0.1.2-SNAPSHOT"
+(defproject selmer "0.1.4-SNAPSHOT"
   :description "Django templates in clojure"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -9,5 +9,4 @@
   :test-selectors {:default (complement :benchmark)
                    :benchmark :benchmark
                    :all (constantly true)}
-  ;; :aot :all
-  :warn-on-reflection true)
+  :global-vars {*warn-on-reflection* true})

@@ -55,6 +55,14 @@
       (let [content (apply (partial tag-content rdr) end-tags)]
         (handler args content)))))
 
+(defn assoc-in*
+  "Works best for small collections seemingly."
+  [m ks v]
+  (let [k (first ks)]
+    (if (= (count ks) 0)
+      (assoc m k (assoc-in* (get m k) (next ks) v))
+      (assoc m k v))))
+
 (defn for-handler [[^String id _ items] rdr]
   (let [content (:content (:endfor (tag-content rdr :endfor)))
         id (map keyword (.split id "\\."))
@@ -130,7 +138,7 @@
              (if (= :filter tag-type)
                {:tag-value (first content)}
                {:tag-name (keyword (first content))
-                :args (rest content)})))))
+                :args (next content)})))))
 
 (defn parse-tag [{:keys [tag-type] :as tag} rdr]
   (if (= :filter tag-type)
@@ -153,7 +161,7 @@
             (let [tags     (assoc tags tag-name 
                                   {:args args 
                                    :content (conj content (TextNode. (.toString buf)))})
-                  end-tags (rest (drop-while #(not= tag-name %) end-tags))]
+                  end-tags (next (drop-while #(not= tag-name %) end-tags))]
               (.setLength buf 0)
               (recur (if (empty? end-tags) nil (read-char rdr)) tags [] end-tags))
             (let [content (-> content 
