@@ -8,6 +8,8 @@ Selmer is an attempt at bringing the nice, convenient, productive templating exp
 
 This is going to be an unusually high priority. Templating performance issues have been substantial enough in the past to force us to start this repository. Ideally, the line should end here and performance issues shouldn't be a problem for virtually all web applications.
 
+We're currently aiming for Stencil'ish performance and seem to be within range of that at the moment.
+
 ### Why
 
 Server-side templating still matters. Server-side rendered content is still useful and necessary and not every website is destined to be a single-page application. Even in cases where a SPA is presumed, having partially rendered content can improve the experience for your users.
@@ -22,7 +24,7 @@ The context provided for the rendering of the template should be in the form of 
 
 ### Basic functionality
 
-{:title "my value"} and a template looking like:
+Given context {:title "my value"} and a template looking like:
 
     <h1>{{title}}</h1>
 
