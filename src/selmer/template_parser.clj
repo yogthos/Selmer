@@ -8,7 +8,7 @@
   templates)
 
 (defn handle-extends [template templates path]    
-  (preprocess-template path (update-in templates [template :extends] conj path)))
+  (preprocess-template path (assoc-in templates [template :extends] path)))
 
 (defn handle-block [template templates block-name]
   (update-in templates [template :blocks] conj block-name))
