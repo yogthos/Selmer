@@ -80,11 +80,13 @@
       :else [(TextNode. "")])
     context-map))
 
-(defn if-handler [[condition] rdr]
+(defn if-handler [[condition1 condition2] rdr]
   (let [tags (tag-content rdr :else :endif)
-        condition (keyword condition)]
+        not? (and condition1 condition2 (= condition1 "not"))
+        condition (keyword (or condition2 condition1))]    
     (fn [context-map]
-      (render-if context-map (condition context-map) (:else tags) (:endif tags)))))
+      (let [condition (condition context-map)]        
+        (render-if context-map (if not? (not condition) condition) (:else tags) (:endif tags))))))
 
 (defn ifequal-handler [args rdr]
   (let [tags (tag-content rdr :else :endifequal)
