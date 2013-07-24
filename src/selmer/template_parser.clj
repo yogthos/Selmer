@@ -8,13 +8,12 @@
   templates)
 
 (defn handle-extends [template templates path]    
-  (update-in templates [template :extends] conj path))
+  (preprocess-template path (update-in templates [template :extends] conj path)))
 
 (defn handle-block [template templates path]
   templates)
 
-(defn get-template-path [[^String path]]
-  (println path)
+(defn get-template-path [[^String path]]  
   (when path 
     (.substring path 1 (dec (.length path)))))
 
@@ -45,4 +44,4 @@
           (read-char rdr))
         templates))))
 
-(preprocess-template "templates/inheritance/inherit-c.html")
+#_(preprocess-template "templates/inheritance/inherit-c.html")
