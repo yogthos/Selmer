@@ -34,7 +34,7 @@
 
 (defn render-file [filename context-map]
   (let [{:keys [template last-modified]} (get @templates filename)
-        last-modified-file (.lastModified ^java.io.File (java.io.File. filename))]
+        last-modified-file (.lastModified ^java.io.File (java.io.File. ^String filename))]
     (if (and last-modified (= last-modified last-modified-file))
       (render template context-map)
       (let [template (parse filename)]

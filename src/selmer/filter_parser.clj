@@ -3,15 +3,13 @@
             [clojure.string :as s]))
 
 ;;; More Utils
-(defn escape-html*
-  [s]
+(defn escape-html* [^String s]
   "HTML-escapes the given string."
-  [^String s]
   ;; This method is "Java in Clojure" for serious speedups.
   ;; Stolen from davidsantiago/quoin and modified.
   (let [sb (StringBuilder.)
-        slength (long (count s))]
-    (loop [idx (long 0)]
+        slength (count s)]
+    (loop [idx 0]
       (if (>= idx slength)
         (.toString sb)
         (let [c (char (.charAt s idx))]
@@ -20,8 +18,6 @@
             \< (.append sb "&lt;")
             \> (.append sb "&gt;")
             \" (.append sb "&quot;")
-            \™ (.append sb "&trade;")
-            \é (.append sb "&eacute;")
             (.append sb c))
           (recur (inc idx)))))))
 

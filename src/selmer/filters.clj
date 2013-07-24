@@ -122,7 +122,7 @@
  :get-digit
  (fn [n i]
    (let [nv (vec (str n))
-         i (Long/valueOf i)
+         i (Long/valueOf ^String i)
          i (- (count nv) i)]
      (if (or (< i 0) (>= i (count nv)))
        n
@@ -151,7 +151,7 @@
 (add-filter!
  :length-is
  (fn [coll n]
-   (let [n (Long/valueOf n)]
+   (let [n (Long/valueOf ^String n)]
      (= n (count coll)))))
 
 ;;; Single newlines become <br />, double newlines mean new paragraph
