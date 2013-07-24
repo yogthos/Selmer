@@ -3,7 +3,8 @@
             [clojure.string :as s]))
 
 ;;; More Utils
-(defn escape-html* [^String s]
+(defn escape-html*
+  [^String s]
   "HTML-escapes the given string."
   ;; This method is "Java in Clojure" for serious speedups.
   ;; Stolen from davidsantiago/quoin and modified.
@@ -54,9 +55,7 @@
   [args]
   ;; TODO - figure out what kind of extra args filters can take
   (map (fn [^String s]
-         (try (Long/valueOf s)
-              (catch NumberFormatException _
-                (strip-doublequotes s))))
+         (strip-doublequotes s))
        args))
 
 (defn filter-str->fn
