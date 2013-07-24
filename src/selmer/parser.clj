@@ -63,14 +63,25 @@
       (assoc m k (assoc-in* (get m k) (next ks) v))
       (assoc m k v))))
 
+(map-indexed vector ["foo" "Bar"])
+
 (defn for-handler [[^String id _ items] rdr]
   (let [content (:content (:endfor (tag-content rdr :endfor)))
         id (map keyword (.split id "\\."))
         items (keyword items)]    
     (fn [context-map]
-      (let [buf (StringBuilder.)]
-        (doseq [value (get context-map items)]
-          (.append buf (render content (assoc-in context-map id value))))
+      (let [buf (StringBuilder.)
+            items (get context-map items)
+            length (count items)]
+        (doseq [[counter value] (map-indexed vector items)]
+          (->> (assoc (assoc-in context-map id value)
+                      :forloop
+                      {:counter0 counter
+                       :counter (inc counter)
+                       :revcounter (- length (inc counter))
+                       :revcounter0 (- length counter)})               
+               (render content)
+               (.append buf)))
         (.toString buf)))))
 
 (defn render-if [context-map condition first-block second-block]  

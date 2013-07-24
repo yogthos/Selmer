@@ -13,7 +13,10 @@
 (deftest test-for
   (is (= (render-string "{% for ele in foo %}<<{{ele}}>>{%endfor%}"
                  {:foo [1 2 3]})
-         "<<1>><<2>><<3>>")))
+         "<<1>><<2>><<3>>"))
+  (is (= (render-string "{% for ele in foo %}{{ele}}-{{forloop.counter}}-{{forloop.counter0}}-{{forloop.revcounter}}-{{forloop.revcounter0}};{%endfor%}"
+                 {:foo [1 2 3]})
+         "1-1-0-2-3;2-2-1-1-2;3-3-2-0-1;")))
 
 (deftest nested-for-test
   (= "<html>\n<body>\n<ul>\n\n\t<li>\n\t\n\ttest\n\t\t</li>\n\n\t<li>\n\t\n\ttest1\n\t\t</li>\n\n</ul>\n</body>\n</html>"
