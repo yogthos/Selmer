@@ -33,10 +33,7 @@
       
       templates)))
 
-(defn find-block [template parent-template block-name]
-  )
-
-(defn fill-blocks [template templates block-map]
+(defn find-block [template templates block-map]
   (println template block-map)
   (let [blocks (difference (set (get-in templates [template :blocks]))
                            (set (keys block-map)))
@@ -64,4 +61,4 @@
 #_(let [template "templates/inheritance/inherit-c.html"
         templates (preprocess-template template)]
     (find-root template templates)
-    (fill-blocks template templates {}))
+    (find-block template templates {}))
