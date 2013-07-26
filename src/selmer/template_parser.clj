@@ -43,7 +43,7 @@
           (read-char rdr))
         templates))))
 
-(defn consume-block [rdr & [buf]]
+(defn consume-block [rdr & [^StringBuilder buf]]
   (loop [ch (read-char rdr)
          blocks-to-close 1]
     (when (and (pos? blocks-to-close) ch)
@@ -51,12 +51,13 @@
         (let [content (read-tag-content rdr)]
           (when buf (.append buf content))
           (recur (read-char rdr) 
-                 (cond 
-                   (re-matches #"\{\%\s*block.*" content)
-                   (inc blocks-to-close)
-                   (re-matches #"\{\%\s*endblock.*" content)
-                   (dec blocks-to-close)
-                   :else blocks-to-close)))
+                 (long 
+                   (cond 
+                     (re-matches #"\{\%\s*block.*" content)
+                     (inc blocks-to-close)
+                     (re-matches #"\{\%\s*endblock.*" content)
+                     (dec blocks-to-close)
+                     :else blocks-to-close))))
         (do
           (when buf (.append buf ch))
           (recur (read-char rdr) blocks-to-close))))))
@@ -144,7 +145,7 @@
           (let [tag-str (read-tag-content rdr)]            
             (.append buf 
               (if (re-matches #"\{\%\s*include.*" tag-str)
-                (preprocess-template (.replaceAll (get-tag-name #"include" tag-str) "\"" ""))
+                (preprocess-template (.replaceAll ^String (get-tag-name #"include" tag-str) "\"" ""))
               tag-str)))
           (.append buf ch))
         (recur (read-char rdr)))))))
