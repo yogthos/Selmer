@@ -34,7 +34,7 @@
 (defn find-template-dependencies [filename & [templates]]
   (with-open [rdr (reader (str (resource-path) filename))]
     (loop [templates (assoc (or templates {}) filename {})
-           ch       (read-char rdr)]
+           ch        (read-char rdr)]
       (if ch                  
         (recur
           (if (= *tag-open* ch)
@@ -43,13 +43,12 @@
           (read-char rdr))
         templates))))
 
-(defn consume-block [rdr & [buf]]  
+(defn consume-block [rdr & [buf]]
   (loop [ch (read-char rdr)
          blocks-to-close 1]
-    (when (and (pos? blocks-to-close) ch)      
-      
+    (when (and (pos? blocks-to-close) ch)
       (if (= *tag-open* ch)
-        (let [content (read-tag-content rdr)]          
+        (let [content (read-tag-content rdr)]
           (when buf (.append buf content))
           (recur (read-char rdr) 
                  (cond 
@@ -76,7 +75,9 @@
                   
                   (and (re-matches #"\{%\s*block.*" tag-str)
                        (= block-name (get-tag-name #"block" tag-str)))
-                  (.append buf (->buf [block-buf] (consume-block rdr block-buf)))
+                  (do
+                    (.append buf tag-str)
+                    (.append buf (->buf [block-buf] (consume-block rdr block-buf))))
                   
                   :else
                   (.append buf tag-str)))
@@ -108,7 +109,7 @@
          (when ch                            
            (->> 
              (if (= *tag-open* ch) (read-tag-str rdr filename blocks) ch)
-             (.append buf))            
+             (.append buf))           
            (recur (read-char rdr)))))))
 
 (defn find-blocks [template templates block-map]  
@@ -151,3 +152,4 @@
 
 #_(println "\n-----------\n" (preprocess-template "templates/inheritance/inherit-c.html"))
 
+(println "\n-----------\n" (preprocess-template "templates/inheritance/inherit-b.html"))
