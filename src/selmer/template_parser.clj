@@ -5,7 +5,7 @@
             [clojure.string :refer [split trim]])
   (:import java.io.StringReader))
 
-(declare find-template-dependencies insert-includes preprocess-template)
+(declare read-tag-str replace-block find-template-dependencies insert-includes preprocess-template)
 
 (defn get-tag-name [tag-id block-str]
   (-> block-str (split tag-id) second (split #"%") first trim))
@@ -43,12 +43,14 @@
           (read-char rdr))
         templates))))
 
-(defn consume-block [rdr]  
+(defn consume-block [rdr & [buf]]  
   (loop [ch (read-char rdr)
          blocks-to-close 1]
-    (when (and (pos? blocks-to-close) ch)
+    (when (and (pos? blocks-to-close) ch)      
+      
       (if (= *tag-open* ch)
-        (let [content (read-tag-content rdr)]            
+        (let [content (read-tag-content rdr)]          
+          (when buf (.append buf content))
           (recur (read-char rdr) 
                  (cond 
                    (re-matches #"\{\%\s*block.*" content)
@@ -56,38 +58,58 @@
                    (re-matches #"\{\%\s*endblock.*" content)
                    (dec blocks-to-close)
                    :else blocks-to-close)))
-        (recur (read-char rdr) blocks-to-close)))))
+        (do
+          (when buf (.append buf ch))
+          (recur (read-char rdr) blocks-to-close))))))
 
-(defn replace-block [rdr block-name block-template]
-  (println "injecting block" block-name "from" block-template)
-  (consume-block rdr))
+(defn read-block [block-name blocks]
+  (let [block-template (get blocks block-name)]
+    (->buf [buf]
+      (with-open [rdr (reader (str (resource-path) block-template))]
+        (loop [ch (read-char rdr)]
+          (when ch 
+            (if (= *tag-open* ch) 
+              (let [tag-str (read-tag-content rdr)]
+                (cond
+                  (re-matches #"\{%\s*extends.*" tag-str)
+                  (.append buf "")
+                  
+                  (and (re-matches #"\{%\s*block.*" tag-str)
+                       (= block-name (get-tag-name #"block" tag-str)))
+                  (.append buf (->buf [block-buf] (consume-block rdr block-buf)))
+                  
+                  :else
+                  (.append buf tag-str)))
+              (.append buf ch))
+            (recur (read-char rdr))))))))
+
+(defn replace-block [rdr block-name blocks]  
+  (consume-block rdr)
+  (read-block block-name blocks))
 
 (defn read-tag-str [rdr template blocks]
-  (let [tag-str (read-tag-content rdr)]
-    (println tag-str)
+  (let [tag-str (read-tag-content rdr)]    
     (cond 
       (re-matches #"\{%\s*block.*" tag-str)
       (let [block-name     (get-tag-name #"block" tag-str)
             block-template (get blocks block-name)]
         (if (not= block-template template)
-          (replace-block rdr block-name block-template)
+          (replace-block rdr block-name blocks)
           tag-str))
       
       (re-matches #"\{%\s*extends.*" tag-str) ""
       
       :else tag-str)))
 
-
 (defn fill-blocks [filename blocks]
-  (let [buf (StringBuilder.)]
-    (with-open [rdr (reader (str (resource-path) filename))]
-      (loop [ch (read-char rdr)]
-        (when ch                            
-          (->> 
-            (if (= *tag-open* ch) (read-tag-str rdr filename blocks) ch)
-            (.append buf ))            
-          (recur (read-char rdr))))
-      (.toString buf))))
+  (->buf [buf]
+     (with-open [rdr (reader (str (resource-path) filename))]
+       (loop [ch (read-char rdr)]
+         (when ch                            
+           (->> 
+             (if (= *tag-open* ch) (read-tag-str rdr filename blocks) ch)
+             (.append buf))            
+           (recur (read-char rdr)))))))
 
 (defn find-blocks [template templates block-map]  
   (let [blocks (difference (set (get-in templates [template :blocks]))
@@ -104,7 +126,7 @@
 (defn insert-includes
   "parse any included templates and splice them in replacing the include tags"
   [template] 
-  (let [buf (StringBuilder.)]
+  (->buf [buf]
     (with-open [rdr (reader (StringReader. template))]
     (loop [ch (read-char rdr)]
       (when ch
@@ -115,8 +137,7 @@
                 (preprocess-template (.replaceAll (get-tag-name #"include" tag-str) "\"" ""))
               tag-str)))
           (.append buf ch))
-        (recur (read-char rdr))))
-    (.toString buf))))
+        (recur (read-char rdr)))))))
 
 (defn preprocess-template [filename]
   (let [templates (find-template-dependencies filename)
@@ -128,5 +149,5 @@
 
 
 
-#_(preprocess-template "templates/inheritance/inherit-c.html")
+#_(println "\n-----------\n" (preprocess-template "templates/inheritance/inherit-c.html"))
 

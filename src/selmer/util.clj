@@ -36,15 +36,18 @@
                {:tag-name (keyword (first content))
                 :args (next content)})))))
 
+(defmacro ->buf [[buf] & body]
+  `(let [~buf (StringBuilder.)]
+    (do ~@body)
+    (.toString ~buf)))
+
 (defn read-tag-content [rdr]
-  (let [buf (StringBuilder.)]
+  (->buf [buf]
     (.append buf *tag-open*)
-    (loop [ch (read-char rdr)]
-      
+    (loop [ch (read-char rdr)]      
       (.append buf ch)
       (when (not= *tag-close* ch)
-        (recur (read-char rdr))))
-    (.toString buf)))
+        (recur (read-char rdr))))))
 
 (defn resource-path
   "returns the path to the public folder of the application"
