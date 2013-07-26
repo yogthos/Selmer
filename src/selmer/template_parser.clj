@@ -61,32 +61,41 @@
           (when buf (.append buf ch))
           (recur (read-char rdr) blocks-to-close))))))
 
-(defn read-block [block-name blocks]
-  (let [block-template (get blocks block-name)]
-    (->buf [buf]
-      (with-open [rdr (reader (str (resource-path) block-template))]
-        (loop [ch (read-char rdr)]
-          (when ch 
-            (if (= *tag-open* ch) 
-              (let [tag-str (read-tag-content rdr)]
-                (cond
-                  (re-matches #"\{%\s*extends.*" tag-str)
-                  (.append buf "")
-                  
-                  (and (re-matches #"\{%\s*block.*" tag-str)
-                       (= block-name (get-tag-name #"block" tag-str)))
-                  (do
-                    (.append buf tag-str)
-                    (.append buf (->buf [block-buf] (consume-block rdr block-buf))))
-                  
+(defn read-block [block-template block-name blocks]
+  (->buf [buf]
+    (with-open [rdr (reader (str (resource-path) block-template))]
+      (loop [ch (read-char rdr)]
+        (when ch 
+          (if (= *tag-open* ch) 
+            (let [tag-str (read-tag-content rdr)]
+              (cond
+                (re-matches #"\{%\s*extends.*" tag-str)
+                (.append buf "")
+                
+                (and (re-matches #"\{%\s*block.*" tag-str)
+                     (= block-name (get-tag-name #"block" tag-str)))
+                (do
+                  (.append buf tag-str)
+                  (.append buf (->buf [block-buf] (consume-block rdr block-buf))))
+                
                   :else
                   (.append buf tag-str)))
-              (.append buf ch))
-            (recur (read-char rdr))))))))
+            (.append buf ch))
+          (recur (read-char rdr)))))))
 
 (defn replace-block [rdr block-name blocks]  
   (consume-block rdr)
-  (read-block block-name blocks))
+  (let [block-template (get blocks block-name)
+        replacement-block (read-block block-template block-name blocks)]
+    (with-open [rdr (StringReader. replacement-block)]
+      (->buf [buf]
+        (loop [ch (read-char rdr)]
+          (when ch
+            (.append buf
+              (if (= *tag-open* ch)
+                (read-tag-str rdr block-template blocks)
+                ch))
+            (recur (read-char rdr))))))))
 
 (defn read-tag-str [rdr template blocks]
   (let [tag-str (read-tag-content rdr)]    
@@ -152,4 +161,4 @@
 
 #_(println "\n-----------\n" (preprocess-template "templates/inheritance/inherit-c.html"))
 
-(println "\n-----------\n" (preprocess-template "templates/inheritance/inherit-b.html"))
+#_(println "\n-----------\n" (preprocess-template "templates/inheritance/inherit-b.html"))
