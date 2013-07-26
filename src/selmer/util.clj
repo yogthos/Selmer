@@ -36,6 +36,16 @@
                {:tag-name (keyword (first content))
                 :args (next content)})))))
 
+(defn read-tag-content [rdr]
+  (let [buf (StringBuilder.)]
+    (.append buf *tag-open*)
+    (loop [ch (read-char rdr)]
+      
+      (.append buf ch)
+      (when (not= *tag-close* ch)
+        (recur (read-char rdr))))
+    (.toString buf)))
+
 (defn resource-path
   "returns the path to the public folder of the application"
   [& [path]]
