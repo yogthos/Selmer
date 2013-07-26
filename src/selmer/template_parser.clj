@@ -12,19 +12,17 @@
 
 (defn handle-includes
   "parse any included templates and splice them in replacing the include tags"
-  [template]  
+  [template] 
   (let [buf (StringBuilder.)]
     (with-open [rdr (reader (StringReader. template))]
     (loop [ch (read-char rdr)]
       (when ch
         (if (= *tag-open* ch)
-          (let [tag-str (read-tag-content rdr)]
-            (println tag-str)
-            (if (re-matches #"\{\%\s*include.*" tag-str)
-              (do
-                (println "got include" (.replaceAll (get-tag-name #"include" tag-str) "\"" ""))
-                (find-template-dependencies (.replaceAll (get-tag-name #"include" tag-str) "\"" "")))
-              (.append buf tag-str)))
+          (let [tag-str (read-tag-content rdr)]            
+            (.append buf 
+              (if (re-matches #"\{\%\s*include.*" tag-str)
+                (preprocess-template (.replaceAll (get-tag-name #"include" tag-str) "\"" ""))
+              tag-str)))
           (.append buf ch))
         (recur (read-char rdr))))
     (.toString buf))))
@@ -120,10 +118,13 @@
           (read-char rdr))
         templates))))
 
-#_(let [template "templates/inheritance/inherit-c.html"
-        templates (find-template-dependencies template)
-        blocks (find-blocks template templates {})]
-    (-> template
+(defn preprocess-template [filename]
+  (let [templates (find-template-dependencies filename)
+        blocks (find-blocks filename templates {})]
+    (-> filename
         (find-root templates)
         (fill-blocks blocks)
-        handle-includes))
+        handle-includes)))
+
+#_(preprocess-template "templates/inheritance/inherit-c.html")
+
