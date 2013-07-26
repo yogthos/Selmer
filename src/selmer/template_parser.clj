@@ -51,25 +51,19 @@
       templates)))
 
 (defn consume-block [rdr]  
-  (let [iters (atom 0)]
-    (loop [ch (read-char rdr)
-           blocks-to-close 1]
-      (when (and (pos? blocks-to-close) (< @iters 20) ch)
-        (println ch "to close:" blocks-to-close)
-        (swap! iters inc)
-        (if (= *tag-open* ch)
-          (let [content (read-tag-content rdr)]
-            (println "ch" ch "tag content:" content  
-                     "\nblock?" (re-matches #"\{\%\s*block.*" content) 
-                     "\nendblock?" (re-matches #"\{\%\s*endblock.*" content))
-            (recur (read-char rdr) 
-                   (cond 
-                     (re-matches #"\%\s*block.*" content)
-                     (inc blocks-to-close)
-                     (re-matches #"\%\s*endblock.*" content)
-                     (dec blocks-to-close)
-                     :else blocks-to-close)))
-          (recur (read-char rdr) blocks-to-close))))))
+  (loop [ch (read-char rdr)
+         blocks-to-close 1]
+    (when (and (pos? blocks-to-close) ch)
+      (if (= *tag-open* ch)
+        (let [content (read-tag-content rdr)]            
+          (recur (read-char rdr) 
+                 (cond 
+                   (re-matches #"\{\%\s*block.*" content)
+                   (inc blocks-to-close)
+                   (re-matches #"\{\%\s*endblock.*" content)
+                   (dec blocks-to-close)
+                   :else blocks-to-close)))
+        (recur (read-char rdr) blocks-to-close)))))
 
 (defn replace-block [rdr block-name block-template]
   (println "injecting block" block-name "from" block-template)
