@@ -1,5 +1,6 @@
 (ns selmer.parser
-  (:require [selmer.filter-parser :refer [compile-filter-body]]
+  (:require [selmer.template-parser :refer [preprocess-template]]
+            [selmer.filter-parser :refer [compile-filter-body]]
             [selmer.util :refer :all]))
 
 (set! *warn-on-reflection* true)
@@ -19,7 +20,7 @@
 
 (def templates (atom {}))
 
-(declare parse expr-tag tag-content)
+(declare parse parse-file expr-tag tag-content)
 
 (defn render [template context-map]  
   (let [buf (StringBuilder.)]
@@ -35,7 +36,7 @@
         last-modified-file (.lastModified (java.io.File. ^String filename))]
     (if (and last-modified (= last-modified last-modified-file))
       (render template context-map)
-      (let [template (parse filename opts)]
+      (let [template (parse-file filename opts)]
         (swap! templates assoc filename {:template template
                                          :last-modified last-modified-file})
         (render template context-map)))))
@@ -194,3 +195,5 @@
             *tag-second*   (or tag-second *tag-second*)]
     (parse* file)))
 
+(defn parse-file [file & [{:keys [tag-open tag-close filter-open filter-close tag-second]}]]
+  (-> file preprocess-template (java.io.StringReader.) parse*))
