@@ -13,13 +13,13 @@
 (deftest ^:benchmark bench-for-typical []
   (println "BENCH: bench-for-typical")
   (criterium/quick-bench
-   (render-file "test/templates/nested-for.html"
+   (render-file "templates/nested-for.html"
                 nested-for-context)))
 
 (deftest ^:benchmark bench-for-huge []
   (println "BENCH: bench-for-huge")
   (criterium/quick-bench
-   (render-file "test/templates/nested-for.html"
+   (render-file "templates/nested-for.html"
                 big-for-context)))
 
 (deftest ^:benchmark bench-assoc-in []
