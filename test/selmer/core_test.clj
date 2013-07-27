@@ -66,6 +66,9 @@
 
 (deftest if-tag-test
   (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"foo\"\n"
+     (render (parse (str path "if.html")) {:nested "x" :inner "y"}))
+  
+  (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"foo\"\n"
      (render (parse (str path "if.html")) {:user-id "bob"}))  
   (= "\n\n<h1>NOT BAR!</h1>\n"
      (render (parse (str path "if.html")) {:foo false}))
