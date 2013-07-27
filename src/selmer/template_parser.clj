@@ -4,7 +4,7 @@
             [clojure.string :refer [split trim]])
   (:import java.io.StringReader))
 
-(declare preprocess-template)
+(declare consume-block preprocess-template)
 
 (defn get-tag-params [tag-id block-str]
   (-> block-str (split tag-id) second (split #"%") first trim))
@@ -29,24 +29,35 @@
   (let [template (get-tag-params #"extends" tag-str)]
     (.substring template 1 (dec (.length template)))))
 
-(defn consume-block [rdr & [^StringBuilder buf]]
-  (loop [ch (read-char rdr)
-         blocks-to-close 1]
+(defn consume-block [rdr & [^StringBuilder buf blocks]]
+  (loop [blocks-to-close 1
+         ch (read-char rdr)]    
     (when (and (pos? blocks-to-close) ch)
       (if (= *tag-open* ch)
-        (let [content (read-tag-content rdr)]
-          (when buf (.append buf content))
-          (recur (read-char rdr) 
-                 (long 
-                   (cond 
-                     (re-matches #"\{\%\s*block.*" content)
-                     (inc blocks-to-close)                     
-                     (re-matches #"\{\%\s*endblock.*" content)
-                     (dec blocks-to-close)
-                     :else blocks-to-close))))
+        (let [tag-str (read-tag-content rdr)
+              block? (re-matches #"\{\%\s*block.*" tag-str)
+              block-name (if block? (get-tag-params #"block" tag-str))
+              existing-block (if block-name (get blocks block-name))]          
+          (when (and buf (not existing-block)) (.append buf tag-str))
+          (recur
+            (long 
+              (cond
+                existing-block
+                (do 
+                  (consume-block rdr)
+                  (consume-block (StringReader. existing-block) buf (dissoc blocks block-name))
+                  blocks-to-close)
+                
+                block?
+                (inc blocks-to-close)
+   
+                (re-matches #"\{\%\s*endblock.*" tag-str)
+                (dec blocks-to-close)
+                :else blocks-to-close))
+            (read-char rdr)))
         (do
           (when buf (.append buf ch))
-          (recur (read-char rdr) blocks-to-close))))))
+          (recur blocks-to-close (read-char rdr)))))))
 
 (defn read-block [rdr block-tag blocks]
   (let [block-name (get-tag-params #"block" block-tag)]
@@ -55,7 +66,7 @@
       (assoc blocks block-name 
              (->buf [buf]
                     (.append buf block-tag)
-                    (consume-block rdr buf))))))
+                    (consume-block rdr buf blocks))))))
 
 (defn process-block [rdr buf block-tag blocks]  
   (let [block-name (get-tag-params #"block" block-tag)]
@@ -114,4 +125,4 @@
   (-> (read-template template {}) insert-includes))
 
 #_(preprocess-template "templates/inheritance/inherit-c.html")
-#_(println (preprocess-template "templates/inheritance/inherit-c.html"))
+#_(println "\n----------\n" (preprocess-template "templates/inheritance/inherit-c.html"))
