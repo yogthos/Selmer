@@ -53,6 +53,7 @@
    
                 (re-matches #"\{\%\s*endblock.*" tag-str)
                 (dec blocks-to-close)
+                
                 :else blocks-to-close))
             (read-char rdr)))
         (do
