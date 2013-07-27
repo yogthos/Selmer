@@ -12,7 +12,7 @@
     (= "start a\n{% block a %}\nstart b\n{% block b %}{% endblock %}\nstop b\n{% endblock %}stop a\n\n{% block content %}content{% endblock %}\nHello, {{name}}!\n"
        (preprocess-template "templates/inheritance/inherit-b.html")))
   (is
-    (= "\"start a\\n{% block a %}\\nstart b\\n{% block b %}\\nstart c\\nstop c\\n{% endblock %}stop b\\n{% endblock %}stop a\\n\\n{% block content %}content{% endblock %}\\nHello, {{name}}!\\n\""
+    (= "start a\n{% block a %}\nstart b\n{% block b %}\nstart c\nstop c\n{% endblock %}stop b\n{% endblock %}stop a\n\n{% block content %}content{% endblock %}\nHello, {{name}}!\n"
       (preprocess-template "templates/inheritance/inherit-c.html"))))
 
 (deftest custom-tags
