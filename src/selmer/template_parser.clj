@@ -32,7 +32,7 @@
       templates)))
 
 (defn find-template-dependencies [filename & [templates]]
-  (with-open [rdr (reader (str (resource-path) filename))]
+  (with-open [rdr (reader (resource-path filename))]
     (loop [templates (assoc (or templates {}) filename {})
            ch        (read-char rdr)]
       (if ch                  
@@ -64,7 +64,7 @@
 
 (defn read-block [block-template block-name blocks]
   (->buf [buf]
-    (with-open [rdr (reader (str (resource-path) block-template))]
+    (with-open [rdr (reader (resource-path block-template))]
       (loop [ch (read-char rdr)]
         (when ch 
           (if (= *tag-open* ch) 
@@ -114,7 +114,7 @@
 
 (defn fill-blocks [filename blocks]
   (->buf [buf]
-     (with-open [rdr (reader (str (resource-path) filename))]
+     (with-open [rdr (reader (resource-path filename))]
        (loop [ch (read-char rdr)]
          (when ch                            
            (->> 

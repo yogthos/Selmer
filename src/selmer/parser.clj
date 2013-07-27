@@ -18,11 +18,14 @@
   (render-node ^String [this context-map]
     text))
 
-(def templates (atom {}))
+(defonce templates (atom {}))
 
 (declare parse parse-file expr-tag tag-content)
 
-(defn render [template context-map]  
+(defn render [template context-map]
+  (doseq [element template]
+        (println element))
+    
   (let [buf (StringBuilder.)]
     (doseq [^selmer.parser.INode element template]
         (.append buf (.render-node element context-map)))
@@ -102,7 +105,7 @@
         (render-if context-map condition (:else tags) (:endifequal tags))))))
 
 (defn block-handler [args rdr]
-  (let [content (tag-content rdr :endblock)]
+  (let [content (get-in (tag-content rdr :endblock) [:endblock :content])]
     (fn [args] (render content args))))
 
 #_(defn block-handler []

@@ -49,10 +49,14 @@
       (when (not= *tag-close* ch)
         (recur (read-char rdr))))))
 
-(defn resource-path
+#_(defn resource-path
   "returns the path to the public folder of the application"
   [& [path]]
   (if-let [path (io/resource (or path "."))]
     (.getPath path)))
 
+(defn resource-path [template]
+  (-> (Thread/currentThread)
+      (.getContextClassLoader)
+      (.getResource template)))
 
