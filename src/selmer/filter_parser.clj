@@ -108,7 +108,7 @@ filter is \"safe\"."
                       (reverse))]
     (fn [context-map]
       (let [x (get-in context-map accessor)]
-        (when-not x
+        #_(when-not x
           (println "Warning:" val "returns nil"))
         ;; Escape by default unless the last filter is 'safe'
         (escape-html ((apply comp filters) x))))))

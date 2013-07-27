@@ -65,6 +65,8 @@
      (read-tag-info (java.io.StringReader. "{ nums }}"))))
 
 (deftest if-tag-test
+  (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"foo\"\n"
+     (render (parse (str path "if.html")) {:user-id "bob"}))  
   (= "\n\n<h1>NOT BAR!</h1>\n"
      (render (parse (str path "if.html")) {:foo false}))
   (= "\n<h1>FOO!</h1>\n\n\n<h1>NOT BAR!</h1>\n"

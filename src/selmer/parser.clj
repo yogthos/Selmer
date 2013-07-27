@@ -18,14 +18,20 @@
   (render-node ^String [this context-map]
     text))
 
+(defonce dev (atom false))
+
 (defonce templates (atom {}))
 
 (declare parse parse-file expr-tag tag-content)
 
+(defn toggle-dev-mode! []
+  (swap! dev not))
+
 (defn render [template context-map]
   (let [buf (StringBuilder.)]
     (doseq [^selmer.parser.INode element template]
-        (.append buf (.render-node element context-map)))
+        (if-let [value (.render-node element context-map)]
+          (.append buf value)))
     (.toString buf)))
 
 (defn render-string [s context-map & [opts]]
@@ -34,13 +40,12 @@
 (defn render-file [filename context-map & [opts]]
   (let [{:keys [template last-modified]} (get @templates filename)
         last-modified-file (.lastModified (java.io.File. ^String filename))]
-    (if (and last-modified (= last-modified last-modified-file))
+    (if (and (not @dev) last-modified (= last-modified last-modified-file))
       (render template context-map)
       (let [template (parse-file filename opts)]
         (swap! templates assoc filename {:template template
                                          :last-modified last-modified-file})
         (render template context-map)))))
-
 
 (defn for-handler [[^String id _ items] rdr]
   (let [content (:content (:endfor (tag-content rdr :endfor)))
@@ -82,13 +87,22 @@
       :else [(TextNode. "")])
     context-map))
 
+(defn parse-if-arg [^String arg]
+  (map keyword (.split arg "\\.")))
+
+(defn if-result [value]  
+  (condp = value
+    nil     false
+    "false" false
+    false   false
+    true))
 
 (defn if-handler [[condition1 condition2] rdr]
   (let [tags (tag-content rdr :else :endif)
         not? (and condition1 condition2 (= condition1 "not"))
-        condition (compile-filter-body (or condition2 condition1))]    
+        condition (parse-if-arg (or condition2 condition1))]
     (fn [context-map]
-      (let [condition (Boolean/parseBoolean (condition context-map))]        
+      (let [condition (if-result (get-in context-map condition))]
         (render-if context-map (if not? (not condition) condition) (:else tags) (:endif tags))))))
 
 (defn ifequal-handler [args rdr]
@@ -96,7 +110,7 @@
         args (for [^String arg args]
                (if (= \" (first arg)) 
                  (.substring arg 1 (dec (.length arg))) 
-                 (map keyword (.split arg "\\."))))]
+                 (parse-if-arg arg)))]
     (fn [context-map]
       (let [condition (apply = (map #(if (coll? %) (get-in context-map %) %) args))]
         (render-if context-map condition (:else tags) (:endifequal tags))))))
@@ -197,3 +211,4 @@
 
 (defn parse-file [file & [{:keys [tag-open tag-close filter-open filter-close tag-second]}]]
   (-> file preprocess-template (java.io.StringReader.) parse*))
+
