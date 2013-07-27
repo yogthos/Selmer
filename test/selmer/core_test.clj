@@ -1,8 +1,19 @@
 (ns selmer.core-test
-  (:use clojure.test selmer.parser selmer.util)
+  (:use clojure.test selmer.parser selmer.template-parser selmer.util)
   (:import java.io.File))
 
 (def path (str "test" File/separator "templates" File/separator))
+
+(deftest inheritance
+  (is
+    (= "start a\n{% block a %}{% endblock %}stop a\n\n{% block content %}{% endblock %}\nHello, {{name}}!\n"
+       (preprocess-template "templates/inheritance/inherit-a.html")))
+  (is
+    (= "start a\n{% block a %}\nstart b\n{% block b %}{% endblock %}\nstop b\n{% endblock %}stop a\n\n{% block content %}content{% endblock %}\nHello, {{name}}!\n"
+       (preprocess-template "templates/inheritance/inherit-b.html")))
+  (is
+    (= "\"start a\\n{% block a %}\\nstart b\\n{% block b %}\\nstart c\\nstop c\\n{% endblock %}stop b\\n{% endblock %}stop a\\n\\n{% block content %}content{% endblock %}\\nHello, {{name}}!\\n\""
+      (preprocess-template "templates/inheritance/inherit-c.html"))))
 
 (deftest custom-tags
   (render-string "[% for ele in foo %]<<[{ele}]>>[%endfor%]"

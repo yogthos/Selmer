@@ -109,7 +109,7 @@
                     (recur blocks (read-char rdr) parent))
                   
                   ;;if we are in the root template we'll accumulate the content
-                  ;;into a buffer, this willbe the resulting template string
+                  ;;into a buffer, this will be the resulting template string
                   (nil? parent)
                   (do
                     (.append buf tag-str)
@@ -123,6 +123,3 @@
 
 (defn preprocess-template [template]
   (-> (read-template template {}) insert-includes))
-
-#_(preprocess-template "templates/inheritance/inherit-c.html")
-#_(println "\n----------\n" (preprocess-template "templates/inheritance/inherit-c.html"))
