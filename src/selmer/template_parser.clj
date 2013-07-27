@@ -27,7 +27,7 @@
 
 (defn get-parent [tag-str]
   (let [template (get-tag-params #"extends" tag-str)]
-    (.substring template 1 (dec (.length template)))))
+    (.substring ^String template 1 (dec (.length ^String template)))))
 
 (defn consume-block [rdr & [^StringBuilder buf blocks]]
   (loop [blocks-to-close 1
@@ -74,9 +74,9 @@
     (if-let [block (get blocks block-name)]
       (do
         (consume-block rdr)
-        (.append buf block))
+        (.append ^StringBuilder buf block))
       (do
-        (.append buf block-tag)
+        (.append ^StringBuilder buf block-tag)
         (consume-block rdr buf)))))
 
 (defn read-template [template blocks]
