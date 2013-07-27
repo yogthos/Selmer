@@ -23,9 +23,6 @@
 (declare parse parse-file expr-tag tag-content)
 
 (defn render [template context-map]
-  (doseq [element template]
-        (println element))
-    
   (let [buf (StringBuilder.)]
     (doseq [^selmer.parser.INode element template]
         (.append buf (.render-node element context-map)))
