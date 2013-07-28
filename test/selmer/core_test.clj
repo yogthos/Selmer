@@ -2,7 +2,7 @@
   (:use clojure.test selmer.parser selmer.template-parser selmer.util)
   (:import java.io.File))
 
-(def path (str "test" File/separator "templates" File/separator))
+(def path (str "test/templates" File/separator))
 
 (deftest custom-handler-test
   (let [handler (tag-handler
