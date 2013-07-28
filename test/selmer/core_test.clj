@@ -7,12 +7,12 @@
 (deftest custom-handler-test
   (let [handler (tag-handler
                   (fn [args context-map content]
-                    (get-in content [:endfoo :content]))
+                    (get-in content [:foo :content]))
                   :foo :endfoo)]
     (is 
       (= "some content" 
          (render (parse (java.io.StringReader. "{% foo %}some content{% endfoo %}")
-                        {:custom-tags {:foo handler}}) {:foo "bar"}))))
+                        {:custom-tags {:foo handler}}) {} #_{:foo "bar"}))))
   
   (let [handler (tag-handler
                   (fn [args context-map content] (clojure.string/join "," args))
@@ -193,9 +193,9 @@
 
 (deftest tag-content-test
   (= {:endif [" baz"], :else ["foo bar "]}
-     (tag-content (java.io.StringReader. "foo bar {%else%} baz{% endif %}") :else :endif))
+     (tag-content (java.io.StringReader. "foo bar {%else%} baz{% endif %}") :if :else :endif))
   (= {:endfor ["foo bar  baz"]}
-    (tag-content (java.io.StringReader. "foo bar  baz{% endfor %}") :endfor)))
+    (tag-content (java.io.StringReader. "foo bar  baz{% endfor %}") :for :endfor)))
 
 (deftest filter-upper
   (is (= "FOO" (render-string "{{f|upper}}" {:f "foo"}))))

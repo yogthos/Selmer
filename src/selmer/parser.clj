@@ -18,14 +18,9 @@
   (render-node ^String [this context-map]
     text))
 
-(defonce dev (atom false))
-
 (defonce templates (atom {}))
 
 (declare parse parse-file expr-tag tag-content)
-
-(defn toggle-dev-mode! []
-  (swap! dev not))
 
 (defn render [template context-map]
   (let [buf (StringBuilder.)]
@@ -45,7 +40,7 @@
     (when-not (.exists (java.io.File. file-path))
       (throw (Exception. (str "temaplate: \"" file-path "\" not found"))))
         
-    (if (and (not @dev) last-modified (= last-modified last-modified-file))
+    (if (and last-modified (= last-modified last-modified-file))
       (render template context-map)
       (let [template (parse-file filename opts)]
         (swap! templates assoc filename {:template template
@@ -53,7 +48,7 @@
         (render template context-map)))))
 
 (defn for-handler [[^String id _ items] rdr]
-  (let [content (:content (:endfor (tag-content rdr :endfor)))
+  (let [content (:content (:for (tag-content rdr :for :endfor)))
         id (map keyword (.split id "\\."))
         items (keyword items)]
     (fn [context-map]
@@ -103,25 +98,25 @@
     true))
 
 (defn if-handler [[condition1 condition2] rdr]
-  (let [tags (tag-content rdr :else :endif)
+  (let [tags (tag-content rdr :if :else :endif)
         not? (and condition1 condition2 (= condition1 "not"))
         condition (parse-if-arg (or condition2 condition1))]
     (fn [context-map]
       (let [condition (if-result (get-in context-map condition))]
-        (render-if context-map (if not? (not condition) condition) (:else tags) (:endif tags))))))
+        (render-if context-map (if not? (not condition) condition) (:if tags) (:else tags))))))
 
 (defn ifequal-handler [args rdr]
-  (let [tags (tag-content rdr :else :endifequal)
+  (let [tags (tag-content rdr :ifequal :else :endifequal)
         args (for [^String arg args]
                (if (= \" (first arg)) 
                  (.substring arg 1 (dec (.length arg))) 
                  (parse-if-arg arg)))]
     (fn [context-map]
       (let [condition (apply = (map #(if (coll? %) (get-in context-map %) %) args))]
-        (render-if context-map condition (:else tags) (:endifequal tags))))))
+        (render-if context-map condition (:ifequal  tags) (:else tags))))))
 
 (defn block-handler [args rdr]
-  (let [content (get-in (tag-content rdr :endblock) [:endblock :content])]
+  (let [content (get-in (tag-content rdr :endblock) [:block :content])]
     (fn [context-map] (render content context-map))))
 
 (defn render-tags [context-map tags]
@@ -132,11 +127,10 @@
          (fn [^selmer.parser.INode node]
            (apply str (map #(.render-node ^selmer.parser.INode % context-map) node))))])))
 
-(defn tag-handler [handler open-tag & end-tags]
-  (fn [args rdr]
-     (let [content (if (not-empty end-tags)
-                     (apply (partial tag-content rdr) end-tags))]
-       (-> (fn [context-map] 
+(defn tag-handler [handler & tags]
+  (fn [args rdr]    
+     (let [content (if (> (count tags) 1) (apply (partial tag-content rdr) tags))]
+       (-> (fn [context-map]
              (render
                [(->> content (render-tags context-map) (handler args context-map) (TextNode.))]
                context-map))))))
@@ -155,35 +149,35 @@
 (defn filter-tag [{:keys [tag-value]}]
   (compile-filter-body tag-value))
 
-(defn parse-tag [{:keys [tag-type] :as tag} rdr]
+(defn parse-tag [{:keys [tag-type] :as tag} rdr]  
   (if (= :filter tag-type)
     (filter-tag tag)
     (expr-tag tag rdr)))
 
-(defn tag-content [rdr & end-tags]
-  (let [buf (StringBuilder.)]    
+(defn tag-content [rdr & end-tags]  
+  (let [buf (StringBuilder.)]
     (loop [ch       (read-char rdr)
            tags     {}
            content  []
-           end-tags end-tags]
-      (cond 
+           end-tags (partition 2 1 end-tags)]      
+      (cond
         (nil? ch)
-        tags 
+        tags
         
-        (= *tag-open* ch)
+        (open-tag? ch rdr)
         (let [{:keys [tag-name args] :as tag} (read-tag-info rdr)]
-          (if (and tag-name (some #{tag-name} end-tags))
-            (let [tags     (assoc tags tag-name 
-                                  {:args args 
-                                   :content (conj content (TextNode. (.toString buf)))})
-                  end-tags (next (drop-while #(not= tag-name %) end-tags))]
-              (.setLength buf 0)
-              (recur (if (empty? end-tags) nil (read-char rdr)) tags [] end-tags))
-            (let [content (-> content 
+          (if-let [open-tag (and tag-name (some (fn [[open close]] (if (= tag-name close) open)) end-tags))]
+              (let [tags     (assoc tags open-tag
+                                    {:args args
+                                     :content (conj content (TextNode. (.toString buf)))})
+                    end-tags (next (drop-while #(not= tag-name (second %)) end-tags))]
+                (.setLength buf 0)
+                (recur (if (empty? end-tags) nil (read-char rdr)) tags [] end-tags))
+              (let [content (-> content 
                               (conj (TextNode. (.toString buf)))
                               (conj (FunctionNode. (parse-tag tag rdr))))]
-              (.setLength buf 0)
-              (recur (read-char rdr) tags content end-tags))))
+                (.setLength buf 0)
+                (recur (read-char rdr) tags content end-tags))))
         :else
         (do
           (.append buf ch)
@@ -196,7 +190,7 @@
         (loop [ch (read-char rdr)]
           (when ch
             (if (open-tag? ch rdr)
-              (do
+              (do                
                 ;we hit a tag so we append the buffer content to the template
                 ; and empty the buffer, then we proceed to parse the tag
                 (conj! template (TextNode. (.toString buf)))
