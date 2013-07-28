@@ -28,7 +28,7 @@
     (is (= " a b c d" (render-string s {}))))
   (let [s "{{blah}} a b c d"]
     (is (= "blah a b c d" (render-string s {:blah "blah"}))))
-  ;;invalid tags are now ignored ;)
+  ;; Invalid tags are now ignored ;)
   (let [s "{a b c} \nd"]
     (is (= s (render-string s {})))))
 
@@ -41,7 +41,13 @@
        (preprocess-template "templates/inheritance/inherit-b.html")))
   (is
     (= "start a\n{% block a %}\nstart b\n{% block b %}\nstart c\nstop c\n{% endblock %}stop b\n{% endblock %}stop a\n\n{% block content %}content{% endblock %}\nHello, {{name}}!\n"
-      (preprocess-template "templates/inheritance/inherit-c.html"))))
+      (preprocess-template "templates/inheritance/inherit-c.html")))
+  (is
+    (= "Base template.\n\n<p></p>\n"
+       (render-file "templates/child.html" {})))
+  (is
+    (= "Base template.\n\n<p>blah</p>\n"
+       (render-file "templates/child.html" {:content "blah"}))))
 
 (deftest custom-tags
   (render-string "[% for ele in foo %]<<[{ele}]>>[%endfor%]"
