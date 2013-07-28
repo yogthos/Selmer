@@ -30,7 +30,8 @@
                          (= *tag-close* ch2)))
         (.append buf ch1)
         (recur ch2 (read-char rdr))))
-    (let [content (->>  (.split (.toString buf ) " ") (remove empty?) (map (fn [^String s] (.trim s))))]
+    
+    (let [content (->>  (.split (.toString buf) " ") (remove empty?) (map (fn [^String s] (.trim s))))]
       (merge {:tag-type tag-type}
              (if (= :filter tag-type)
                {:tag-value (first content)}
@@ -45,7 +46,7 @@
 (defn read-tag-content [rdr]
   (->buf [buf]
     (.append buf *tag-open*)
-    (loop [ch (read-char rdr)]      
+    (loop [ch (read-char rdr)]
       (.append buf ch)
       (when (not= *tag-close* ch)
         (recur (read-char rdr))))))

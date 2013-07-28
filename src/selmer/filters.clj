@@ -10,7 +10,7 @@ map. The rest of the arguments are optional and are always strings."
 
 ;;; TODO - maybe dont let exceptions happen in filters
 
-(def filters
+(defonce filters
   (atom {}))
 
 (defn get-filter
