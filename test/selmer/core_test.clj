@@ -11,9 +11,7 @@
     (is (= " a b c d" (render-string s {}))))
   (let [s "{{blah}} a b c d"]
     (is (= "blah a b c d" (render-string s {:blah "blah"}))))
-  ;; expected: (= s (render-string s {}))
-  ;; actual: java.lang.OutOfMemoryError: Java heap space
-  ;; lol.
+  ;;invalid tags are now ignored ;)
   (let [s "{a b c} \nd"]
     (is (= s (render-string s {})))))
 

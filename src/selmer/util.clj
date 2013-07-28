@@ -25,8 +25,9 @@
         tag-type (if (= *filter-open* (read-char rdr)) :filter :expr)]
     (loop [ch1 (read-char rdr)
            ch2 (read-char rdr)]
-      (when-not (and (or (= *filter-close* ch1) (= *tag-second* ch1))
-                     (= *tag-close* ch2))
+      (when-not (or (nil? ch1)
+                    (and (or (= *filter-close* ch1) (= *tag-second* ch1))
+                         (= *tag-close* ch2)))
         (.append buf ch1)
         (recur ch2 (read-char rdr))))
     (let [content (->>  (.split (.toString buf ) " ") (remove empty?) (map (fn [^String s] (.trim s))))]
@@ -48,6 +49,18 @@
       (.append buf ch)
       (when (not= *tag-close* ch)
         (recur (read-char rdr))))))
+
+(defn peek-rdr [^java.io.Reader rdr]
+  (.mark rdr 1)
+  (let [result (read-char rdr)]
+    (.reset rdr)
+    result))
+
+(defn open-tag? [ch rdr]
+  (and (= *tag-open* ch) 
+       (let [next-ch (peek-rdr rdr)]
+         (or (= *filter-open* next-ch)
+             (= *tag-second* next-ch)))))
 
 #_(defn resource-path
   "returns the path to the public folder of the application"

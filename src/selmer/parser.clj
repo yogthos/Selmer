@@ -178,13 +178,13 @@
           (.append buf ch)
           (recur (read-char rdr) tags content end-tags))))))
 
-(defn parse* [file]
-  (with-open [rdr (clojure.java.io/reader file)]
+(defn parse* [input]
+  (with-open [rdr (clojure.java.io/reader input)]
       (let [template (transient [])
             buf      (StringBuilder.)]
         (loop [ch (read-char rdr)]
           (when ch
-            (if (= *tag-open* ch)
+            (if (open-tag? ch rdr)
               (do
                 ;we hit a tag so we append the buffer content to the template
                 ; and empty the buffer, then we proceed to parse the tag

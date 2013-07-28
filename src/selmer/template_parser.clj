@@ -89,7 +89,7 @@
             (cond
               (nil? ch) [parent blocks]
               
-              (= *tag-open* ch)
+              (open-tag? ch rdr)
               (let [tag-str (read-tag-content rdr)] 
                 (cond
                   ;;if the template extends another it's not the root
