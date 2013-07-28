@@ -6,8 +6,7 @@
 
 (deftest custom-handler-test
   (let [handler (tag-handler
-                  (fn [args context-map content]                      
-                    (println "args" args "\ncontext map:" context-map "\ncontent" content)
+                  (fn [args context-map content]                                          
                     (get-in content [:endfoo :content]))
                   :foo :endfoo)]
     (is 
