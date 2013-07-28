@@ -117,27 +117,33 @@
 
 (defn block-handler [args rdr]
   (let [content (get-in (tag-content rdr :endblock) [:endblock :content])]
-    (fn [args] (render content args))))
+    (fn [context-map] (render content context-map))))
 
-#_(defn block-handler []
-  (tag-handler [context-map args content :block :endblock]
-    (render content context-map)))
+(defn render-tags [context-map tags]
+  (into {}
+    (for [[tag content] tags]
+      [tag 
+       (update-in content [:content]
+         (fn [^selmer.parser.INode node]
+           (apply str (map #(.render-node ^selmer.parser.INode % context-map) node))))])))
 
-#_(defmacro tag-handler [handler args content open-tag & end-tags]
-  `(fn [args# rdr#]
-    (if (not-empty ~end-tags)
-      (let ['~content (apply (partial tag-content rdr#) ~end-tags)
-            '~args args#]
-        ~(handler '~context-map content)))))
+(defn tag-handler [handler open-tag & end-tags]
+  (fn [args rdr]
+     (let [content (if (not-empty end-tags)
+                     (apply (partial tag-content rdr) end-tags))]
+       (-> (fn [context-map] 
+             (render
+               [(->> content (render-tags context-map) (handler args context-map) (TextNode.))]
+               context-map))))))
 
-(def expr-tags
+(def ^:dynamic *expr-tags*
   {:if if-handler
    :ifequal ifequal-handler
    :for for-handler
    :block block-handler})
 
 (defn expr-tag [{:keys [tag-name args] :as tag} rdr]
-  (if-let [handler (tag-name expr-tags)]
+  (if-let [handler (tag-name *expr-tags*)]
     (handler args rdr)
     (throw (Exception. (str "unrecognized tag: " tag-name)))))
 
@@ -201,14 +207,15 @@
         (conj! template (TextNode. (.toString buf)))
         (persistent! template))))
 
-(defn parse [file & [{:keys [tag-open tag-close filter-open filter-close tag-second]}]]
+(defn parse [file & [{:keys [tag-open tag-close filter-open filter-close tag-second custom-tags]}]]
   (binding [*tag-open*     (or tag-open *tag-open*)
             *tag-close*    (or tag-close *tag-close*)
             *filter-open*  (or filter-open *filter-open*)
             *filter-close* (or filter-close *filter-close*)
-            *tag-second*   (or tag-second *tag-second*)]
+            *tag-second*   (or tag-second *tag-second*)
+            *expr-tags*    (merge *expr-tags* custom-tags)]
     (parse* file)))
 
-(defn parse-file [file & [{:keys [tag-open tag-close filter-open filter-close tag-second]}]]
-  (-> file preprocess-template (java.io.StringReader.) parse*))
+(defn parse-file [file & [params]]
+  (-> file preprocess-template (java.io.StringReader.) (parse* params)))
 

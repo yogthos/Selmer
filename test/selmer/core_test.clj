@@ -4,6 +4,24 @@
 
 (def path (str "test" File/separator "templates" File/separator))
 
+(deftest custom-handler-test
+  (let [handler (tag-handler
+                  (fn [args context-map content]                      
+                    (println "args" args "\ncontext map:" context-map "\ncontent" content)
+                    (get-in content [:endfoo :content]))
+                  :foo :endfoo)]
+    (is 
+      (= "some content" 
+         (render (parse (java.io.StringReader. "{% foo %}some content{% endfoo %}")
+                        {:custom-tags {:foo handler}}) {:foo "bar"}))))
+  
+  (let [handler (tag-handler
+                  (fn [args context-map content] (clojure.string/join "," args))
+                  :bar)]
+    (is (= "arg1,arg2"
+           (render (parse (java.io.StringReader. "{% bar arg1 arg2 %}")
+                          {:custom-tags {:bar handler}}) {})))))
+
 (deftest passthrough
   (let [s "a b c d"]
     (is (= s (render-string s {}))))
