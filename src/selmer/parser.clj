@@ -21,6 +21,9 @@
          :for for-handler
          :block block-handler}))
 
+(defmacro deftag [k handler & tags]
+  `(swap! selmer.parser/expr-tags assoc ~k (tag-handler ~handler ~k ~@tags)))
+
 (defn add-tag! [k tag] (swap! expr-tags assoc k tag))
 
 (defn render-template [template context-map]

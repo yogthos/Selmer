@@ -19,7 +19,10 @@
                   :bar)]
     (is (= "arg1,arg2"
            (render-template (parse (java.io.StringReader. "{% bar arg1 arg2 %}")
-                          {:custom-tags {:bar handler}}) {})))))
+                          {:custom-tags {:bar handler}}) {}))))
+  
+  (deftag :bar (fn [args context-map] (clojure.string/join "," args)))
+  (render-template (parse (java.io.StringReader. "{% bar arg1 arg2 %}")) {}))
 
 (deftest custom-filter-test
   (is (= "BAR"
@@ -49,10 +52,10 @@
     (= "start a\n{% block a %}\nstart b\n{% block b %}\nstart c\nstop c\n{% endblock %}stop b\n{% endblock %}stop a\n\n{% block content %}content{% endblock %}\nHello, {{name}}!\n"
       (preprocess-template "templates/inheritance/inherit-c.html")))
   (is
-    (= "Base template.\n\n<p></p>\n"
+    (= "Base template.\n\n\t\n<p></p>\n"
        (render-file "templates/child.html" {})))
   (is
-    (= "Base template.\n\n<p>blah</p>\n"
+    (= "Base template.\n\n\t\n<p>blah</p>\n"
        (render-file "templates/child.html" {:content "blah"}))))
 
 (deftest custom-tags
