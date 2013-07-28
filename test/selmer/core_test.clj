@@ -4,6 +4,19 @@
 
 (def path (str "test" File/separator "templates" File/separator))
 
+(deftest passthrough
+  (let [s "a b c d"]
+    (is (= s (render-string s {}))))
+  (let [s "{{blah}} a b c d"]
+    (is (= " a b c d" (render-string s {}))))
+  (let [s "{{blah}} a b c d"]
+    (is (= "blah a b c d" (render-string s {:blah "blah"}))))
+  ;; expected: (= s (render-string s {}))
+  ;; actual: java.lang.OutOfMemoryError: Java heap space
+  ;; lol.
+  (let [s "{a b c} \nd"]
+    (is (= s (render-string s {})))))
+
 (deftest inheritance
   (is
     (= "start a\n{% block a %}{% endblock %}stop a\n\n{% block content %}{% endblock %}\nHello, {{name}}!\n"
@@ -172,7 +185,8 @@
 (deftest filter-upper
   (is (= "FOO" (render-string "{{f|upper}}" {:f "foo"}))))
 
-;;; How do we handle nils ?
+;; How do we handle nils ?
+;; nils should return empty strings at the point of injection in a DTL library. - cma
 (deftest filter-no-value
   (is (= "" (render-string "{{f|upper}}" {}))))
 
@@ -203,6 +217,10 @@
 
 ;; switched commas + doublequotes for colons
 ;; TODO - maybe remain consistent with django's only 1 argument allowed.
+;; I like being able to accept multiple arguments.
+;; Alternatively, we could have curried filters and just chain
+;; it into a val and apply it Haskell-style.
+;; I think that could surprise users. (which is bad)
 (deftest filter-pluralize
   (is (= "s" (render-string "{{f|pluralize}}" {:f []})))
   (is (= "" (render-string "{{f|pluralize}}" {:f [1]})))
@@ -239,9 +257,11 @@
   ;; safe only works at the end
   #_(is (= "{\"foo\":27,\"dan\":\"awesome\"}"
          (render-string "{{f|safe|json}}" {:f {:foo 27 :dan "awesome"}})))
+  ;; Do we really want to nil-pun the empty map?
+  ;; Is that going to surprise the user?
   (is (= "null" (render-string "{{f|json}}" {}))))
 
-;;TODO
+;; TODO
 (deftest filter-chaining
   (is (= "ACBD18DB4CC2F85CEDEF654FCCC4A4D8"
          (render-string "{{f|hash:\"md5\"|upper}}" {:f "foo"}))))
@@ -253,8 +273,8 @@
   (is (= "&amp;&quot;&#39;&lt;&gt;"
          (render-string "{{f}}" {:f "&\"'<>"}))))
 
-;;TODO - safe only works at the end atm.
-;;; Don't think it should work anywhere else :-) - cbp
+;; Safe only works at the end.
+;; Don't think it should work anywhere else :-) - cbp (agreed, - cma)
 (deftest test-safe-filter
   (is (= "&lt;foo&gt;"
          (render-string "{{f}}" {:f "<foo>"})))
