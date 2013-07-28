@@ -15,7 +15,7 @@
                         {:custom-tags {:foo handler}}) {:bar "bar"}))))
   
   (let [handler (tag-handler
-                  (fn [args context-map content] (clojure.string/join "," args))
+                  (fn [args context-map] (clojure.string/join "," args))
                   :bar)]
     (is (= "arg1,arg2"
            (render-template (parse (java.io.StringReader. "{% bar arg1 arg2 %}")
