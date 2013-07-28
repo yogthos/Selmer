@@ -1,5 +1,6 @@
 (ns selmer.parser
   (:require [selmer.template-parser :refer [preprocess-template]]
+            [selmer.filters :refer [filters]]
             [selmer.filter-parser :refer [compile-filter-body]]
             [selmer.tags :refer :all]
             [selmer.util :refer :all]
@@ -8,9 +9,17 @@
 
 (set! *warn-on-reflection* true)
 
+(declare parse parse-file expr-tag tag-content)
+
 (defonce templates (atom {}))
 
-(declare parse parse-file expr-tag tag-content)
+(defonce expr-tags
+  (atom {:if if-handler
+         :ifequal ifequal-handler
+         :for for-handler
+         :block block-handler}))
+
+(defn add-tag! [k tag] (swap! expr-tags assoc k tag))
 
 (defn render [template context-map]
   (let [buf (StringBuilder.)]
@@ -37,14 +46,8 @@
                                          :last-modified last-modified-file})
         (render template context-map)))))
 
-(def ^:dynamic *expr-tags*
-  {:if if-handler
-   :ifequal ifequal-handler
-   :for for-handler
-   :block block-handler})
-
 (defn expr-tag [{:keys [tag-name args] :as tag} rdr]
-  (if-let [handler (tag-name *expr-tags*)]
+  (if-let [handler (tag-name @expr-tags)]
     (handler args tag-content render rdr)
     (throw (Exception. (str "unrecognized tag: " tag-name)))))
 
@@ -110,13 +113,14 @@
         (conj! template (TextNode. (.toString buf)))
         (persistent! template))))
 
-(defn parse [file & [{:keys [tag-open tag-close filter-open filter-close tag-second custom-tags]}]]
+(defn parse [file & [{:keys [tag-open tag-close filter-open filter-close tag-second custom-tags custom-filters]}]]
   (binding [*tag-open*     (or tag-open *tag-open*)
             *tag-close*    (or tag-close *tag-close*)
             *filter-open*  (or filter-open *filter-open*)
             *filter-close* (or filter-close *filter-close*)
-            *tag-second*   (or tag-second *tag-second*)
-            *expr-tags*    (merge *expr-tags* custom-tags)]
+            *tag-second*   (or tag-second *tag-second*)]
+    (swap! expr-tags merge custom-tags)
+    (swap! filters merge custom-filters)
     (parse* file)))
 
 (defn parse-file [file & [params]]

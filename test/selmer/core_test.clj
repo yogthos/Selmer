@@ -10,9 +10,9 @@
                     (get-in content [:foo :content]))
                   :foo :endfoo)]
     (is 
-      (= "some content" 
-         (render (parse (java.io.StringReader. "{% foo %}some content{% endfoo %}")
-                        {:custom-tags {:foo handler}}) {} #_{:foo "bar"}))))
+      (= "some bar content" 
+         (render (parse (java.io.StringReader. "{% foo %}some {{bar}} content{% endfoo %}")
+                        {:custom-tags {:foo handler}}) {:bar "bar"}))))
   
   (let [handler (tag-handler
                   (fn [args context-map content] (clojure.string/join "," args))
@@ -20,6 +20,12 @@
     (is (= "arg1,arg2"
            (render (parse (java.io.StringReader. "{% bar arg1 arg2 %}")
                           {:custom-tags {:bar handler}}) {})))))
+
+(deftest custom-filter-test
+  (is (= "BAR"
+         (render (parse (java.io.StringReader. "{{bar|embiginate}}")
+                        {:custom-filters
+                         {:embiginate (fn [^String s] (.toUpperCase s))}}) {:bar "bar"}))))
 
 (deftest passthrough
   (let [s "a b c d"]
