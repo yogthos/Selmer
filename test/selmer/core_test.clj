@@ -33,7 +33,7 @@
   (let [s "{{blah}} a b c d"]
     (is (= " a b c d" (render s {}))))
   (let [s "{{blah}} a b c d"]
-    (is (= "blah a b c d" (render-string s {:blah "blah"}))))
+    (is (= "blah a b c d" (render s {:blah "blah"}))))
   ;; Invalid tags are now ignored ;)
   (let [s "{a b c} \nd"]
     (is (= s (render s {})))))
