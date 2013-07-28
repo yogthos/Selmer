@@ -10,7 +10,7 @@ Django template implementation in Clojure
 Leiningen
 
 ```clojure
-[selmer "0.1.7"]
+[selmer "0.1.9"]
 ```
 ```
 

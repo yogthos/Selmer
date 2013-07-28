@@ -11,6 +11,10 @@
 
 (defonce templates (atom {}))
 
+(defonce cache? (atom true))
+
+(defn toggle-caching [] (swap! cache? not))
+
 (defonce expr-tags
   (atom {:if if-handler
          :ifequal ifequal-handler
@@ -37,7 +41,7 @@
     (when-not (.exists (java.io.File. file-path))
       (throw (Exception. (str "temaplate: \"" file-path "\" not found"))))
         
-    (if (and last-modified (= last-modified last-modified-file))
+    (if (and @cache? last-modified (= last-modified last-modified-file))
       (render-template template context-map)
       (let [template (parse-file filename opts)]
         (swap! templates assoc filename {:template template
