@@ -7,8 +7,6 @@
             selmer.node)
   (:import [selmer.node INode TextNode FunctionNode]))
 
-(set! *warn-on-reflection* true)
-
 (declare parse parse-file expr-tag tag-content)
 
 (defonce templates (atom {}))
@@ -21,15 +19,15 @@
 
 (defn add-tag! [k tag] (swap! expr-tags assoc k tag))
 
-(defn render [template context-map]
+(defn render-template [template context-map]
   (let [buf (StringBuilder.)]
     (doseq [^selmer.node.INode element template]
         (if-let [value (.render-node element context-map)]
           (.append buf value)))
     (.toString buf)))
 
-(defn render-string [s context-map & [opts]]
-  (render (parse (java.io.StringReader. s) opts) context-map))
+(defn render [s context-map & [opts]]
+  (render-template (parse (java.io.StringReader. s) opts) context-map))
 
 (defn render-file [^String filename context-map & [opts]]
   (let [file-path (.getPath ^java.net.URL (resource-path filename))
@@ -40,15 +38,15 @@
       (throw (Exception. (str "temaplate: \"" file-path "\" not found"))))
         
     (if (and last-modified (= last-modified last-modified-file))
-      (render template context-map)
+      (render-template template context-map)
       (let [template (parse-file filename opts)]
         (swap! templates assoc filename {:template template
                                          :last-modified last-modified-file})
-        (render template context-map)))))
+        (render-template template context-map)))))
 
 (defn expr-tag [{:keys [tag-name args] :as tag} rdr]
   (if-let [handler (tag-name @expr-tags)]
-    (handler args tag-content render rdr)
+    (handler args tag-content render-template rdr)
     (throw (Exception. (str "unrecognized tag: " tag-name)))))
 
 (defn filter-tag [{:keys [tag-value]}]
