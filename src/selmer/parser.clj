@@ -38,13 +38,13 @@
   (render (parse (java.io.StringReader. s) opts) context-map))
 
 (defn render-file [^String filename context-map & [opts]]
-  ;;check that file exists
-  (let [file-path (.getPath ^java.net.URL (resource-path filename))]
+  (let [file-path (.getPath ^java.net.URL (resource-path filename))
+        {:keys [template last-modified]} (get @templates filename)
+        last-modified-file (.lastModified (java.io.File. ^String file-path))]
+      
     (when-not (.exists (java.io.File. file-path))
-      (throw (Exception. (str "temaplate: \"" file-path "\" not found")))))
-  
-  (let [{:keys [template last-modified]} (get @templates filename)
-        last-modified-file (.lastModified (java.io.File. ^String filename))]    
+      (throw (Exception. (str "temaplate: \"" file-path "\" not found"))))
+        
     (if (and (not @dev) last-modified (= last-modified last-modified-file))
       (render template context-map)
       (let [template (parse-file filename opts)]
