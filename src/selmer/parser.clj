@@ -1,22 +1,12 @@
 (ns selmer.parser
   (:require [selmer.template-parser :refer [preprocess-template]]
             [selmer.filter-parser :refer [compile-filter-body]]
-            [selmer.util :refer :all]))
+            [selmer.tags :refer :all]
+            [selmer.util :refer :all]
+            selmer.node)
+  (:import [selmer.node INode TextNode FunctionNode]))
 
 (set! *warn-on-reflection* true)
-
-(defprotocol INode
-  (render-node [this context-map] "Renders the context"))
-
-(deftype FunctionNode [handler]
-  INode
-  (render-node ^String [this context-map]
-    (handler context-map)))
-
-(deftype TextNode [text]
-  INode
-  (render-node ^String [this context-map]
-    text))
 
 (defonce templates (atom {}))
 
@@ -24,7 +14,7 @@
 
 (defn render [template context-map]
   (let [buf (StringBuilder.)]
-    (doseq [^selmer.parser.INode element template]
+    (doseq [^selmer.node.INode element template]
         (if-let [value (.render-node element context-map)]
           (.append buf value)))
     (.toString buf)))
@@ -47,94 +37,6 @@
                                          :last-modified last-modified-file})
         (render template context-map)))))
 
-(defn for-handler [[^String id _ items] rdr]
-  (let [content (:content (:for (tag-content rdr :for :endfor)))
-        id (map keyword (.split id "\\."))
-        items (keyword items)]
-    (fn [context-map]
-      (let [buf (StringBuilder.)
-            items (get context-map items)
-            length (count items)
-            parentloop (:parentloop context-map)]
-        (doseq [[counter value] (map-indexed vector items)]
-          (let [loop-info
-                {:length length
-                 :counter0 counter
-                 :counter (inc counter)
-                 :revcounter (- length (inc counter))
-                 :revcounter0 (- length counter)
-                 :first (= counter 0)
-                 :last (= counter (dec length))}]
-            (->> (assoc (assoc-in context-map id value)
-                        :forloop loop-info
-                        :parentloop loop-info)
-              (render content)
-              (.append buf))))
-        (.toString buf)))))
-
-(defn render-if [context-map condition first-block second-block]
-  (render
-    (cond 
-      (and condition first-block)
-      (:content first-block)
-      
-      (and (not condition) first-block)
-      (:content second-block)
-      
-      condition
-      (:content second-block)
-      
-      :else [(TextNode. "")])
-    context-map))
-
-(defn parse-if-arg [^String arg]
-  (map keyword (.split arg "\\.")))
-
-(defn if-result [value]  
-  (condp = value
-    nil     false
-    "false" false
-    false   false
-    true))
-
-(defn if-handler [[condition1 condition2] rdr]
-  (let [tags (tag-content rdr :if :else :endif)
-        not? (and condition1 condition2 (= condition1 "not"))
-        condition (parse-if-arg (or condition2 condition1))]
-    (fn [context-map]
-      (let [condition (if-result (get-in context-map condition))]
-        (render-if context-map (if not? (not condition) condition) (:if tags) (:else tags))))))
-
-(defn ifequal-handler [args rdr]
-  (let [tags (tag-content rdr :ifequal :else :endifequal)
-        args (for [^String arg args]
-               (if (= \" (first arg)) 
-                 (.substring arg 1 (dec (.length arg))) 
-                 (parse-if-arg arg)))]
-    (fn [context-map]
-      (let [condition (apply = (map #(if (coll? %) (get-in context-map %) %) args))]
-        (render-if context-map condition (:ifequal  tags) (:else tags))))))
-
-(defn block-handler [args rdr]
-  (let [content (get-in (tag-content rdr :endblock) [:block :content])]
-    (fn [context-map] (render content context-map))))
-
-(defn render-tags [context-map tags]
-  (into {}
-    (for [[tag content] tags]
-      [tag 
-       (update-in content [:content]
-         (fn [^selmer.parser.INode node]
-           (apply str (map #(.render-node ^selmer.parser.INode % context-map) node))))])))
-
-(defn tag-handler [handler & tags]
-  (fn [args rdr]    
-     (let [content (if (> (count tags) 1) (apply (partial tag-content rdr) tags))]
-       (-> (fn [context-map]
-             (render
-               [(->> content (render-tags context-map) (handler args context-map) (TextNode.))]
-               context-map))))))
-
 (def ^:dynamic *expr-tags*
   {:if if-handler
    :ifequal ifequal-handler
@@ -143,7 +45,7 @@
 
 (defn expr-tag [{:keys [tag-name args] :as tag} rdr]
   (if-let [handler (tag-name *expr-tags*)]
-    (handler args rdr)
+    (handler args tag-content render rdr)
     (throw (Exception. (str "unrecognized tag: " tag-name)))))
 
 (defn filter-tag [{:keys [tag-value]}]
@@ -166,7 +68,9 @@
         
         (open-tag? ch rdr)
         (let [{:keys [tag-name args] :as tag} (read-tag-info rdr)]
-          (if-let [open-tag (and tag-name (some (fn [[open close]] (if (= tag-name close) open)) end-tags))]
+          (if-let [open-tag (and tag-name 
+                                 (some (fn [[open close]]
+                                         (if (= tag-name close) open)) end-tags))]
               (let [tags     (assoc tags open-tag
                                     {:args args
                                      :content (conj content (TextNode. (.toString buf)))})
@@ -217,4 +121,3 @@
 
 (defn parse-file [file & [params]]
   (-> file preprocess-template (java.io.StringReader.) (parse params)))
-

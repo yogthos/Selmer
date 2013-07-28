@@ -1,5 +1,5 @@
 (ns selmer.core-test
-  (:use clojure.test selmer.parser selmer.template-parser selmer.util)
+  (:use clojure.test selmer.parser selmer.template-parser selmer.tags selmer.util)
   (:import java.io.File))
 
 (def path (str "test/templates" File/separator))
