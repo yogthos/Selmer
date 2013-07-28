@@ -78,7 +78,7 @@
         (render-if render context-map condition (:ifequal  tags) (:else tags))))))
 
 (defn block-handler [args tag-content render rdr]
-  (let [content (get-in (tag-content rdr :endblock) [:block :content])]
+  (let [content (get-in (tag-content rdr :block :endblock) [:block :content])]
     (fn [context-map] (render content context-map))))
 
 ;;helpers for custom tag definition
