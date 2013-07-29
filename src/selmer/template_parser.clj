@@ -37,7 +37,7 @@
   (loop [blocks-to-close 1
          ch (read-char rdr)]    
     (when (and (pos? blocks-to-close) ch)
-      (if (= *tag-open* ch)
+      (if (open-tag? ch rdr)
         (let [tag-str (read-tag-content rdr)
               block? (re-matches #"\{\%\s*block.*" tag-str)
               block-name (if block? (get-tag-params #"block" tag-str))
