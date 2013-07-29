@@ -10,7 +10,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 Leiningen
 
 ```clojure
-[selmer "0.2.0"]
+[selmer "0.2.1"]
 ```
 
 ## Marginalia documentation
@@ -173,6 +173,12 @@ replaces itself with the contents of the referenced template
 Allows specifying a block of content that can be overwritten using the template inheritance discussed below.
 
 `{% block foo %}This text can be overridden later{% endblock %}`
+
+**block.super**
+
+Can be used inside a block to insert the content from the parent block in its place
+
+`{% block foo %} {{block.super}} some content{% endblock %}`
 
 **extends**
 
