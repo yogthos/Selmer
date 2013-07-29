@@ -33,7 +33,7 @@
   (let [template (get-tag-params #"extends" tag-str)]
     (.substring ^String template 1 (dec (.length ^String template)))))
 
-(defn write-tag? [buf blocks-to-close omit-close-tag?]
+(defn write-tag? [buf existing-block blocks-to-close omit-close-tag?]
   (and buf
        (not existing-block)
        (> blocks-to-close (if omit-close-tag? 1 0))))
@@ -49,7 +49,7 @@
               block-name (if block? (get-tag-params #"block" tag-str))
               super-tag? (re-matches #"\{\{\s*block.super\s*\}\}" tag-str) 
               existing-block (if block-name (get-in blocks [block-name :content]))]          
-          (when (write-tag? buf blocks-to-close omit-close-tag?)
+          (when (write-tag? buf existing-block blocks-to-close omit-close-tag?)
             (.append buf tag-str))
           (recur
             (long 
