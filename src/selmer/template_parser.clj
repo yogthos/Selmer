@@ -29,7 +29,7 @@
   (let [template (get-tag-params #"extends" tag-str)]
     (.substring ^String template 1 (dec (.length ^String template)))))
 
-(defn consume-block [rdr & [^StringBuilder buf blocks]]
+(defn consume-block [rdr & [^StringBuilder buf blocks]]  
   (loop [blocks-to-close 1
          ch (read-char rdr)]    
     (when (and (pos? blocks-to-close) ch)
@@ -50,7 +50,7 @@
                 
                 block?
                 (inc blocks-to-close)
-   
+
                 (re-matches #"\{\%\s*endblock.*" tag-str)
                 (dec blocks-to-close)
                 
@@ -60,7 +60,7 @@
           (when buf (.append buf ch))
           (recur blocks-to-close (read-char rdr)))))))
 
-(defn read-block [rdr block-tag blocks]
+(defn read-block [rdr block-tag blocks]  
   (let [block-name (get-tag-params #"block" block-tag)]
     (if (get blocks block-name)
       (do (consume-block rdr) blocks)
@@ -69,7 +69,7 @@
                     (.append buf block-tag)
                     (consume-block rdr buf blocks))))))
 
-(defn process-block [rdr buf block-tag blocks]  
+(defn process-block [rdr buf block-tag blocks]    
   (let [block-name (get-tag-params #"block" block-tag)]
     (if-let [block (get blocks block-name)]
       (do
@@ -77,7 +77,7 @@
         (.append ^StringBuilder buf block))
       (do
         (.append ^StringBuilder buf block-tag)
-        (consume-block rdr buf)))))
+        (consume-block rdr buf blocks)))))
 
 (defn read-template [template blocks]
   (let [buf (StringBuilder.)
@@ -90,7 +90,7 @@
               (nil? ch) [parent blocks]
               
               (open-tag? ch rdr)
-              (let [tag-str (read-tag-content rdr)] 
+              (let [tag-str (read-tag-content rdr)]                
                 (cond
                   ;;if the template extends another it's not the root
                   ;;this template is allowed to only contain blocks

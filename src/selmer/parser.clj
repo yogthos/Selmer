@@ -11,6 +11,10 @@
 
 (defonce templates (atom {}))
 
+(defonce cache? (atom true))
+
+(defn toggle-caching [] (swap! cache? not))
+
 (defonce expr-tags
   """expr-tags are {% if ... %}, {% ifequal ... %},
   {% for ... %}, and {% block blockname %}"""
@@ -19,7 +23,10 @@
          :for for-handler
          :block block-handler}))
 
-(defn add-tag![k tag]
+(defmacro deftag [k handler & tags]
+  `(swap! selmer.parser/expr-tags assoc ~k (tag-handler ~handler ~k ~@tags)))
+
+(defn add-tag! [k tag]
   """For adding a tag, which is an fn that processes
   arguments, context-map, and enclosed text."""
   (swap! expr-tags assoc k tag))
@@ -43,7 +50,7 @@
     (when-not (.exists (java.io.File. file-path))
       (throw (Exception. (str "temaplate: \"" file-path "\" not found"))))
         
-    (if (and last-modified (= last-modified last-modified-file))
+    (if (and @cache? last-modified (= last-modified last-modified-file))
       (render-template template context-map)
       (let [template (parse-file filename opts)]
         (swap! templates assoc filename {:template template

@@ -2,9 +2,6 @@
   (:require selmer.node)
   (:import [selmer.node INode TextNode FunctionNode]))
 
-(def valid-tags (atom {}))
-(def tags (atom {}))
-
 ;;; A tag can modify the context map for its body
 ;;; It has full control of its body which means that it has to
 ;;; take care of its compilation.
@@ -92,8 +89,10 @@
 
 (defn tag-handler [handler & tags]
   (fn [args tag-content render rdr]    
-     (let [content (if (> (count tags) 1) (apply (partial tag-content rdr) tags))]
+     (if-let [content (if (> (count tags) 1) (apply (partial tag-content rdr) tags))]
        (-> (fn [context-map]
              (render
                [(->> content (render-tags context-map) (handler args context-map) (TextNode.))]
-               context-map))))))
+               context-map)))
+       (fn [context-map]
+         (render [(TextNode. (handler args context-map))] context-map)))))
