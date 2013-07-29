@@ -1,5 +1,6 @@
 (ns selmer.tags
-  (:require selmer.node)
+  (:require selmer.node
+            [selmer.filter-parser :refer [compile-filter-body]])
   (:import [selmer.node INode TextNode FunctionNode]))
 
 ;; A tag can modify the context map for its body
@@ -46,9 +47,6 @@
       :else [(TextNode. "")])
     context-map))
 
-(defn parse-if-arg [^String arg]
-  (map keyword (.split arg "\\.")))
-
 (defn if-result [value]  
   (condp = value
     nil     false
@@ -62,9 +60,9 @@
   runtime context-map. (Separate from compile-time) """
   (let [tags (tag-content rdr :if :else :endif)
         not? (and condition1 condition2 (= condition1 "not"))
-        condition (parse-if-arg (or condition2 condition1))]
+        condition (compile-filter-body (or condition2 condition1))]
     (fn [context-map]
-      (let [condition (if-result (get-in context-map condition))]
+      (let [condition (if-result (condition context-map))]
         (render-if render context-map (if not? (not condition) condition) (:if tags) (:else tags))))))
 
 (defn ifequal-handler [args tag-content render rdr]
@@ -72,9 +70,9 @@
         args (for [^String arg args]
                (if (= \" (first arg)) 
                  (.substring arg 1 (dec (.length arg))) 
-                 (parse-if-arg arg)))]
+                 (compile-filter-body arg)))]
     (fn [context-map]
-      (let [condition (apply = (map #(if (coll? %) (get-in context-map %) %) args))]
+      (let [condition (apply = (map #(if (fn? %) (% context-map) %) args))]
         (render-if render context-map condition (:ifequal  tags) (:else tags))))))
 
 (defn block-handler [args tag-content render rdr]
