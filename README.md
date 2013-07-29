@@ -13,6 +13,10 @@ Leiningen
 [selmer "0.2.0"]
 ```
 
+## Marginalia documentation
+
+[Marginalia documentation](https://rawgithub.com/yogthos/Selmer/master/docs/uberdoc.html)
+
 ## Usage
 
 ### Templates
