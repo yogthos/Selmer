@@ -59,10 +59,12 @@
        (render-file "templates/child.html" {:content "blah"}))))
 
 (deftest custom-tags
-  (render "[% for ele in foo %]<<[{ele}]>>[%endfor%]"
-                 {:foo [1 2 3]}
-                 {:tag-open \[
-                  :tag-close \]}))
+  (is
+    (= "<<1>><<2>><<3>>"
+       (render "[% for ele in foo %]<<[{ele}]>>[%endfor%]"
+               {:foo [1 2 3]}
+               {:tag-open \[
+                :tag-close \]}))))
 
 (deftest test-for
   (is (= (render "{% for ele in foo %}<<{{ele}}>>{%endfor%}"
