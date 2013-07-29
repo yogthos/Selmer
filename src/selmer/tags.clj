@@ -2,9 +2,9 @@
   (:require selmer.node)
   (:import [selmer.node INode TextNode FunctionNode]))
 
-;;; A tag can modify the context map for its body
-;;; It has full control of its body which means that it has to
-;;; take care of its compilation.
+;; A tag can modify the context map for its body
+;; It has full control of its body which means that it has to
+;; take care of its compilation.
 
 (defn for-handler [[^String id _ items] tag-content render rdr]
   (let [content (:content (:for (tag-content rdr :for :endfor)))
@@ -57,6 +57,9 @@
     true))
 
 (defn if-handler [[condition1 condition2] tag-content render rdr]
+  """ Handler of if-condition tags. Expects conditions, enclosed
+  tag-content, render boolean. Returns anonymous fn that will expect
+  runtime context-map. (Separate from compile-time) """
   (let [tags (tag-content rdr :if :else :endif)
         not? (and condition1 condition2 (= condition1 "not"))
         condition (parse-if-arg (or condition2 condition1))]

@@ -1,4 +1,8 @@
 (ns selmer.template-parser
+  " Where we preprocess the inheritance and mixin components of the templates.
+  These are presumed to be static and we only aggregate them on the first
+  template render. The compile-time tag parsing routines happen on a flat string
+  composed from the result of `extends` inheritance and `include` mixins. "
   (:require [clojure.java.io :refer [reader]]
             [selmer.util :refer :all]
             [clojure.string :refer [split trim]])

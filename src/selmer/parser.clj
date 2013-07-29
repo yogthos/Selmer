@@ -1,4 +1,12 @@
 (ns selmer.parser
+  " Parsing and handling of compile-time vs.
+  run-time. Avoiding unnecessary work by pre-processing
+  the template structure and content and reacting to
+  the runtime context map with a prepared data structure
+  instead of a raw template. Anything other than a raw tag
+  value injection is a runtime dispatch fn. Compile-time here
+  means the first time we see a template *at runtime*, not the
+  implementation's compile-time. "
   (:require [selmer.template-parser :refer [preprocess-template]]
             [selmer.filters :refer [filters]]
             [selmer.filter-parser :refer [compile-filter-body]]
@@ -7,31 +15,50 @@
             selmer.node)
   (:import [selmer.node INode TextNode FunctionNode]))
 
+;; Ahead decl because some fns call into each other.
+
 (declare parse parse-file expr-tag tag-content)
+
+;; Memoization atom for templates. If you pass a filepath instead
+;; of a string, we'll use the last-modified timestamp to cache the
+;; template. Works fine for active local development and production.
 
 (defonce templates (atom {}))
 
 (defonce cache? (atom true))
 
-(defn toggle-caching [] (swap! cache? not))
+(defn toggle-caching []
+  (swap! cache? not))
+
+;; expr-tags are {% if ... %}, {% ifequal ... %},
+;; {% for ... %}, and {% block blockname %}
 
 (defonce expr-tags
-  """expr-tags are {% if ... %}, {% ifequal ... %},
-  {% for ... %}, and {% block blockname %}"""
   (atom {:if if-handler
          :ifequal ifequal-handler
          :for for-handler
          :block block-handler}))
 
+;; deftag is a hella nifty macro. Example use:
+;; (deftag :bar (fn [args context-map] (clojure.string/join "," args)))
+
 (defmacro deftag [k handler & tags]
+  """ tag name, fn handler, and maybe tags """
   `(swap! selmer.parser/expr-tags assoc ~k (tag-handler ~handler ~k ~@tags)))
 
+;; For adding a tag, which is an fn that processes
+;; arguments, context-map, and enclosed text. You
+;; probably want the deftag macro.
+
 (defn add-tag! [k tag]
-  """For adding a tag, which is an fn that processes
-  arguments, context-map, and enclosed text."""
+  """ tag-name and tag """
   (swap! expr-tags assoc k tag))
 
+;; render-template renders at runtime, accepts
+;; post-parsing vectors of INode elements.
+
 (defn render-template [template context-map]
+  """ vector of ^selmer.node.INodes and a context map."""
   (let [buf (StringBuilder.)]
     (doseq [^selmer.node.INode element template]
         (if-let [value (.render-node element context-map)]
@@ -42,7 +69,16 @@
   """ render takes the string, the context-map and possibly also opts. """
   (render-template (parse (java.io.StringReader. s) opts) context-map))
 
+;; Primary fn you interact with as a user, you pass a path that
+;; exists somewhere in your class-path, typically something like
+;; resources/templates/template_name.html. You also pass a context
+;; map and potentially opts. Smart (last-modified timestamp)
+;; auto-memoization of compiler output.
+
 (defn render-file [^String filename context-map & [opts]]
+  """ Parses files if there isn't a memoized post-parse vector ready to go,
+  renders post-parse vector with passed context-map regardless. Double-checks
+  last-modified on files. Uses classpath for filename path """
   (let [file-path (.getPath ^java.net.URL (resource-path filename))
         {:keys [template last-modified]} (get @templates filename)
         last-modified-file (.lastModified (java.io.File. ^String file-path))]
@@ -57,20 +93,37 @@
                                          :last-modified last-modified-file})
         (render-template template context-map)))))
 
+;; For a given tag, get the fn handler for the tag type,
+;; pass it the arguments, tag-content, render-template fn,
+;; and reader.
+
 (defn expr-tag [{:keys [tag-name args] :as tag} rdr]
   (if-let [handler (tag-name @expr-tags)]
     (handler args tag-content render-template rdr)
     (throw (Exception. (str "unrecognized tag: " tag-name)))))
 
+;; Same as a vanilla data tag with a value, but composes
+;; the filter fns. Like, {{ data-var | upper | safe }}
+;; (-> {:data-var "woohoo"} upper safe) => "WOOHOO"
+;; Happens at compile-time.
+
 (defn filter-tag [{:keys [tag-value]}]
+  """ Compile-time parser of var tag filters. """
   (compile-filter-body tag-value))
 
-(defn parse-tag [{:keys [tag-type] :as tag} rdr]  
+;; Generally either a filter tag, if tag, ifequal,
+;; or for. filter-tags are conflated with vanilla tag
+
+(defn parse-tag [{:keys [tag-type] :as tag} rdr]
   (if (= :filter tag-type)
     (filter-tag tag)
     (expr-tag tag rdr)))
 
-(defn tag-content [rdr & end-tags]  
+;; Pretty fucking gnarly. Parses and detects tags which turn into
+;; FunctionNode call-sites or TextNode content. open-tag? fn returns
+;; true or false based on character lookahead to see if it's {{ or {%
+
+(defn tag-content [rdr & end-tags]
   (let [buf (StringBuilder.)]
     (loop [ch       (read-char rdr)
            tags     {}
@@ -79,7 +132,6 @@
       (cond
         (nil? ch)
         tags
-        
         (open-tag? ch rdr)
         (let [{:keys [tag-name args] :as tag} (read-tag-info rdr)]
           (if-let [open-tag (and tag-name 
@@ -101,6 +153,9 @@
           (.append buf ch)
           (recur (read-char rdr) tags content end-tags))))))
 
+;; Compile-time parsing of tags. Accumulates a transient vector
+;; before returning the persistent vector of INodes (TextNode, FunctionNode)
+
 (defn parse* [input]
   (with-open [rdr (clojure.java.io/reader input)]
       (let [template (transient [])
@@ -109,22 +164,26 @@
           (when ch
             (if (open-tag? ch rdr)
               (do                
-                ;we hit a tag so we append the buffer content to the template
-                ; and empty the buffer, then we proceed to parse the tag
+                ;; We hit a tag so we append the buffer content to the template
+                ;; and empty the buffer, then we proceed to parse the tag
                 (conj! template (TextNode. (.toString buf)))
                 (.setLength buf 0)
                 (conj! template (FunctionNode. (parse-tag (read-tag-info rdr) rdr)))
                 (recur (read-char rdr)))
               (do
-                ;default case, here we simply append the character and
-                ;go to read the next one
+                ;; Default case, here we append the character and
+                ;; read the next char
                 (.append buf ch)
                 (recur (read-char rdr))))))
-        ;add the leftover content of the buffer and return the template
+        ;; Add the leftover content of the buffer and return the template
         (conj! template (TextNode. (.toString buf)))
         (persistent! template))))
 
-(defn parse [file & [{:keys [tag-open tag-close filter-open filter-close tag-second custom-tags custom-filters]}]]
+;; Primary compile-time parse routine. Work we don't want happening after
+;; first template render. Vector output from parse* gets memoized by render-file.
+
+(defn parse [file & [{:keys [tag-open tag-close filter-open
+             filter-close tag-second custom-tags custom-filters]}]]
   (binding [*tag-open*     (or tag-open *tag-open*)
             *tag-close*    (or tag-close *tag-close*)
             *filter-open*  (or filter-open *filter-open*)
@@ -133,6 +192,8 @@
     (swap! expr-tags merge custom-tags)
     (swap! filters merge custom-filters)
     (parse* file)))
+
+;; File-aware parse wrapper.
 
 (defn parse-file [file & [params]]
   (-> file preprocess-template (java.io.StringReader.) (parse params)))
