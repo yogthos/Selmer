@@ -82,7 +82,7 @@ that accepts a string and returns its replacement:
 
 **upper**
 
-(render "{{shout|upper}}" {:shout "hello"})
+`(render "{{shout|upper}}" {:shout "hello"})` => `"HELLO"`
 
 **date**
 
@@ -94,9 +94,9 @@ that accepts a string and returns its replacement:
 
 **count**
 
-`(render "{{name|count}}" {:name "Yogthos"})` => 7
+`(render "{{name|count}}" {:name "Yogthos"})` => `"7"`
 
-`(render "{{items|count}}" {:items [1 2 3 4]})` => 4
+`(render "{{items|count}}" {:items [1 2 3 4]})` => `"4"`
 
 **pluralize**
 
@@ -190,7 +190,7 @@ For example, say we have a base template called `base.html` and a child template
 
 ```xml
 {% extends "base.html" %}
-{% block foo %}This text will override the text in the parent{% endblock %}
+{% block foo %}<p>This text will override the text in the parent</p>{% endblock %}
 ```
 
 **if**
