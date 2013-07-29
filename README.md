@@ -3,7 +3,7 @@ Selmer
 
 [![Continuous Integration status](https://secure.travis-ci.org/yogthos/Selmer.png)](http://travis-ci.org/yogthos/Selmer)
 
-A fast [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) inspired template system.
+A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) inspired template system.
 
 ## Installation
 
