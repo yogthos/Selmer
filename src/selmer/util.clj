@@ -38,6 +38,12 @@
                {:tag-name (keyword (first content))
                 :args (next content)})))))
 
+(defn peek-rdr [^java.io.Reader rdr]
+  (.mark rdr 1)
+  (let [result (read-char rdr)]
+    (.reset rdr)
+    result))
+
 (defmacro ->buf [[buf] & body]
   `(let [~buf (StringBuilder.)]
     (do ~@body)
@@ -45,17 +51,14 @@
 
 (defn read-tag-content [rdr]
   (->buf [buf]
-    (.append buf *tag-open*)
-    (loop [ch (read-char rdr)]
-      (.append buf ch)
-      (when (not= *tag-close* ch)
-        (recur (read-char rdr))))))
-
-(defn peek-rdr [^java.io.Reader rdr]
-  (.mark rdr 1)
-  (let [result (read-char rdr)]
-    (.reset rdr)
-    result))
+    (let [filter? (not= *tag-second* (peek-rdr rdr))]
+      (.append buf *tag-open*)      
+      (loop [ch (read-char rdr)]
+        (.append buf ch)
+        (when (not= *tag-close* ch)
+          (recur (read-char rdr))))
+      (when filter?
+        (.append buf (read-char rdr))))))
 
 (defn open-tag? [ch rdr]
   (and (= *tag-open* ch) 

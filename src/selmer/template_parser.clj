@@ -33,23 +33,32 @@
   (let [template (get-tag-params #"extends" tag-str)]
     (.substring ^String template 1 (dec (.length ^String template)))))
 
-(defn consume-block [rdr & [^StringBuilder buf blocks]]  
+(defn write-tag? [buf blocks-to-close omit-close-tag?]
+  (and buf
+       (not existing-block)
+       (> blocks-to-close (if omit-close-tag? 1 0))))
+
+(defn consume-block [rdr & [^StringBuilder buf blocks omit-close-tag?]]
   (loop [blocks-to-close 1
+         has-super? false
          ch (read-char rdr)]    
-    (when (and (pos? blocks-to-close) ch)
+    (if (and (pos? blocks-to-close) ch)
       (if (open-tag? ch rdr)
         (let [tag-str (read-tag-content rdr)
               block? (re-matches #"\{\%\s*block.*" tag-str)
               block-name (if block? (get-tag-params #"block" tag-str))
-              existing-block (if block-name (get blocks block-name))]          
-          (when (and buf (not existing-block)) (.append buf tag-str))
+              super-tag? (re-matches #"\{\{\s*block.super\s*\}\}" tag-str) 
+              existing-block (if block-name (get-in blocks [block-name :content]))]          
+          (when (write-tag? buf blocks-to-close omit-close-tag?)
+            (.append buf tag-str))
           (recur
             (long 
               (cond
                 existing-block
                 (do 
                   (consume-block rdr)
-                  (consume-block (StringReader. existing-block) buf (dissoc blocks block-name))
+                  (consume-block
+                    (StringReader. existing-block) buf (dissoc blocks block-name))
                   blocks-to-close)
                 
                 block?
@@ -59,26 +68,41 @@
                 (dec blocks-to-close)
                 
                 :else blocks-to-close))
+            (or has-super? super-tag?)
             (read-char rdr)))
         (do
           (when buf (.append buf ch))
-          (recur blocks-to-close (read-char rdr)))))))
+          (recur blocks-to-close has-super? (read-char rdr))))
+      (boolean has-super?))))
+
+(defn rewrite-super [block parent-content]    
+  (clojure.string/replace block #"\{\{\s*block.super\s*\}\}" parent-content))
+
+(defn handle-super [rdr block-name existing-block blocks]
+  (if (:super existing-block)
+    (update-in blocks [block-name :content]
+               rewrite-super
+               (->buf [buf] (consume-block rdr buf blocks true)))
+    (do (consume-block rdr) blocks)))
 
 (defn read-block [rdr block-tag blocks]  
-  (let [block-name (get-tag-params #"block" block-tag)]
-    (if (get blocks block-name)
-      (do (consume-block rdr) blocks)
-      (assoc blocks block-name 
-             (->buf [buf]
-                    (.append buf block-tag)
-                    (consume-block rdr buf blocks))))))
+  (let [block-name (get-tag-params #"block" block-tag)
+        existing-block (get blocks block-name)]    
+    (if existing-block
+      (handle-super rdr block-name existing-block blocks)
+      (let [buf (doto (StringBuilder.) (.append block-tag))
+            has-super? (consume-block rdr buf blocks)]        
+        (assoc blocks block-name 
+               {:super has-super?
+                :content (.toString buf)})))))
 
 (defn process-block [rdr buf block-tag blocks]    
-  (let [block-name (get-tag-params #"block" block-tag)]
-    (if-let [block (get blocks block-name)]
-      (do
-        (consume-block rdr)
-        (.append ^StringBuilder buf block))
+  (let [block-name (get-tag-params #"block" block-tag)]    
+    (if-let [existing-content (get-in blocks [block-name :content])]      
+      (.append ^StringBuilder buf 
+        (rewrite-super
+          existing-content
+          (->buf [buf] (consume-block rdr buf blocks true))))
       (do
         (.append ^StringBuilder buf block-tag)
         (consume-block rdr buf blocks)))))
@@ -88,19 +112,19 @@
         [parent blocks]
         (with-open [rdr (reader (resource-path template))]
           (loop [blocks (or blocks {})
-                 ch (read-char rdr)
+                 ch (read-char rdr)                 
                  parent nil]            
             (cond
               (nil? ch) [parent blocks]
               
               (open-tag? ch rdr)
-              (let [tag-str (read-tag-content rdr)]                
+              (let [tag-str (read-tag-content rdr)]                  
                 (cond
                   ;;if the template extends another it's not the root
                   ;;this template is allowed to only contain blocks
                   (re-matches #"\{\%\s*extends.*" tag-str)
                   (recur blocks (read-char rdr) (get-parent tag-str))
-                  
+                                    
                   ;;if we have a parent then we simply want to add the
                   ;;block to the block map if it hasn't been added already
                   (and parent (re-matches #"\{\%\s*block.*" tag-str))
