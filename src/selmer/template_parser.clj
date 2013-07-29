@@ -75,21 +75,14 @@
           (recur blocks-to-close has-super? (read-char rdr))))
       (boolean has-super?))))
 
-(defn rewrite-super [block parent-content]    
+(defn rewrite-super [block parent-content]      
   (clojure.string/replace block #"\{\{\s*block.super\s*\}\}" parent-content))
-
-(defn handle-super [rdr block-name existing-block blocks]
-  (if (:super existing-block)
-    (update-in blocks [block-name :content]
-               rewrite-super
-               (->buf [buf] (consume-block rdr buf blocks true)))
-    (do (consume-block rdr) blocks)))
 
 (defn read-block [rdr block-tag blocks]  
   (let [block-name (get-tag-params #"block" block-tag)
         existing-block (get blocks block-name)]    
     (if existing-block
-      (handle-super rdr block-name existing-block blocks)
+      (do (consume-block rdr) blocks)      
       (let [buf (doto (StringBuilder.) (.append block-tag))
             has-super? (consume-block rdr buf blocks)]        
         (assoc blocks block-name 
