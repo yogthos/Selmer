@@ -213,7 +213,8 @@ Only render the body if the two args are equal (according to clojure.core/=).
 
 **for/endfor** *block*
 
-Render the body one time for each element in the list. Each "render" will introduce two extra variables into the context -- `forloop.first` and `forloop.last`.
+Render the body one time for each element in the list. Each "render" will introduce two extra variables into the context -- 
+`forloop.first`, `forloop.last`, `forloop.counter`, `forloop.counter0`, `forloop.revcounter`, `forloop.revcounter0` and `forloop.length`.
 
 `{% for x in some-list %}element: {{x}} first? {{forloop.first}} last? {{forloop.last}}{% endfor %}`
 
