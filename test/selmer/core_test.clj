@@ -41,14 +41,12 @@
   (let [s "{a b c} \nd"]
     (is (= s (render s {})))))
 
-
-
 (deftest inheritance
   (is
     (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n            Hello \n         World\n{% endblock %}    </body>\n</html>"
        (preprocess-template "templates/inheritance/super-b.html")))
   (is
-    (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n            Hello \n        Cruel World\n{% endblock %}    </body>\n</html>"
+    (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n World\nCruel World\n{% endblock %}    </body>\n</html>"
        (preprocess-template "templates/inheritance/super-c.html")))  
   (is
     (= "start a\n{% block a %}{% endblock %}stop a\n\n{% block content %}{% endblock %}\nHello, {{name}}!\n"
