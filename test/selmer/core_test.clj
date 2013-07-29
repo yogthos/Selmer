@@ -181,7 +181,7 @@
                   :bar true})
          "before bar foo & bar are true after bar")))
 
-(deftest ifequal-tag-test
+(deftest ifequal-tag-test  
   (= "\n<h1>equal!</h1>\n\n\n\n<p>not equal</p>\n"
      (render-template (parse (str path "ifequal.html")) {:foo "bar"}))
   (= "\n\n<h1>equal!</h1>\n\n\n<p>not equal</p>\n"
@@ -191,6 +191,9 @@
   (= "\n\n<h1>equal!</h1>\n\n\n<p>not equal</p>\n"
      (render-template (parse (str path "ifequal.html")) {:baz "fail"}))
 
+  (is (= (render "{% ifequal foo|upper \"FOO\" %}yez{% endifequal %}" {:foo "foo"})
+         "yez"))
+  
   (is (= (render "{% ifequal foo \"foo\" %}yez{% endifequal %}" {:foo "foo"})
          "yez"))
   (is (= (render "{% ifequal foo \"foo\" bar %}yez{% endifequal %}"
