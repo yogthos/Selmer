@@ -12,12 +12,17 @@
 (defonce templates (atom {}))
 
 (defonce expr-tags
+  """expr-tags are {% if ... %}, {% ifequal ... %},
+  {% for ... %}, and {% block blockname %}"""
   (atom {:if if-handler
          :ifequal ifequal-handler
          :for for-handler
          :block block-handler}))
 
-(defn add-tag! [k tag] (swap! expr-tags assoc k tag))
+(defn add-tag![k tag]
+  """For adding a tag, which is an fn that processes
+  arguments, context-map, and enclosed text."""
+  (swap! expr-tags assoc k tag))
 
 (defn render-template [template context-map]
   (let [buf (StringBuilder.)]
@@ -27,6 +32,7 @@
     (.toString buf)))
 
 (defn render [s context-map & [opts]]
+  """ render takes the string, the context-map and possibly also opts. """
   (render-template (parse (java.io.StringReader. s) opts) context-map))
 
 (defn render-file [^String filename context-map & [opts]]
