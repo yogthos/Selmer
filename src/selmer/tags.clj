@@ -50,6 +50,7 @@
 (defn if-result [value]  
   (condp = value
     nil     false
+    ""      false
     "false" false
     false   false
     true))

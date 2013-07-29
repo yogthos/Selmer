@@ -121,24 +121,34 @@
          "beforeafter")))
 
 (deftest tag-info-test
-  (= {:args ["i" "in" "nums"], :tag-name :for, :tag-type :expr}
-     (read-tag-info (java.io.StringReader. "% for i in nums %}")))
-  (= {:tag-value "nums", :tag-type :filter}
-     (read-tag-info (java.io.StringReader. "{ nums }}"))))
+  (is
+    (= {:args ["i" "in" "nums"], :tag-name :for, :tag-type :expr}
+       (read-tag-info (java.io.StringReader. "% for i in nums %}"))))
+  (is
+    (= {:tag-value "nums", :tag-type :filter}
+       (read-tag-info (java.io.StringReader. "{ nums }}")))))
 
 (deftest if-tag-test
-  (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"foo\"\n"
-     (render-template (parse (str path "if.html")) {:nested "x" :inner "y"}))
+  (is
+    (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"bar\"\n\n\n\n\t\n\tinner\n\t\n"
+       (render-template (parse (str path "if.html")) {:nested "x" :inner "y"})))
   
-  (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"foo\"\n"
-     (render-template (parse (str path "if.html")) {:user-id "bob"}))  
-  (= "\n\n<h1>NOT BAR!</h1>\n"
-     (render-template (parse (str path "if.html")) {:foo false}))
-  (= "\n<h1>FOO!</h1>\n\n\n<h1>NOT BAR!</h1>\n"
-     (render-template (parse (str path "if.html")) {:foo true}))
-  (= "\n<h1>FOO!</h1>\n\n\n<h1>BAR!</h1>\n"
-     (render-template (parse (str path "if.html")) {:foo true :bar "test"}))
+  (is
+    (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"foo\"\n\n\n"
+       (render-template (parse (str path "if.html")) {:user-id "bob"})))  
+  (is
+    (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"bar\"\n\n\n"
+       (render-template (parse (str path "if.html")) {:foo false})))
+  (is
+    (= "\n<h1>FOO!</h1>\n\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"bar\"\n\n\n"
+       (render-template (parse (str path "if.html")) {:foo true})))
+  (is
+    (= "\n<h1>FOO!</h1>\n\n\n\n\n<h1>BAR!</h1>\n\n\n\n\"bar\"\n\n\n"
+       (render-template (parse (str path "if.html")) {:foo true :bar "test"})))
 
+  (is
+    (= " no value "
+       (render "{% if user-id %} has value {% else %} no value {% endif %}"  {})))
   (is (= (render "{% if foo %}foo is true{% endif %}" {:foo true})
          "foo is true"))
   (is (= (render "{% if foo %}foo is true{% endif %}" {:foo false})
@@ -212,16 +222,26 @@
          "no foo")))
 
 (deftest filter-tag-test
-  (= "ok"
-     ((filter-tag {:tag-value "foo.bar.baz"}) {:foo {:bar {:baz "ok"}}}))
-  (= "ok"
-     ((filter-tag {:tag-value "foo"}) {:foo "ok"})))
+  (is
+    (= "ok"
+       ((filter-tag {:tag-value "foo.bar.baz"}) {:foo {:bar {:baz "ok"}}})))
+  (is
+    (= "ok"
+       ((filter-tag {:tag-value "foo"}) {:foo "ok"}))))
 
 (deftest tag-content-test
-  (= {:endif [" baz"], :else ["foo bar "]}
-     (tag-content (java.io.StringReader. "foo bar {%else%} baz{% endif %}") :if :else :endif))
-  (= {:endfor ["foo bar  baz"]}
-    (tag-content (java.io.StringReader. "foo bar  baz{% endfor %}") :for :endfor)))
+  (is
+    (= {:if {:args nil :content ["foo bar "]}
+        :else {:args nil :content [" baz"]}}
+       (into {}
+             (map
+               (fn [[k v]]
+                 [k (update-in v [:content]  #(map (fn [node] (.render-node node {})) %))])
+               (tag-content (java.io.StringReader. "foo bar {%else%} baz{% endif %}") :if :else :endif)))))
+  (is
+    (= {:for {:args nil, :content ["foo bar  baz"]}}
+       (update-in (tag-content (java.io.StringReader. "foo bar  baz{% endfor %}") :for :endfor)
+                  [:for :content 0] #(.render-node % {})))))
 
 (deftest filter-upper
   (is (= "FOO" (render "{{f|upper}}" {:f "foo"}))))
