@@ -6,17 +6,19 @@
 ;; A tag can modify the context map for its body
 ;; It has full control of its body which means that it has to
 ;; take care of its compilation.
+(defn parse-arg [^String arg]  
+  (map keyword (.split arg "\\.")))
 
-(defn for-handler [[^String id _ items] tag-content render rdr]
-  (let [content (:content (:for (tag-content rdr :for :endfor)))
-        id (map keyword (.split id "\\."))
-        items (keyword items)]
+(defn for-handler [[^String id _ ^String items] tag-content render rdr]  
+  (let [content (get-in (tag-content rdr :for :endfor) [:for :content])
+        id (parse-arg id)
+        item-keys (parse-arg items)]    
     (fn [context-map]
       (let [buf (StringBuilder.)
-            items (get context-map items)
+            items (get-in context-map item-keys)
             length (count items)
-            parentloop (:parentloop context-map)]
-        (doseq [[counter value] (map-indexed vector items)]
+            parentloop (:parentloop context-map)]        
+        (doseq [[counter value] (map-indexed vector items)]          
           (let [loop-info
                 {:length length
                  :counter0 counter

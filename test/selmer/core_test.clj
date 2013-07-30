@@ -73,7 +73,18 @@
                 :tag-close \]}))))
 
 (deftest test-for
-  (is (= (render "{% for ele in foo %}<<{{ele}}>>{%endfor%}"
+  (is
+    (= "1234567890"
+       (render-template
+         (parse (java.io.StringReader. 
+                  "{% for item in list %}{% for i in item.items %}{{i}}{% endfor %}{% endfor %}")) 
+         {:list [{:items [1 2 3]} {:items [4 5 6]} {:items [7 8 9 0]}]})))
+(is (= "bob"
+       (render-template
+         (parse (java.io.StringReader. 
+                  "{% for item in list.items %}{{item.name}}{% endfor %}")) 
+         {:list {:items [{:name "bob"}]}})))
+(is (= (render "{% for ele in foo %}<<{{ele}}>>{%endfor%}"
                  {:foo [1 2 3]})
          "<<1>><<2>><<3>>"))
   (is (= (render "{% for ele in foo %}{{ele}}-{{forloop.counter}}-{{forloop.counter0}}-{{forloop.revcounter}}-{{forloop.revcounter0}};{%endfor%}"
