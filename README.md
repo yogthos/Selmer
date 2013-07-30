@@ -75,7 +75,7 @@ that accepts a value and returns its replacement:
 ```clojure
 (use 'selmer.filters)
 
-(add-filter! :embiginate #(.toUpperCase %))
+(add-filter! :embiginate clojure.string/upper-case)
 (render "{{shout|embiginate}}" {:shout "hello"})
 =>"HELLO"
 
