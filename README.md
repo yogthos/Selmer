@@ -144,7 +144,7 @@ For example if we wanted to iterate over a collection of items, we could write t
 (render 
   "{% for user in users %}{{user.name}}{% endfor %}"     
   {:users [{:name "John"} {:name "Jane"}]})
-=>""JohnJane"  
+=>"JohnJane"  
 ```
 
 It's also possible to define custom tags using the `deftag` macro:
