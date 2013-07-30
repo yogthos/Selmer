@@ -138,6 +138,15 @@ Selmer supports two types of tags. The tags can be inline, which means that they
 tag statement such as `include` or `extends`, or contain a body and intermediate tags,
 such as `if`, `else`, `endif`.
 
+For example if we wanted to iterate over a collection of items, we could write the following:
+
+```clojure
+(render 
+  "{% for user in users %}{{user.name}}{% endfor %}"     
+  {:users [{:name "John"} {:name "Jane"}]})
+=>""JohnJane"  
+```
+
 It's also possible to define custom tags using the `deftag` macro:
 
 ```clojure
