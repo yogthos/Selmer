@@ -76,10 +76,8 @@ that accepts a value and returns its replacement:
 (use 'selmer.filters)
 
 (add-filter! :embiginate #(.toUpperCase %))
-
 (render "{{shout|embiginate}}" {:shout "hello"})
 =>"HELLO"
-
 
 (add-filter! :empty? empty?)
 (render "{{files|empty?}}" {:files []})
