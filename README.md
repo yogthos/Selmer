@@ -70,7 +70,7 @@ Some filters can take parameters. `{{domain|hash:"md5"}}` rendered with `{:domai
 `1bdf72e04d6b50c82a48c7e4dd38cc69`.
 
 Finally, you can easily register custom filters in addition to those already provided. A filter is simply a function
-that accepts a string and returns its replacement:
+that accepts a value and returns its replacement:
 
 ```clojure
 (use 'selmer.filters)
@@ -80,6 +80,10 @@ that accepts a string and returns its replacement:
 (render "{{shout|embiginate}}" {:shout "hello"})
 =>"HELLO"
 
+
+(add-filter! :empty? empty?)
+(render "{{files|empty?}}" {:files []})
+=>"true"
 ``` 
 
 #### Default Filters
@@ -124,7 +128,7 @@ Returns the correct (English) pluralization based on the variable. This works wi
 
 **safe**
 
-Exempts the variable from being html-escaped:
+By default Selmer will HTML escape all variables, The `safe` filter exempts the variable from being html-escaped:
 
 `(render "{{data}}" {:data "<foo>"})` => `"&lt;foo&gt;"`
 
@@ -210,6 +214,14 @@ It's an `if` -- only render the body if the conditional is true.
 `{% if condition %}yes!{% endif %}`
 
 `{% if condition %}yes!{% else %}no!{% endif %}`
+
+filters work for the conditions:
+
+```clojure
+(add-filter! :empty? empty?)
+(render "{% if files|empty? %}no files{% else %}files{% endif %}"
+  {:files []})
+```
 
 **ifequal/endifequal** *block*
 
