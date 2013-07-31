@@ -46,7 +46,7 @@
 ;; (deftag :bar (fn [args context-map] (clojure.string/join "," args)))
 
 (defmacro deftag [k handler & tags]
-  """ tag name, fn handler, and maybe tags """
+  " tag name, fn handler, and maybe tags "
   `(swap! selmer.parser/expr-tags assoc ~k (tag-handler ~handler ~k ~@tags)))
 
 ;; For adding a tag, which is an fn that processes
@@ -54,14 +54,14 @@
 ;; probably want the deftag macro.
 
 (defn add-tag! [k tag]
-  """ tag-name and tag """
+  " tag-name and tag "
   (swap! expr-tags assoc k tag))
 
 ;; render-template renders at runtime, accepts
 ;; post-parsing vectors of INode elements.
 
 (defn render-template [template context-map]
-  """ vector of ^selmer.node.INodes and a context map."""
+  " vector of ^selmer.node.INodes and a context map."
   (let [buf (StringBuilder.)]
     (doseq [^selmer.node.INode element template]
         (if-let [value (.render-node element context-map)]
@@ -69,7 +69,7 @@
     (.toString buf)))
 
 (defn render [s context-map & [opts]]
-  """ render takes the string, the context-map and possibly also opts. """
+  " render takes the string, the context-map and possibly also opts. "
   (render-template (parse (java.io.StringReader. s) opts) context-map))
 
 ;; Primary fn you interact with as a user, you pass a path that
@@ -79,9 +79,9 @@
 ;; auto-memoization of compiler output.
 
 (defn render-file [^String filename context-map & [opts]]
-  """ Parses files if there isn't a memoized post-parse vector ready to go,
+  " Parses files if there isn't a memoized post-parse vector ready to go,
   renders post-parse vector with passed context-map regardless. Double-checks
-  last-modified on files. Uses classpath for filename path """
+  last-modified on files. Uses classpath for filename path "
   (let [file-path (.getPath ^java.net.URL (resource-path filename))
         {:keys [template last-modified]} (get @templates filename)
         last-modified-file (.lastModified (java.io.File. ^String file-path))]
@@ -111,7 +111,7 @@
 ;; Happens at compile-time.
 
 (defn filter-tag [{:keys [tag-value]}]
-  """ Compile-time parser of var tag filters. """
+  " Compile-time parser of var tag filters. "
   (compile-filter-body tag-value))
 
 ;; Generally either a filter tag, if tag, ifequal,

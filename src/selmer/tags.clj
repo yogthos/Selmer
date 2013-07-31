@@ -58,9 +58,9 @@
     true))
 
 (defn if-handler [[condition1 condition2] tag-content render rdr]
-  """ Handler of if-condition tags. Expects conditions, enclosed
+  " Handler of if-condition tags. Expects conditions, enclosed
   tag-content, render boolean. Returns anonymous fn that will expect
-  runtime context-map. (Separate from compile-time) """
+  runtime context-map. (Separate from compile-time) "
   (let [tags (tag-content rdr :if :else :endif)
         not? (and condition1 condition2 (= condition1 "not"))
         condition (compile-filter-body (or condition2 condition1))]
