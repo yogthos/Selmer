@@ -247,12 +247,12 @@
        (into {}
              (map
                (fn [[k v]]
-                 [k (update-in v [:content]  #(map (fn [node] (.render-node node {})) %))])
+                 [k (update-in v [:content]  #(map (fn [node] (.render-node ^selmer.node.INode node {})) %))])
                (tag-content (java.io.StringReader. "foo bar {%else%} baz{% endif %}") :if :else :endif)))))
   (is
     (= {:for {:args nil, :content ["foo bar  baz"]}}
        (update-in (tag-content (java.io.StringReader. "foo bar  baz{% endfor %}") :for :endfor)
-                  [:for :content 0] #(.render-node % {})))))
+                  [:for :content 0] #(.render-node ^selmer.node.INode % {})))))
 
 (deftest filter-upper
   (is (= "FOO" (render "{{f|upper}}" {:f "foo"}))))

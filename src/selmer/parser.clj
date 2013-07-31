@@ -27,8 +27,11 @@
 
 (defonce cache? (atom true))
 
-(defn toggle-caching []
-  (swap! cache? not))
+(defn cache-on! []
+  (swap! cache? (identity true)))
+
+(defn cache-off! []
+  (swap! cache? (identity nil)))
 
 ;; expr-tags are {% if ... %}, {% ifequal ... %},
 ;; {% for ... %}, and {% block blockname %}
