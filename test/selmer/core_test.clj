@@ -5,8 +5,9 @@
 (def path (str "test/templates" File/separator))
 
 (deftest dev-error-handling
-  (is (= "something nicer"
-         (render "{{blah|safe|woot" {:blah "woot"}))))
+  (is (= "No filter defined with the name 'woot'"
+         (try (render "{{blah|safe|woot" {:blah "woot"})
+           (catch Exception ex (.getMessage ex))))))
 
 (deftest custom-handler-test
   (let [handler (tag-handler

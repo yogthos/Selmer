@@ -89,8 +89,10 @@ applied filter."
         (re-seq #"(?:[^:\"]|\"[^\"]*\")+" s)
         args (fix-filter-args args)
         filter (get-filter filter-name)]
-    (fn [x]
-      (apply filter x args))))
+    (if filter 
+      (fn [x]
+        (apply filter x args))
+      (throw (Exception. (str "No filter defined with the name '" filter-name "'"))))))
 
 (defn compile-filter-body
   "Turns a string like foo|filter1:x|filter2:y into a fn that expects a
