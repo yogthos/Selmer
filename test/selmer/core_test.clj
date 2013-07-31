@@ -4,6 +4,10 @@
 
 (def path (str "test/templates" File/separator))
 
+(deftest dev-error-handling
+  (is (= "something nicer"
+         (render "{{blah|safe|woot" {:blah "woot"}))))
+
 (deftest custom-handler-test
   (let [handler (tag-handler
                   (fn [args context-map content]
