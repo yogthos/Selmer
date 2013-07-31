@@ -7,7 +7,8 @@
   value injection is a runtime dispatch fn. Compile-time here
   means the first time we see a template *at runtime*, not the
   implementation's compile-time. "
-  (:require [selmer.template-parser :refer [preprocess-template]]
+  (:require [carica.core :refer [config]]
+            [selmer.template-parser :refer [preprocess-template]]
             [selmer.filters :refer [filters]]
             [selmer.filter-parser :refer [compile-filter-body]]
             [selmer.tags :refer :all]
@@ -25,13 +26,14 @@
 
 (defonce templates (atom {}))
 
-(defonce cache? (atom true))
+(defonce cache? (atom (not (config :dev))))
+(defonce dev (config :dev))
 
 (defn cache-on! []
-  (swap! cache? (identity true)))
+  (reset! cache? true))
 
 (defn cache-off! []
-  (swap! cache? (identity nil)))
+  (reset! cache? false))
 
 ;; expr-tags are {% if ... %}, {% ifequal ... %},
 ;; {% for ... %}, and {% block blockname %}
