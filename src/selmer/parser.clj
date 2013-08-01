@@ -42,7 +42,8 @@
   (atom {:if if-handler
          :ifequal ifequal-handler
          :for for-handler
-         :block block-handler}))
+         :block block-handler
+         :now now-handler}))
 
 ;; add-tag! is a hella nifty macro. Example use:
 ;; (add-tag! :bar (fn [args context-map] (clojure.string/join "," args)))

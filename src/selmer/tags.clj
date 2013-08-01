@@ -1,6 +1,7 @@
 (ns selmer.tags
   (:require selmer.node
-            [selmer.filter-parser :refer [compile-filter-body]])
+            [selmer.filter-parser :refer [compile-filter-body]]
+            [selmer.filters :refer [filters]])
   (:import [selmer.node INode TextNode FunctionNode]))
 
 ;; A tag can modify the context map for its body
@@ -81,6 +82,10 @@
 (defn block-handler [args tag-content render rdr]
   (let [content (get-in (tag-content rdr :block :endblock) [:block :content])]
     (fn [context-map] (render content context-map))))
+
+(defn now-handler [args tag-content render rdr]
+  (fn [context-map]    
+    (render [(TextNode. ((:date @filters) (java.util.Date.) (clojure.string/join " " args)))] context-map)))
 
 ;;helpers for custom tag definition
 (defn render-tags [context-map tags]
