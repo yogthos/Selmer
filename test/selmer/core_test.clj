@@ -89,9 +89,22 @@
 
 
 (deftest test-firstof
-  (is (= "x" (render "{% firstof var1 var2 var3 %}" {:var2 "x"}))))
+  (is (= "x" (render "{% firstof var1 var2 var3 %}" {:var2 "x" :var3 "not me"}))))
 
 (deftest test-for
+  (is
+    (= "<ul><li>Sorry, no athletes in this list.</li><ul>"
+       (render (str "<ul>"
+                    "{% for athlete in athlete_list %}"
+                    "<li>{{ athlete.name }}</li>"
+                    "{% empty %}"
+                    "<li>Sorry, no athletes in this list.</li>"
+                    "{% endfor %}"
+                    "<ul>")
+               {})))
+  (is (= "" (render "{% for i in items %}{{i}}{% endfor %}" {})))
+  (is (= "" (render "{% for i in items %}{{i}}{% endfor %}" {:i "foo"})))
+  (is (= "" (render "{% for i in items %}{{i}}{% endfor %}" {:items []})))
   (is
     (= "1234567890"
        (render-template

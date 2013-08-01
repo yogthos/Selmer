@@ -10,29 +10,33 @@
 (defn parse-arg [^String arg]  
   (map keyword (.split arg "\\.")))
 
-(defn for-handler [[^String id _ ^String items] tag-content render rdr]  
-  (let [content (get-in (tag-content rdr :for :endfor) [:for :content])
+(defn for-handler [[^String id _ ^String items] tag-content render rdr]
+  (let [content (tag-content rdr :for :empty :endfor)
+        for-content (get-in content [:for :content])
+        empty-content (get-in content [:empty :content])
         id (parse-arg id)
-        item-keys (parse-arg items)]    
+        item-keys (parse-arg items)]
     (fn [context-map]
       (let [buf (StringBuilder.)
             items (get-in context-map item-keys)
             length (count items)
-            parentloop (:parentloop context-map)]        
-        (doseq [[counter value] (map-indexed vector items)]          
-          (let [loop-info
-                {:length length
-                 :counter0 counter
-                 :counter (inc counter)
-                 :revcounter (- length (inc counter))
-                 :revcounter0 (- length counter)
-                 :first (= counter 0)
-                 :last (= counter (dec length))}]
-            (->> (assoc (assoc-in context-map id value)
-                        :forloop loop-info
-                        :parentloop loop-info)
-              (render content)
-              (.append buf))))
+            parentloop (:parentloop context-map)]
+        (if (and empty-content (empty? items))
+          (.append buf (render empty-content context-map))
+          (doseq [[counter value] (map-indexed vector items)]
+            (let [loop-info
+                  {:length length
+                   :counter0 counter
+                   :counter (inc counter)
+                   :revcounter (- length (inc counter))
+                   :revcounter0 (- length counter)
+                   :first (= counter 0)
+                   :last (= counter (dec length))}]
+              (->> (assoc (assoc-in context-map id value)
+                          :forloop loop-info
+                          :parentloop loop-info)
+                (render for-content)
+                (.append buf)))))
         (.toString buf)))))
 
 (defn render-if [render context-map condition first-block second-block]
@@ -74,7 +78,7 @@
         args (for [^String arg args]
                (if (= \" (first arg)) 
                  (.substring arg 1 (dec (.length arg))) 
-                 (compile-filter-body arg)))]
+                 (compile-filter-body arg)))]   
     (fn [context-map]
       (let [condition (apply = (map #(if (fn? %) (% context-map) %) args))]
         (render-if render context-map condition (:ifequal  tags) (:else tags))))))
@@ -85,19 +89,18 @@
 
 (defn now-handler [args _ render rdr]
   (fn [context-map]    
-    (render [(TextNode. ((:date @filters) (java.util.Date.) (clojure.string/join " " args)))] context-map)))
+    ((:date @filters) (java.util.Date.) (clojure.string/join " " args))))
 
 (defn comment-handler [args tag-content render rdr]
   (do
     (tag-content rdr :comment :endcomment)
-    (fn [context-map]    
-      (render [(TextNode. "")] context-map))))
+    (fn [context-map] "")))
 
 (defn first-of-handler [args _ render rdr]
   (let [args (map compile-filter-body args)]
-    (fn [context-map]      
+    (fn [context-map]
       (let [first-true (->> args (map #(% context-map)) (remove empty?) (drop-while false?) first)]
-        (render [(TextNode. (or first-true ""))] context-map)))))
+        (or first-true "")))))
 
 ;;helpers for custom tag definition
 (defn render-tags [context-map tags]

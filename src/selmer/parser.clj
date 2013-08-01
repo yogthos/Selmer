@@ -123,35 +123,34 @@
 ;; FunctionNode call-sites or TextNode content. open-tag? fn returns
 ;; true or false based on character lookahead to see if it's {{ or {%
 
-(defn tag-content [rdr & end-tags]
+(defn tag-content [rdr start-tag & end-tags]
   (let [buf (StringBuilder.)]
     (loop [ch       (read-char rdr)
            tags     {}
            content  []
-           end-tags (partition 2 1 end-tags)]      
+           cur-tag  start-tag
+           end-tags end-tags]
       (cond
         (nil? ch)
         tags
         (open-tag? ch rdr)
         (let [{:keys [tag-name args] :as tag} (read-tag-info rdr)]
-          (if-let [open-tag (and tag-name 
-                                 (some (fn [[open close]]
-                                         (if (= tag-name close) open)) end-tags))]
-              (let [tags     (assoc tags open-tag
+          (if-let [open-tag (and tag-name (some #{tag-name} end-tags))]
+              (let [tags     (assoc tags cur-tag
                                     {:args args
                                      :content (conj content (TextNode. (.toString buf)))})
-                    end-tags (next (drop-while #(not= tag-name (second %)) end-tags))]
+                    end-tags (next (drop-while #(not= tag-name %) end-tags))]                
                 (.setLength buf 0)
-                (recur (if (empty? end-tags) nil (read-char rdr)) tags [] end-tags))
-              (let [content (-> content 
+                (recur (if (empty? end-tags) nil (read-char rdr)) tags [] open-tag end-tags))
+              (let [content (-> content
                               (conj (TextNode. (.toString buf)))
                               (conj (FunctionNode. (parse-tag tag rdr))))]
                 (.setLength buf 0)
-                (recur (read-char rdr) tags content end-tags))))
+                (recur (read-char rdr) tags content cur-tag end-tags))))
         :else
         (do
           (.append buf ch)
-          (recur (read-char rdr) tags content end-tags))))))
+          (recur (read-char rdr) tags content cur-tag end-tags))))))
 
 ;; Compile-time parsing of tags. Accumulates a transient vector
 ;; before returning the persistent vector of INodes (TextNode, FunctionNode)
