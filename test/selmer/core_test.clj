@@ -87,6 +87,10 @@
     (= "foo bar  blah"
       (render "foo bar {% comment %} baz test {{x}} {% endcomment %} blah" {}))))
 
+
+(deftest test-firstof
+  (is (= "x" (render "{% firstof var1 var2 var3 %}" {:var2 "x"}))))
+
 (deftest test-for
   (is
     (= "1234567890"

@@ -44,7 +44,8 @@
          :for for-handler
          :block block-handler
          :now now-handler
-         :comment comment-handler}))
+         :comment comment-handler
+         :firstof first-of-handler}))
 
 ;; add-tag! is a hella nifty macro. Example use:
 ;; (add-tag! :bar (fn [args context-map] (clojure.string/join "," args)))

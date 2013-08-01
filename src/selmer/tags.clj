@@ -83,7 +83,7 @@
   (let [content (get-in (tag-content rdr :block :endblock) [:block :content])]
     (fn [context-map] (render content context-map))))
 
-(defn now-handler [args tag-content render rdr]
+(defn now-handler [args _ render rdr]
   (fn [context-map]    
     (render [(TextNode. ((:date @filters) (java.util.Date.) (clojure.string/join " " args)))] context-map)))
 
@@ -92,6 +92,12 @@
     (tag-content rdr :comment :endcomment)
     (fn [context-map]    
       (render [(TextNode. "")] context-map))))
+
+(defn first-of-handler [args _ render rdr]
+  (let [args (map compile-filter-body args)]
+    (fn [context-map]      
+      (let [first-true (->> args (map #(% context-map)) (remove empty?) (drop-while false?) first)]
+        (render [(TextNode. (or first-true ""))] context-map)))))
 
 ;;helpers for custom tag definition
 (defn render-tags [context-map tags]
