@@ -100,7 +100,17 @@
         (.append ^StringBuilder buf block-tag)
         (consume-block rdr buf blocks)))))
 
-(defn read-template [template blocks]
+
+
+(defn set-default-value [tag-str defaults]
+  (let [tag-name (-> tag-str
+                   (clojure.string/replace #"\{\{\s*" "")
+                   (clojure.string/replace #"\s*\}\}" ""))]
+    (if-let [value (get defaults tag-name)]
+      (str "{{" tag-name "|default:\"" value "\"}}")
+      tag-str)))
+
+(defn read-template [template blocks & defaults]
   (let [buf (StringBuilder.)
         [parent blocks]
         (with-open [rdr (reader (resource-path template))]
@@ -113,6 +123,10 @@
               (open-tag? ch rdr)
               (let [tag-str (read-tag-content rdr)]                  
                 (cond
+                  (and defaults
+                       (re-matches #"\{\{\s*.*\s*\}\}" tag-str))
+                  (set-default-value tag-str defaults)
+                  
                   ;;if the template extends another it's not the root
                   ;;this template is allowed to only contain blocks
                   (re-matches #"\{\%\s*extends.*" tag-str)
@@ -141,7 +155,7 @@
               (do
                 (if (nil? parent) (.append buf ch))
                 (recur blocks (read-char rdr) parent)))))]
-    (if parent (recur parent blocks) (.toString buf))))
+    (if parent (recur parent blocks defaults) (.toString buf))))
 
 (defn preprocess-template [template]
   (-> (read-template template {}) insert-includes))
