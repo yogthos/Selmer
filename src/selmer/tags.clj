@@ -1,7 +1,8 @@
 (ns selmer.tags
   (:require selmer.node
             [selmer.filter-parser :refer [compile-filter-body]]
-            [selmer.filters :refer [filters]])
+            [selmer.filters :refer [filters]]
+            [selmer.util :refer :all])
   (:import [selmer.node INode TextNode FunctionNode]))
 
 ;; A tag can modify the context map for its body
@@ -101,6 +102,35 @@
     (fn [context-map]
       (let [first-true (->> args (map #(% context-map)) (remove empty?) (drop-while false?) first)]
         (or first-true "")))))
+
+(defn read-verbatim [rdr]
+  (->buf [buf]
+    (loop [ch (read-char rdr)]      
+      (when ch
+        (cond
+          (open-tag? ch rdr)
+          (let [tag (read-tag-content rdr)]
+            (if-not (re-matches #"\{\%\s*endverbatim\s*\%\}" tag)
+              (do (.append buf tag)
+                (recur (read-char rdr)))))
+          :else (recur (read-char rdr)))))))
+
+(defn verbatim-handler [args tag-content render rdr]
+  (let [content (read-verbatim rdr)]
+    (fn [context-map] content)))
+
+(defn parse-with [arg]
+  (let [[id value] (.split arg "=")]    
+    [(keyword id) (compile-filter-body value)]))
+
+(defn with-handler [args tag-content render rdr]
+  (let [content (get-in (tag-content rdr :with :endwith) [:with :content])
+        args (map parse-with args)]
+    (fn [context-map] (render content
+                              (reduce
+                                (fn [context-map [k v]]
+                                  (assoc context-map k (v context-map)))
+                                context-map args)))))
 
 ;;helpers for custom tag definition
 (defn render-tags [context-map tags]

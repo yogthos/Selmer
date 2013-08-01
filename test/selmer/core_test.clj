@@ -91,6 +91,20 @@
 (deftest test-firstof
   (is (= "x" (render "{% firstof var1 var2 var3 %}" {:var2 "x" :var3 "not me"}))))
 
+
+(deftest test-verbatim
+  (is (= "{{if dying}}{{/if}}"
+         (render "{% verbatim %}{{if dying}}Still alive.{{/if}}{% endverbatim %}" {}))))
+
+(deftest test-with
+  (is
+    (= "5 employees" 
+       (render "{% with total=business.employees|count %}{{ total }} employee{{ business.employees|pluralize }}{% endwith %}"
+               {:business {:employees (range 5)}})))
+  (is
+    (= "foocorp"
+       (render "{% with name=business.name %}{{name}}{% endwith %}"
+               {:business {:name "foocorp"}}))))
 (deftest test-for
   (is
     (= "<ul><li>Sorry, no athletes in this list.</li><ul>"
