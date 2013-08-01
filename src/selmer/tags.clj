@@ -119,7 +119,7 @@
   (let [content (read-verbatim rdr)]
     (fn [context-map] content)))
 
-(defn parse-with [arg]
+(defn parse-with [^String arg]
   (let [[id value] (.split arg "=")]    
     [(keyword id) (compile-filter-body value)]))
 

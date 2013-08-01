@@ -48,6 +48,9 @@
 
 (deftest inheritance
   (is
+    (= "{{greeting|default:\"Hello!\"}} {{name|default:\"JaneDoe\"}}"
+       (preprocess-template "templates/inheritance/parent.html")))
+  (is
     (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n            Hello \n         World\n{% endblock %}    </body>\n</html>"
        (preprocess-template "templates/inheritance/super-b.html")))
   (is

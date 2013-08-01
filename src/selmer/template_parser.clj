@@ -13,6 +13,42 @@
 (defn get-tag-params [tag-id block-str]
   (-> block-str (split tag-id) second (split #"%") first trim))
 
+(defn split-by-quotes [s]
+  (let [rdr (StringReader. s)
+        buf (StringBuilder.)]
+    (loop [items []
+           ch (read-char rdr)
+           open? false]
+      (cond
+        (nil? ch) items
+        
+        (and open? (= ch \"))
+        (let [value (.trim (.toString buf))]          
+          (.setLength buf 0)          
+          (recur (conj items value) (read-char rdr) false))
+        
+        (= ch \")
+        (recur items (read-char rdr) true)
+        
+        (= ch \=)
+        (let [id (.trim (.toString buf))]
+          (.setLength buf 0)
+          (recur (conj items id) (read-char rdr) open?))
+        
+        :else 
+        (do 
+          (.append buf ch) 
+          (recur items (read-char rdr) open?))))))
+
+(defn parse-defaults [defaults]
+  (when defaults
+    (->> defaults 
+         (apply str) 
+         split-by-quotes
+         (partition 2)
+         (map vec)
+         (into {}))))
+
 (defn insert-includes
   "parse any included templates and splice them in replacing the include tags"
   [template] 
@@ -21,10 +57,13 @@
     (loop [ch (read-char rdr)]
       (when ch
         (if (= *tag-open* ch)
-          (let [tag-str (read-tag-content rdr)]            
+          (let [tag-str (read-tag-content rdr)]
             (.append buf 
               (if (re-matches #"\{\%\s*include.*" tag-str)
-                (preprocess-template (.replaceAll ^String (get-tag-params #"include" tag-str) "\"" ""))
+                (let [params (seq (.split ^String (get-tag-params #"include" tag-str) " "))
+                      source (.replaceAll ^String (first params) "\"" "")
+                      defaults (parse-defaults (nnext params))]                  
+                  (preprocess-template source {} defaults))
               tag-str)))
           (.append buf ch))
         (recur (read-char rdr)))))))
@@ -102,7 +141,7 @@
 
 
 
-(defn set-default-value [tag-str defaults]
+(defn set-default-value [tag-str defaults]  
   (let [tag-name (-> tag-str
                    (clojure.string/replace #"\{\{\s*" "")
                    (clojure.string/replace #"\s*\}\}" ""))]
@@ -110,22 +149,23 @@
       (str "{{" tag-name "|default:\"" value "\"}}")
       tag-str)))
 
-(defn read-template [template blocks & defaults]
+(defn read-template [template blocks defaults]
   (let [buf (StringBuilder.)
         [parent blocks]
         (with-open [rdr (reader (resource-path template))]
           (loop [blocks (or blocks {})
-                 ch (read-char rdr)                 
-                 parent nil]            
+                 ch (read-char rdr)
+                 parent nil]
             (cond
               (nil? ch) [parent blocks]
               
               (open-tag? ch rdr)
-              (let [tag-str (read-tag-content rdr)]                  
+              (let [tag-str (read-tag-content rdr)]
                 (cond
                   (and defaults
                        (re-matches #"\{\{\s*.*\s*\}\}" tag-str))
-                  (set-default-value tag-str defaults)
+                  (do (.append buf (set-default-value tag-str defaults))
+                      (recur blocks (read-char rdr) parent))
                   
                   ;;if the template extends another it's not the root
                   ;;this template is allowed to only contain blocks
@@ -154,8 +194,8 @@
               :else
               (do
                 (if (nil? parent) (.append buf ch))
-                (recur blocks (read-char rdr) parent)))))]
+                (recur blocks (read-char rdr) parent)))))]    
     (if parent (recur parent blocks defaults) (.toString buf))))
 
-(defn preprocess-template [template]
-  (-> (read-template template {}) insert-includes))
+(defn preprocess-template [template & [blocks defaults]]  
+  (-> (read-template template blocks defaults) insert-includes))
