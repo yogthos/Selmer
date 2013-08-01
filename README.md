@@ -45,7 +45,8 @@ To render a file we can call `render-file` instead:
 ```
 
 When rendering files Selmer will cache the compiled template. A recompile will be triggered if the last
-modified timestamp of the files changes. Alternatively you can toggle caching by calling `(selmer.parser/toggle-caching)`. 
+modified timestamp of the files changes. Alternatively you can turn caching on and off using `(selmer.parser/cache-on!) and
+ `(selmer.parser/cache-off!)` respectively. 
 
 ### Tag Types
 
@@ -153,12 +154,12 @@ For example if we wanted to iterate over a collection of items, we could write t
 =>"JohnJane"  
 ```
 
-It's also possible to define custom tags using the `deftag` macro:
+It's also possible to define custom tags using the `add-tag!` macro:
 
 ```clojure
 (use 'selmer.parser)
 
-(deftag :foo
+(add-tag! :foo
   (fn [args context-map]
     (str "foo " (first args))))
     
@@ -168,7 +169,7 @@ It's also possible to define custom tags using the `deftag` macro:
 tags can also contain content and intermediate tags:
 
 ```clojure
-(deftag :foo
+(add-tag! :foo
   (fn [args context-map content]
     (str content))
   :bar :baz)
