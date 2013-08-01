@@ -26,7 +26,7 @@
            (render-template (parse (java.io.StringReader. "{% bar arg1 arg2 %}")
                           {:custom-tags {:bar handler}}) {}))))
   
-  (deftag :bar (fn [args context-map] (clojure.string/join "," args)))
+  (add-tag! :bar (fn [args context-map] (clojure.string/join "," args)))
   (render-template (parse (java.io.StringReader. "{% bar arg1 arg2 %}")) {}))
 
 (deftest custom-filter-test

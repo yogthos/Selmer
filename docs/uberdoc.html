@@ -3419,14 +3419,14 @@ template. Works fine for active local development and production.</p>
   (atom {:if if-handler
          :ifequal ifequal-handler
          :for for-handler
-         :block block-handler}))</pre></td></tr><tr><td class="docs"><p>deftag is a hella nifty macro. Example use:
-(deftag :bar (fn [args context-map] (clojure.string/join "," args)))</p>
+         :block block-handler}))</pre></td></tr><tr><td class="docs"><p>add-tag! is a hella nifty macro. Example use:
+(add-tag! :bar (fn [args context-map] (clojure.string/join "," args)))</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro deftag [k handler &amp; tags]
+</td><td class="codes"><pre class="brush: clojure">(defmacro add-tag! [k handler &amp; tags]
   &quot; tag name, fn handler, and maybe tags &quot;
   `(swap! selmer.parser/expr-tags assoc ~k (tag-handler ~handler ~k ~@tags)))</pre></td></tr><tr><td class="docs"><p>For adding a tag, which is an fn that processes
 arguments, context-map, and enclosed text. You
-probably want the deftag macro.</p>
+probably want the add-tag! macro.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn add-tag! [k tag]
   &quot; tag-name and tag &quot;

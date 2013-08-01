@@ -44,20 +44,12 @@
          :for for-handler
          :block block-handler}))
 
-;; deftag is a hella nifty macro. Example use:
-;; (deftag :bar (fn [args context-map] (clojure.string/join "," args)))
+;; add-tag! is a hella nifty macro. Example use:
+;; (add-tag! :bar (fn [args context-map] (clojure.string/join "," args)))
 
-(defmacro deftag [k handler & tags]
+(defmacro add-tag! [k handler & tags]
   " tag name, fn handler, and maybe tags "
   `(swap! selmer.parser/expr-tags assoc ~k (tag-handler ~handler ~k ~@tags)))
-
-;; For adding a tag, which is an fn that processes
-;; arguments, context-map, and enclosed text. You
-;; probably want the deftag macro.
-
-(defn add-tag! [k tag]
-  " tag-name and tag "
-  (swap! expr-tags assoc k tag))
 
 ;; render-template renders at runtime, accepts
 ;; post-parsing vectors of INode elements.
