@@ -87,6 +87,12 @@
   (fn [context-map]    
     (render [(TextNode. ((:date @filters) (java.util.Date.) (clojure.string/join " " args)))] context-map)))
 
+(defn comment-handler [args tag-content render rdr]
+  (do
+    (tag-content rdr :comment :endcomment)
+    (fn [context-map]    
+      (render [(TextNode. "")] context-map))))
+
 ;;helpers for custom tag definition
 (defn render-tags [context-map tags]
   (into {}

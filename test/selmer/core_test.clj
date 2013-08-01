@@ -82,6 +82,11 @@
         formatted-date (.format (java.text.SimpleDateFormat. date-format) (java.util.Date.))]
     (is  (= (str "\"" formatted-date "\"") (render (str "{% now \"" date-format "\"%}") {})))))
 
+(deftest test-comment
+  (is
+    (= "foo bar  blah"
+      (render "foo bar {% comment %} baz test {{x}} {% endcomment %} blah" {}))))
+
 (deftest test-for
   (is
     (= "1234567890"
