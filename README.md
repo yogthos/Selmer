@@ -57,6 +57,12 @@ empty string is rendered in its place.
 
 By default variables are defined using the double curly braces: `{{myvar}}`. 
 
+A variables can also be nested data structures, eg:
+
+`(render "{{person.name}}" {:person {:name "John Doe"}})`
+
+`(render "{{foo.bar.0.baz}}" {:foo {:bar [{:baz "hi"}]}})`
+
 #### Filters
 
 In many cases you may wish to postprocess the value of a variable. For example, you might want to convert
@@ -253,4 +259,10 @@ Render the body one time for each element in the list. Each render will introduc
 * `forloop.length`
 
 `{% for x in some-list %}element: {{x}} first? {{forloop.first}} last? {{forloop.last}}{% endfor %}`
+
+you can also iterate over nested data structures, eg:
+
+`{% for item in items %} <tr><td>{{item.name}}</td><td>{{item.age}}</td></tr> {% endfor %}`
+
+
 
