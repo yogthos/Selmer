@@ -228,9 +228,19 @@ if you wish to render it unescaped use the `safe` filter:
 `(render "{{sequence|length-is:4}}" {:sequence [1 2 3 4]})` => `true`
 
 #### linebreaks
+Single newlines become <br />, double newlines mean new paragraph. Contenet will
+be escaped by default.
+
+`(render "{{foo|linebreaks|safe}}" {:foo "\nbar\nbaz"})` => `"<p><br />bar<br />baz</p>"`
+
 #### linebreaks-br
+like `linebreaks` but doesn't insert `<p>` tags.
+`(render "{{foo|linebreaks-br|safe}}" {:foo "\nbar\nbaz"})` => `"bar<br />baz"`
 #### linenumbers
+Displays text with line numbers.
+`(render "{{foo|linenumbers" {:foo "foo\n\bar\nbaz"})` => `"1. foo\n2. \bar\n3. baz"`
 #### lower
+`(render "{{foo|lower}}" {:foo "FOOBaR"})` => `"foobar"`
 #### pluralize
 Returns the correct (English) pluralization based on the variable. This works with many words, but certainly not all (eg. foot/feet, mouse/mice, etc.)
 
@@ -248,8 +258,16 @@ Returns the correct (English) pluralization based on the variable. This works wi
 
 
 #### rand-nth
+returns rand-nths value from a collection:
+`(render "{{foo|rand-nth}}" {:foo [1 2 3]})` => `"2"`
+
 #### remove
+removes specified characters from the string:
+`(render "{{foo|remove:\"aeiou\"}}" {:foo "abcdefghijklmnop"})` => `"bcdfghjklmnp"`
 #### remove-tags
+Removes the specified HTML tags from the string:
+`(render "{{ value|remove-tags:b:span }}" {:value "<b><span>foobar</span></b>"})` => `"foobar"`
+
 #### safe
 By default Selmer will HTML escape all variables, The `safe` filter exempts the variable from being html-escaped:
 
@@ -258,9 +276,17 @@ By default Selmer will HTML escape all variables, The `safe` filter exempts the 
 `(render "{{data|safe}}" {:data "<foo>"})` => `"<foo>"`
 
 #### sort
+`(render "{{ value|sort }}" {:value [1 4 2 3 5]})` => `"(1 2 3 4 5)"`
+
 #### sort-by
-#### sort-by-reversed
+`(render "{{ value|sort-by:name }}" {:value [{:name "John"} {:name "Jane"}]})` => `"({:name &quot;Jane&quot;} {:name &quot;John&quot;})"`
+
 #### sort-reversed
+same as sort, but in reverse order
+
+#### sort-by-reversed
+same as sort-by, but in reverse order
+
 #### upper
 `(render "{{shout|upper}}" {:shout "hello"})` => `"HELLO"`
 
