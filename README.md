@@ -243,7 +243,7 @@ tags can also contain content and intermediate tags:
 [extends] (#extends)
 [include] (#include)
 [block] (#block)
-[block.super](#block.super)
+[block.super](#block)
 [if] (#if)
 [ifequal] (#ifequal)
 [for] (#for)
