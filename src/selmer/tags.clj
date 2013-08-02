@@ -142,6 +142,16 @@
   (fn [{:keys [servlet-context]}]
     (str "<link href=\"" servlet-context (.substring uri 1) " rel=\"stylesheet\" type=\"text/css\" />")))
 
+(defn cycle-handler [args _ _ _]
+  (let [fields (vec args)
+        length (dec (count fields))
+       i       (int-array [0])]
+    (fn [_]
+      (let [cur-i (aget i 0)
+            val   (fields cur-i)]
+        (aset i 0 (if (< cur-i length) (inc cur-i) 0))
+        val))))
+
 ;;helpers for custom tag definition
 (defn render-tags [context-map tags]
   (into {}

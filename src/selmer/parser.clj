@@ -43,6 +43,7 @@
          :ifequal ifequal-handler
          :for for-handler
          :block block-handler
+         :cycle cycle-handler
          :now now-handler
          :comment comment-handler
          :firstof first-of-handler

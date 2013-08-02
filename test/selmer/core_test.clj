@@ -165,6 +165,12 @@
     (= "<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
        (render "{% style \"/css/screen.css\" %}" {:servlet-context "/myapp"}))))
 
+(deftest cycle-test
+  (is
+    (= "\"foo\"1\"bar\"2\"baz\"1\"foo\"2\"bar\"1"
+       (render "{% for i in range %}{% cycle \"foo\" \"bar\" \"baz\" %}{% cycle 1 2 %}{% endfor %}"
+            {:range (range 5)}))))
+
 (deftest render-test
   (= "<ul><li>0</li><li>1</li><li>2</li><li>3</li><li>4</li></ul>"
      (render-template (parse (java.io.StringReader. "<ul>{% for item in items %}<li>{{item}}</li>{% endfor %}</ul>"))
@@ -418,8 +424,4 @@
   (is (= "<foo>"
          (render "{{f|safe}}" {:f "<foo>"})))
   (is (= "<FOO>"
-         (render "{{f|upper|safe}}" {:f "<foo>"})))
-  #_(is (= "<FOO>"
-         (render "{{f|safe|upper}}" {:f "<foo>"})))
-  #_(is (= "<FOO>"
-         (render "{{f|safe|upper|safe}}" {:f "<foo>"}))))
+         (render "{{f|upper|safe}}" {:f "<foo>"}))))
