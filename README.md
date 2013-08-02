@@ -48,7 +48,31 @@ When rendering files Selmer will cache the compiled template. A recompile will b
 modified timestamp of the files changes. Alternatively you can turn caching on and off using `(selmer.parser/cache-on!)` and
  `(selmer.parser/cache-off!)` respectively. 
 
-Selmer comes with a rich set of built-in tags and filters:
+## Variables and Tags
+
+Variables are used to inject dynamic content into the text of the template. The values for the variables
+are looked up in the context map as can be seen in the example above. When a value is missing then an 
+empty string is rendered in its place.
+
+By default variables are defined using the double curly braces: `{{myvar}}`. 
+
+A variables can also be nested data structures, eg:
+
+`(render "{{person.name}}" {:person {:name "John Doe"}})`
+
+`(render "{{foo.bar.0.baz}}" {:foo {:bar [{:baz "hi"}]}})`
+
+Tags are used to add various functionality to the template such as looping and conditions.
+For example, if we wanted to create a list from a collection of items we could use the `for` tag
+as follows:
+
+```xml
+<ul>
+{% for item in items %}
+    <li>{{item}}</li>
+{% endfor %}
+</ul>
+```
 
 ### Built-in Filters
 
@@ -98,21 +122,6 @@ Selmer comes with a rich set of built-in tags and filters:
 [firstof] (#firstof)
 [verbatim] (#verbatim)
 [with] (#with)
-
-
-## Variables
-
-Variables are used to inject dynamic content into the text of the template. The values for the variables
-are looked up in the context map as can be seen in the example above. When a value is missing then an 
-empty string is rendered in its place.
-
-By default variables are defined using the double curly braces: `{{myvar}}`. 
-
-A variables can also be nested data structures, eg:
-
-`(render "{{person.name}}" {:person {:name "John Doe"}})`
-
-`(render "{{foo.bar.0.baz}}" {:foo {:bar [{:baz "hi"}]}})`
 
 ## Filters
 
