@@ -3028,8 +3028,8 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>selmer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">selmer</h1><h2 class="project-version">0.2.0</h2><br /><p>Django templates for Clojure</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">criterium</td><td class="dotted"><hr /></td><td class="dep-version">0.4.1</td></tr><tr><td class="dep-name">joda-time</td><td class="dotted"><hr /></td><td class="dep-version">2.2</td></tr><tr><td class="dep-name">commons-codec</td><td class="dotted"><hr /></td><td class="dep-version">1.6</td></tr><tr><td class="dep-name">cheshire</td><td class="dotted"><hr /></td><td class="dep-version">5.2.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#selmer.filter-parser">selmer.filter-parser</a></li><li><a href="#selmer.filters">selmer.filters</a></li><li><a href="#selmer.node">selmer.node</a></li><li><a href="#selmer.parser">selmer.parser</a></li><li><a href="#selmer.tags">selmer.tags</a></li><li><a href="#selmer.template-parser">selmer.template-parser</a></li><li><a href="#selmer.util">selmer.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.filter-parser" name="selmer.filter-parser"><h1 class="project-name">selmer.filter-parser</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Accessors are separated by dots like {{ foo.bar.0 }}
+</script><title>selmer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">selmer</h1><h2 class="project-version">0.2.7</h2><br /><p>Django templates for Clojure</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">criterium</td><td class="dotted"><hr /></td><td class="dep-version">0.4.1</td></tr><tr><td class="dep-name">joda-time</td><td class="dotted"><hr /></td><td class="dep-version">2.2</td></tr><tr><td class="dep-name">commons-codec</td><td class="dotted"><hr /></td><td class="dep-version">1.6</td></tr><tr><td class="dep-name">sonian/carica</td><td class="dotted"><hr /></td><td class="dep-version">1.0.3</td></tr><tr><td class="dep-name">cheshire</td><td class="dotted"><hr /></td><td class="dep-version">5.2.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#selmer.filter-parser">selmer.filter-parser</a></li><li><a href="#selmer.filters">selmer.filters</a></li><li><a href="#selmer.node">selmer.node</a></li><li><a href="#selmer.parser">selmer.parser</a></li><li><a href="#selmer.tags">selmer.tags</a></li><li><a href="#selmer.template-parser">selmer.template-parser</a></li><li><a href="#selmer.util">selmer.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.filter-parser" name="selmer.filter-parser"><h1 class="project-name">selmer.filter-parser</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Accessors are separated by dots like {{ foo.bar.0 }}
 which gets translated into (get-in context-map [:foo :bar 0]). So you
 can nest vectors and maps in your context-map.</p>
 
@@ -3107,8 +3107,10 @@ applied filter.</p>
         (re-seq #&quot;(?:[^:\&quot;]|\&quot;[^\&quot;]*\&quot;)+&quot; s)
         args (fix-filter-args args)
         filter (get-filter filter-name)]
-    (fn [x]
-      (apply filter x args))))</pre></td></tr><tr><td class="docs"><p>Turns a string like foo|filter1:x|filter2:y into a fn that expects a
+    (if filter 
+      (fn [x]
+        (apply filter x args))
+      (throw (Exception. (str &quot;No filter defined with the name '&quot; filter-name &quot;'&quot;))))))</pre></td></tr><tr><td class="docs"><p>Turns a string like foo|filter1:x|filter2:y into a fn that expects a
 context-map and will apply the filters one after the other to the value
 from the map. Finally it will escape the end result unless the last
 filter is "safe".</p>
@@ -3137,52 +3139,6 @@ map. The rest of the arguments are optional and are always strings.</p>
            [org.joda.time.format DateTimeFormat DateTimeFormatter]
            [org.apache.commons.codec.digest DigestUtils]))</pre></td></tr><tr><td class="docs"><p>TODO - maybe dont let exceptions happen in filters</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defonce filters
-  (atom {}))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn get-filter
-  [name]
-  (get @filters (keyword name)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn call-filter
-  [name &amp; args]
-  (apply (get-filter name) args))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn add-filter!
-  [name f]
-  (swap! filters assoc (keyword name) f))</pre></td></tr><tr><td class="docs"><p>Try to add the arguments as numbers
-If it fails concatenate them as strings</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :add
- (fn [x y &amp; rest]
-   (let [args (conj rest y x)]
-     (try (apply +
-                 (map #(Long/valueOf ^String %) args))
-          (catch NumberFormatException _
-            (apply str args))))))</pre></td></tr><tr><td class="docs"><p>Add backslashes to quotes</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :addslashes
- (fn [s]
-   (-&gt;&gt; s
-        (mapcat (fn [c]
-                  (if (= \' c)
-                    [\\ c]
-                    [c])))
-        (apply str))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :capitalize
- s/capitalize)</pre></td></tr><tr><td class="docs"><p>Center a string given a width</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :center
- (fn [s w]
-   (let [w (Long/valueOf (s/trim w))
-         c (count s)
-         l (Math/ceil (/ (- w c) 2))
-         r (Math/floor (/ (- w c) 2))]
-     (str
-      (apply str (repeat l \space))
-      s
-      (apply str (repeat r \space))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :count
- count)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def valid-date-formats
   {&quot;shortDate&quot;       (DateTimeFormat/shortDate)
    &quot;shortTime&quot;       (DateTimeFormat/shortTime)
@@ -3210,166 +3166,180 @@ You can also format time with this.</p>
         (try (DateTime. d)
              (catch Exception _
                (throw (IllegalArgumentException. (str d &quot; is not a valid date format.&quot;)))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :date
- (fn [d fmt]
-   (let [fixed-date (fix-date d)
-         ^DateTimeFormatter fmt (or (valid-date-formats fmt)
-                                    (DateTimeFormat/forPattern fmt))]
-     (.print fmt fixed-date))))</pre></td></tr><tr><td class="docs"><p>Default if x is falsey</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :default
- (fn [x default]
-   (if x
-     x
-     default)))</pre></td></tr><tr><td class="docs"><p>Default if coll is empty</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :default-if-empty
- (fn [coll default]
-   (if (empty? coll)
-     default
-     coll)))</pre></td></tr><tr><td class="docs"><p>With no decimal places it rounds to 1 decimal place</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :double-format
- (fn [n &amp; [decimal-places]]
-   (let [n (double n)]
-     (format (str &quot;%.&quot; (if decimal-places decimal-places &quot;1&quot;) &quot;f&quot;)
-             n))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :first
- first)</pre></td></tr><tr><td class="docs"><p>Get the ith digit of a number
-1 is the rightmost digit</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :get-digit
- (fn [n i]
-   (let [nv (vec (str n))
-         i (Long/valueOf ^String i)
-         i (- (count nv) i)]
-     (if (or (&lt; i 0) (&gt;= i (count nv)))
-       n
-       (let [d (nv i)]
-         (if (= \. d)
-           (nv (dec i))
-           d))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :hash
- (fn [^String s hash]
-   (case hash
-     &quot;md5&quot; (DigestUtils/md5Hex s)
-     &quot;sha&quot; (DigestUtils/shaHex s)
-     &quot;sha256&quot; (DigestUtils/sha256Hex s)
-     &quot;sha384&quot; (DigestUtils/sha384Hex s)
-     &quot;sha512&quot; (DigestUtils/sha512Hex s)
-     (throw (IllegalArgumentException. (str hash &quot; is not a valid hash algorithm.&quot;))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :join
- (fn [coll sep]
-   (s/join sep coll)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :json
- (fn [s]
-   (json/generate-string s)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :last
- (fn [coll]
-   (if (vector? coll)
-     (coll (dec (count coll)))
-     (last coll))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :length
- count)</pre></td></tr><tr><td class="docs"><p>Return true when the count of the coll matches the argument</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :length-is
- (fn [coll n]
-   (let [n (Long/valueOf ^String n)]
-     (= n (count coll)))))</pre></td></tr><tr><td class="docs"><p>Single newlines become <br />, double newlines mean new paragraph</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :linebreaks
- (fn [s]
-   (let [br (s/replace s #&quot;\n&quot; &quot;&lt;br /&gt;&quot;)
-         p (s/replace br #&quot;&lt;br /&gt;&lt;br /&gt;&quot; &quot;&lt;/p&gt;&lt;p&gt;&quot;)
-         c (s/replace p #&quot;&lt;p&gt;$&quot; &quot;&quot;)]
-     (if (re-seq #&quot;&lt;/p&gt;$&quot; c)
-       (str &quot;&lt;p&gt;&quot; c)
-       (str &quot;&lt;p&gt;&quot; c &quot;&lt;/p&gt;&quot;)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :linebreaks-br
- (fn [s]
-   (s/replace s #&quot;\n&quot; &quot;&lt;br /&gt;&quot;)))</pre></td></tr><tr><td class="docs"><p>Display text with line numbers</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :linenumbers
- (fn [s]
-   (-&gt;&gt; (s/split s #&quot;\n&quot;)
-        (map-indexed
+</td><td class="codes"><pre class="brush: clojure">(defonce filters
+  (atom 
+    {:sort       sort
+     :length     count
+     :count      count
+     :first      first
+     :rand-nth   rand-nth
+     :capitalize s/capitalize
+     ;;; Try to add the arguments as numbers
+     ;;; If it fails concatenate them as strings
+     :add
+     (fn [x y &amp; rest]
+       (let [args (conj rest y x)]
+         (try (apply +
+                     (map #(Long/valueOf ^String %) args))
+           (catch NumberFormatException _
+             (apply str args)))))
+     ;;; Add backslashes to quotes
+     :addslashes
+     (fn [s]
+       (-&gt;&gt; s
+         (mapcat (fn [c]
+                   (if (= \' c)
+                     [\\ c]
+                     [c])))
+         (apply str)))
+     ;;; Center a string given a width
+     :center
+     (fn [s w]
+       (let [w (Long/valueOf (s/trim w))
+             c (count s)
+             l (Math/ceil (/ (- w c) 2))
+             r (Math/floor (/ (- w c) 2))]
+         (str
+           (apply str (repeat l \space))
+           s
+           (apply str (repeat r \space)))))
+     :date
+     (fn [d fmt]
+       (let [fixed-date (fix-date d)
+             ^DateTimeFormatter fmt (or (valid-date-formats fmt)
+                                        (DateTimeFormat/forPattern fmt))]
+         (.print fmt fixed-date)))
+     ;;; Default if x is falsey
+     :default
+     (fn [x default]
+       (if x
+         x
+         default))
+     ;;; Default if coll is empty
+     :default-if-empty
+     (fn [coll default]
+       (if (empty? coll)
+         default
+         coll))
+     ;;; With no decimal places it rounds to 1 decimal place
+     :double-format
+     (fn [n &amp; [decimal-places]]
+       (let [n (double n)]
+         (format (str &quot;%.&quot; (if decimal-places decimal-places &quot;1&quot;) &quot;f&quot;)
+                 n)))
+     ;;; Get the ith digit of a number
+     ;;; 1 is the rightmost digit     
+     :get-digit
+     (fn [n i]
+       (let [nv (vec (str n))
+             i (Long/valueOf ^String i)
+             i (- (count nv) i)]
+         (if (or (&lt; i 0) (&gt;= i (count nv)))
+           n
+           (let [d (nv i)]
+             (if (= \. d)
+               (nv (dec i))
+               d)))))
+     :hash
+     (fn [^String s hash]
+       (case hash
+         &quot;md5&quot; (DigestUtils/md5Hex s)
+         &quot;sha&quot; (DigestUtils/shaHex s)
+         &quot;sha256&quot; (DigestUtils/sha256Hex s)
+         &quot;sha384&quot; (DigestUtils/sha384Hex s)
+         &quot;sha512&quot; (DigestUtils/sha512Hex s)
+         (throw (IllegalArgumentException. (str hash &quot; is not a valid hash algorithm.&quot;)))))
+     :join
+     (fn [coll sep] (s/join sep coll))
+     :json
+     (fn [s] (json/generate-string s))
+     :last
+     (fn [coll]
+       (if (vector? coll)
+         (coll (dec (count coll)))
+         (last coll)))
+     ;;; Return true when the count of the coll matches the argument
+     :length-is
+     (fn [coll n]
+       (let [n (Long/valueOf ^String n)]
+         (= n (count coll))))
+     ;;; Single newlines become &lt;br /&gt;, double newlines mean new paragraph
+     :linebreaks
+     (fn [s]
+       (let [br (s/replace s #&quot;\n&quot; &quot;&lt;br /&gt;&quot;)
+             p (s/replace br #&quot;&lt;br /&gt;&lt;br /&gt;&quot; &quot;&lt;/p&gt;&lt;p&gt;&quot;)
+             c (s/replace p #&quot;&lt;p&gt;$&quot; )]
+         (if (re-seq #&quot;&lt;/p&gt;$&quot; c)
+           (str &quot;&lt;p&gt;&quot; c)
+           (str &quot;&lt;p&gt;&quot; c &quot;&lt;/p&gt;&quot;))))
+     :linebreaks-br
+     (fn [s] (s/replace s #&quot;\n&quot; &quot;&lt;br /&gt;&quot;))
+     ;;; Display text with line numbers
+     :linenumbers
+     (fn [s]
+       (-&gt;&gt; (s/split s #&quot;\n&quot;)
+         (map-indexed
            (fn [i line]
              (str (inc i) &quot;. &quot; line)))
-        (s/join &quot;\n&quot;))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :lower
- (fn [s]
-   (when s
-     (s/lower-case s))))</pre></td></tr><tr><td class="docs"><p>Use like the following:
-You have {{ num-cherries }} cherr{{ num-cherries|pluralize:y:ies }}
-You have {{ num-walruses }} walrus{{ num-walruses|pluralize:es }}
-You have {{ num-messages }} message{{ num-messages|pluralize }}</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :pluralize
- (fn [n-or-coll &amp; opts]
-   (let [n (if (number? n-or-coll) n-or-coll (count n-or-coll))
-         plural (case (count opts)
-                  0 &quot;s&quot;
-                  1 (first opts)
-                  2 (second opts))
-         singular (case (count opts)
-                    (list 0 1) &quot;&quot;
-                    2 (first opts))]
-     (if (== 1 n)
-       singular
-       plural))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :rand-nth
- rand-nth)</pre></td></tr><tr><td class="docs"><p>Turns the to-remove string into a set of chars
-That are removed from the context string</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :remove
- (fn [s to-remove]
-   (let [to-remove (set to-remove)]
-     (apply str (remove to-remove s)))))</pre></td></tr><tr><td class="docs"><p>Remove tags
-Use like {{ value|remove-tags:b:span }}</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :remove-tags
- (fn [s &amp; tags]
-   (if-not tags
-     s
-     (let [re (-&gt;&gt; tags
-                   (map (fn [t]
-                          (str &quot;&lt;&quot; t &quot;&gt;|&lt;/&quot; t &quot;&gt;&quot;))))
-           re (re-pattern (str &quot;(?:&quot; (s/join &quot;|&quot; re) &quot;)&quot;))]
-       (s/replace s re &quot;&quot;)))))</pre></td></tr><tr><td class="docs"><p>Do not escape html</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :safe
- (fn [s]
-   [:safe s]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :sort
- sort)</pre></td></tr><tr><td class="docs"><p>Sort by a keyword</p>
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :sort-by
- (fn [coll k]
-   (sort-by (keyword k) coll)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :sort-reversed
- (fn [coll]
-   (sort (comp - compare) coll)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :sort-by-reversed
- (fn [coll k]
-   (sort-by (keyword k) (comp - compare) coll)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(add-filter!
- :upper
- (fn [s]
-   (when s
-     (s/upper-case s))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.node" name="selmer.node"><h1 class="project-name">selmer.node</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p> Node protocol for the objects that get accum'd in the post-parse vector.
+         (s/join &quot;\n&quot;)))
+     ;;; Turns the to-remove string into a set of chars
+     ;;; That are removed from the context string     
+     :remove
+     (fn [s to-remove]
+       (let [to-remove (set to-remove)]
+         (apply str (remove to-remove s))))
+     ;;; Use like the following:
+     ;;; You have {{ num-cherries }} cherr{{ num-cherries|pluralize:y:ies }}
+     ;;; You have {{ num-walruses }} walrus{{ num-walruses|pluralize:es }}
+     ;;; You have {{ num-messages }} message{{ num-messages|pluralize }}
+     :pluralize
+     (fn [n-or-coll &amp; opts]
+       (let [n (if (number? n-or-coll) n-or-coll (count n-or-coll))
+             plural (case (count opts)
+                      0 &quot;s&quot;
+                      1 (first opts)
+                      2 (second opts))
+             singular (case (count opts)
+                        (list 0 1) 
+                        2 (first opts))]
+         (if (== 1 n)
+           singular
+           plural)))
+     ;;; Do not escape html
+     :safe
+     (fn [s] [:safe s])
+     :lower
+     (fn [s] (when s (s/lower-case s)))
+     :upper
+     (fn [s] (when s (s/upper-case s)))
+     ;;; Sort by a keyword
+     :sort-by
+     (fn [coll k] (sort-by (keyword k) coll))
+     :sort-by-reversed
+     (fn [coll k]
+       (sort-by (keyword k) (comp - compare) coll))
+     :sort-reversed
+     (fn [coll] (sort (comp - compare) coll))
+     ;;; Remove tags
+     ;;; Use like {{ value|remove-tags:b:span }}     
+     :remove-tags
+     (fn [s &amp; tags]
+       (if-not tags
+         s
+         (let [re (-&gt;&gt; tags
+                    (map (fn [t]
+                           (str &quot;&lt;&quot; t &quot;&gt;|&lt;/&quot; t &quot;&gt;&quot;))))
+               re (re-pattern (str &quot;(?:&quot; (s/join &quot;|&quot; re) &quot;)&quot;))]
+           (s/replace s re ))))}))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn get-filter
+  [name]
+  (get @filters (keyword name)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn call-filter
+  [name &amp; args]
+  (apply (get-filter name) args))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn add-filter!
+  [name f]
+  (swap! filters assoc (keyword name) f))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.node" name="selmer.node"><h1 class="project-name">selmer.node</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p> Node protocol for the objects that get accum'd in the post-parse vector.
   Same vector that will be processed by the runtime context-aware renderer.
   Currently only TextNodes and FunctionNodes. Anything that requires action
   upon context map data at runtime is handled by a generated anonymous function. </p>
@@ -3397,7 +3367,8 @@ access any data in the context map.</p>
   means the first time we see a template <em>at runtime</em>, not the
   implementation's compile-time. </p>
 </td><td class="codes"><pre class="brush: clojure">(ns selmer.parser
-  (:require [selmer.template-parser :refer [preprocess-template]]
+  (:require [carica.core :refer [config]]
+            [selmer.template-parser :refer [preprocess-template]]
             [selmer.filters :refer [filters]]
             [selmer.filter-parser :refer [compile-filter-body]]
             [selmer.tags :refer :all]
@@ -3410,27 +3381,29 @@ of a string, we'll use the last-modified timestamp to cache the
 template. Works fine for active local development and production.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defonce templates (atom {}))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defonce cache? (atom true))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn toggle-caching []
-  (swap! cache? not))</pre></td></tr><tr><td class="docs"><p>expr-tags are {% if ... %}, {% ifequal ... %},
+</td><td class="codes"><pre class="brush: clojure">(defonce cache? (atom (not (config :dev))))
+(defonce dev (config :dev))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn cache-on! []
+  (reset! cache? true))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn cache-off! []
+  (reset! cache? false))</pre></td></tr><tr><td class="docs"><p>expr-tags are {% if ... %}, {% ifequal ... %},
 {% for ... %}, and {% block blockname %}</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defonce expr-tags
   (atom {:if if-handler
          :ifequal ifequal-handler
          :for for-handler
-         :block block-handler}))</pre></td></tr><tr><td class="docs"><p>add-tag! is a hella nifty macro. Example use:
-(add-tag! :bar (fn [args context-map] (clojure.string/join "," args)))</p>
+         :block block-handler
+         :now now-handler
+         :comment comment-handler
+         :firstof first-of-handler
+         :verbatim verbatim-handler
+         :with with-handler}))</pre></td></tr><tr><td class="docs"><p>add-tag! is a hella nifty macro. Example use:
+(add-tag! :joined (fn [args context-map] (clojure.string/join "," args)))</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro add-tag! [k handler &amp; tags]
   &quot; tag name, fn handler, and maybe tags &quot;
-  `(swap! selmer.parser/expr-tags assoc ~k (tag-handler ~handler ~k ~@tags)))</pre></td></tr><tr><td class="docs"><p>For adding a tag, which is an fn that processes
-arguments, context-map, and enclosed text. You
-probably want the add-tag! macro.</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn add-tag! [k tag]
-  &quot; tag-name and tag &quot;
-  (swap! expr-tags assoc k tag))</pre></td></tr><tr><td class="docs"><p>render-template renders at runtime, accepts
+  `(swap! selmer.parser/expr-tags assoc ~k (tag-handler ~handler ~k ~@tags)))</pre></td></tr><tr><td class="docs"><p>render-template renders at runtime, accepts
 post-parsing vectors of INode elements.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn render-template [template context-map]
@@ -3486,35 +3459,34 @@ or for. filter-tags are conflated with vanilla tag</p>
 FunctionNode call-sites or TextNode content. open-tag? fn returns
 true or false based on character lookahead to see if it's {{ or {%</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn tag-content [rdr &amp; end-tags]
+</td><td class="codes"><pre class="brush: clojure">(defn tag-content [rdr start-tag &amp; end-tags]
   (let [buf (StringBuilder.)]
     (loop [ch       (read-char rdr)
            tags     {}
            content  []
-           end-tags (partition 2 1 end-tags)]      
+           cur-tag  start-tag
+           end-tags end-tags]
       (cond
         (nil? ch)
         tags
         (open-tag? ch rdr)
         (let [{:keys [tag-name args] :as tag} (read-tag-info rdr)]
-          (if-let [open-tag (and tag-name 
-                                 (some (fn [[open close]]
-                                         (if (= tag-name close) open)) end-tags))]
-              (let [tags     (assoc tags open-tag
+          (if-let [open-tag (and tag-name (some #{tag-name} end-tags))]
+              (let [tags     (assoc tags cur-tag
                                     {:args args
                                      :content (conj content (TextNode. (.toString buf)))})
-                    end-tags (next (drop-while #(not= tag-name (second %)) end-tags))]
+                    end-tags (next (drop-while #(not= tag-name %) end-tags))]                
                 (.setLength buf 0)
-                (recur (if (empty? end-tags) nil (read-char rdr)) tags [] end-tags))
-              (let [content (-&gt; content 
+                (recur (if (empty? end-tags) nil (read-char rdr)) tags [] open-tag end-tags))
+              (let [content (-&gt; content
                               (conj (TextNode. (.toString buf)))
                               (conj (FunctionNode. (parse-tag tag rdr))))]
                 (.setLength buf 0)
-                (recur (read-char rdr) tags content end-tags))))
+                (recur (read-char rdr) tags content cur-tag end-tags))))
         :else
         (do
           (.append buf ch)
-          (recur (read-char rdr) tags content end-tags))))))</pre></td></tr><tr><td class="docs"><p>Compile-time parsing of tags. Accumulates a transient vector
+          (recur (read-char rdr) tags content cur-tag end-tags))))))</pre></td></tr><tr><td class="docs"><p>Compile-time parsing of tags. Accumulates a transient vector
 before returning the persistent vector of INodes (TextNode, FunctionNode)</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn parse* [input]
@@ -3555,34 +3527,42 @@ first template render. Vector output from parse* gets memoized by render-file.</
 </td><td class="codes"><pre class="brush: clojure">(defn parse-file [file &amp; [params]]
   (-&gt; file preprocess-template (java.io.StringReader.) (parse params)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.tags" name="selmer.tags"><h1 class="project-name">selmer.tags</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns selmer.tags
-  (:require selmer.node)
+  (:require selmer.node
+            [selmer.filter-parser :refer [compile-filter-body]]
+            [selmer.filters :refer [filters]]
+            [selmer.util :refer :all])
   (:import [selmer.node INode TextNode FunctionNode]))</pre></td></tr><tr><td class="docs"><p>A tag can modify the context map for its body
 It has full control of its body which means that it has to
 take care of its compilation.</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn for-handler [[^String id _ items] tag-content render rdr]
-  (let [content (:content (:for (tag-content rdr :for :endfor)))
-        id (map keyword (.split id &quot;\\.&quot;))
-        items (keyword items)]
+</td><td class="codes"><pre class="brush: clojure">(defn parse-arg [^String arg]  
+  (map keyword (.split arg &quot;\\.&quot;)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn for-handler [[^String id _ ^String items] tag-content render rdr]
+  (let [content (tag-content rdr :for :empty :endfor)
+        for-content (get-in content [:for :content])
+        empty-content (get-in content [:empty :content])
+        id (parse-arg id)
+        item-keys (parse-arg items)]
     (fn [context-map]
       (let [buf (StringBuilder.)
-            items (get context-map items)
+            items (get-in context-map item-keys)
             length (count items)
             parentloop (:parentloop context-map)]
-        (doseq [[counter value] (map-indexed vector items)]
-          (let [loop-info
-                {:length length
-                 :counter0 counter
-                 :counter (inc counter)
-                 :revcounter (- length (inc counter))
-                 :revcounter0 (- length counter)
-                 :first (= counter 0)
-                 :last (= counter (dec length))}]
-            (-&gt;&gt; (assoc (assoc-in context-map id value)
-                        :forloop loop-info
-                        :parentloop loop-info)
-              (render content)
-              (.append buf))))
+        (if (and empty-content (empty? items))
+          (.append buf (render empty-content context-map))
+          (doseq [[counter value] (map-indexed vector items)]
+            (let [loop-info
+                  {:length length
+                   :counter0 counter
+                   :counter (inc counter)
+                   :revcounter (- length (inc counter))
+                   :revcounter0 (- length counter)
+                   :first (= counter 0)
+                   :last (= counter (dec length))}]
+              (-&gt;&gt; (assoc (assoc-in context-map id value)
+                          :forloop loop-info
+                          :parentloop loop-info)
+                (render for-content)
+                (.append buf)))))
         (.toString buf)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn render-if [render context-map condition first-block second-block]
   (render
@@ -3595,11 +3575,10 @@ take care of its compilation.</p>
       (:content second-block)
       :else [(TextNode. )])
     context-map))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn parse-if-arg [^String arg]
-  (map keyword (.split arg &quot;\\.&quot;)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn if-result [value]  
   (condp = value
     nil     false
+          false
     &quot;false&quot; false
     false   false
     true))</pre></td></tr><tr><td class="docs">
@@ -3609,22 +3588,61 @@ take care of its compilation.</p>
   runtime context-map. (Separate from compile-time) &quot;
   (let [tags (tag-content rdr :if :else :endif)
         not? (and condition1 condition2 (= condition1 &quot;not&quot;))
-        condition (parse-if-arg (or condition2 condition1))]
+        condition (compile-filter-body (or condition2 condition1))]
     (fn [context-map]
-      (let [condition (if-result (get-in context-map condition))]
+      (let [condition (if-result (condition context-map))]
         (render-if render context-map (if not? (not condition) condition) (:if tags) (:else tags))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ifequal-handler [args tag-content render rdr]
   (let [tags (tag-content rdr :ifequal :else :endifequal)
         args (for [^String arg args]
                (if (= \&quot; (first arg)) 
                  (.substring arg 1 (dec (.length arg))) 
-                 (parse-if-arg arg)))]
+                 (compile-filter-body arg)))]   
     (fn [context-map]
-      (let [condition (apply = (map #(if (coll? %) (get-in context-map %) %) args))]
+      (let [condition (apply = (map #(if (fn? %) (% context-map) %) args))]
         (render-if render context-map condition (:ifequal  tags) (:else tags))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn block-handler [args tag-content render rdr]
   (let [content (get-in (tag-content rdr :block :endblock) [:block :content])]
-    (fn [context-map] (render content context-map))))</pre></td></tr><tr><td class="docs"><p>helpers for custom tag definition</p>
+    (fn [context-map] (render content context-map))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn now-handler [args _ render rdr]
+  (fn [context-map]    
+    ((:date @filters) (java.util.Date.) (clojure.string/join &quot; &quot; args))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn comment-handler [args tag-content render rdr]
+  (do
+    (tag-content rdr :comment :endcomment)
+    (fn [context-map] )))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn first-of-handler [args _ render rdr]
+  (let [args (map compile-filter-body args)]
+    (fn [context-map]
+      (let [first-true (-&gt;&gt; args (map #(% context-map)) (remove empty?) (drop-while false?) first)]
+        (or first-true )))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn read-verbatim [rdr]
+  (-&gt;buf [buf]
+    (loop [ch (read-char rdr)]      
+      (when ch
+        (cond
+          (open-tag? ch rdr)
+          (let [tag (read-tag-content rdr)]
+            (if-not (re-matches #&quot;\{\%\s*endverbatim\s*\%\}&quot; tag)
+              (do (.append buf tag)
+                (recur (read-char rdr)))))
+          :else (do
+                  (.append buf ch)
+                  (recur (read-char rdr))))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn verbatim-handler [args tag-content render rdr]
+  (let [content (read-verbatim rdr)]
+    (fn [context-map] content)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn parse-with [^String arg]
+  (let [[id value] (.split arg &quot;=&quot;)]    
+    [(keyword id) (compile-filter-body value)]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn with-handler [args tag-content render rdr]
+  (let [content (get-in (tag-content rdr :with :endwith) [:with :content])
+        args (map parse-with args)]
+    (fn [context-map] (render content
+                              (reduce
+                                (fn [context-map [k v]]
+                                  (assoc context-map k (v context-map)))
+                                context-map args)))))</pre></td></tr><tr><td class="docs"><p>helpers for custom tag definition</p>
 </td><td class="codes"><pre class="brush: clojure">(defn render-tags [context-map tags]
   (into {}
     (for [[tag content] tags]
@@ -3651,7 +3669,37 @@ take care of its compilation.</p>
   (:import java.io.StringReader))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare consume-block preprocess-template)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn get-tag-params [tag-id block-str]
-  (-&gt; block-str (split tag-id) second (split #&quot;%&quot;) first trim))</pre></td></tr><tr><td class="docs"><p>parse any included templates and splice them in replacing the include tags</p>
+  (-&gt; block-str (split tag-id) second (split #&quot;%&quot;) first trim))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn split-by-quotes [s]
+  (let [rdr (StringReader. s)
+        buf (StringBuilder.)]
+    (loop [items []
+           ch (read-char rdr)
+           open? false]
+      (cond
+        (nil? ch) items
+        (and open? (= ch \&quot;))
+        (let [value (.trim (.toString buf))]          
+          (.setLength buf 0)          
+          (recur (conj items value) (read-char rdr) false))
+        (= ch \&quot;)
+        (recur items (read-char rdr) true)
+        (= ch \=)
+        (let [id (.trim (.toString buf))]
+          (.setLength buf 0)
+          (recur (conj items id) (read-char rdr) open?))
+        :else 
+        (do 
+          (.append buf ch) 
+          (recur items (read-char rdr) open?))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn parse-defaults [defaults]
+  (when defaults
+    (-&gt;&gt; defaults 
+         (apply str) 
+         split-by-quotes
+         (partition 2)
+         (map vec)
+         (into {}))))</pre></td></tr><tr><td class="docs"><p>parse any included templates and splice them in replacing the include tags</p>
 </td><td class="codes"><pre class="brush: clojure">(defn insert-includes
   [template] 
   (-&gt;buf [buf]
@@ -3659,72 +3707,101 @@ take care of its compilation.</p>
     (loop [ch (read-char rdr)]
       (when ch
         (if (= *tag-open* ch)
-          (let [tag-str (read-tag-content rdr)]            
+          (let [tag-str (read-tag-content rdr)]
             (.append buf 
               (if (re-matches #&quot;\{\%\s*include.*&quot; tag-str)
-                (preprocess-template (.replaceAll ^String (get-tag-params #&quot;include&quot; tag-str) &quot;\&quot;&quot; &quot;&quot;))
+                (let [params (seq (.split ^String (get-tag-params #&quot;include&quot; tag-str) &quot; &quot;))
+                      source (.replaceAll ^String (first params) &quot;\&quot;&quot; &quot;&quot;)
+                      defaults (parse-defaults (nnext params))]                  
+                  (preprocess-template source {} defaults))
               tag-str)))
           (.append buf ch))
         (recur (read-char rdr)))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn get-parent [tag-str]
   (let [template (get-tag-params #&quot;extends&quot; tag-str)]
     (.substring ^String template 1 (dec (.length ^String template)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn consume-block [rdr &amp; [^StringBuilder buf blocks]]  
+</td><td class="codes"><pre class="brush: clojure">(defn write-tag? [buf existing-block blocks-to-close omit-close-tag?]
+  (and buf
+       (not existing-block)
+       (&gt; blocks-to-close (if omit-close-tag? 1 0))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn consume-block [rdr &amp; [^StringBuilder buf blocks omit-close-tag?]]
   (loop [blocks-to-close 1
+         has-super? false
          ch (read-char rdr)]    
-    (when (and (pos? blocks-to-close) ch)
-      (if (= *tag-open* ch)
+    (if (and (pos? blocks-to-close) ch)
+      (if (open-tag? ch rdr)
         (let [tag-str (read-tag-content rdr)
               block? (re-matches #&quot;\{\%\s*block.*&quot; tag-str)
               block-name (if block? (get-tag-params #&quot;block&quot; tag-str))
-              existing-block (if block-name (get blocks block-name))]          
-          (when (and buf (not existing-block)) (.append buf tag-str))
+              super-tag? (re-matches #&quot;\{\{\s*block.super\s*\}\}&quot; tag-str) 
+              existing-block (if block-name (get-in blocks [block-name :content]))]          
+          (when (write-tag? buf existing-block blocks-to-close omit-close-tag?)
+            (.append buf tag-str))
           (recur
             (long 
               (cond
                 existing-block
                 (do 
                   (consume-block rdr)
-                  (consume-block (StringReader. existing-block) buf (dissoc blocks block-name))
+                  (consume-block
+                    (StringReader. existing-block) buf (dissoc blocks block-name))
                   blocks-to-close)
                 block?
                 (inc blocks-to-close)
                 (re-matches #&quot;\{\%\s*endblock.*&quot; tag-str)
                 (dec blocks-to-close)
                 :else blocks-to-close))
+            (or has-super? super-tag?)
             (read-char rdr)))
         (do
           (when buf (.append buf ch))
-          (recur blocks-to-close (read-char rdr)))))))</pre></td></tr><tr><td class="docs">
+          (recur blocks-to-close has-super? (read-char rdr))))
+      (boolean has-super?))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn rewrite-super [block parent-content]      
+  (clojure.string/replace block #&quot;\{\{\s*block.super\s*\}\}&quot; parent-content))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn read-block [rdr block-tag blocks]  
-  (let [block-name (get-tag-params #&quot;block&quot; block-tag)]
-    (if (get blocks block-name)
-      (do (consume-block rdr) blocks)
-      (assoc blocks block-name 
-             (-&gt;buf [buf]
-                    (.append buf block-tag)
-                    (consume-block rdr buf blocks))))))</pre></td></tr><tr><td class="docs">
+  (let [block-name (get-tag-params #&quot;block&quot; block-tag)
+        existing-block (get blocks block-name)]    
+    (if existing-block
+      (do (consume-block rdr) blocks)      
+      (let [buf (doto (StringBuilder.) (.append block-tag))
+            has-super? (consume-block rdr buf blocks)]        
+        (assoc blocks block-name 
+               {:super has-super?
+                :content (.toString buf)})))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn process-block [rdr buf block-tag blocks]    
-  (let [block-name (get-tag-params #&quot;block&quot; block-tag)]
-    (if-let [block (get blocks block-name)]
-      (do
-        (consume-block rdr)
-        (.append ^StringBuilder buf block))
+  (let [block-name (get-tag-params #&quot;block&quot; block-tag)]    
+    (if-let [existing-content (get-in blocks [block-name :content])]      
+      (.append ^StringBuilder buf 
+        (rewrite-super
+          existing-content
+          (-&gt;buf [buf] (consume-block rdr buf blocks true))))
       (do
         (.append ^StringBuilder buf block-tag)
         (consume-block rdr buf blocks)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn read-template [template blocks]
+</td><td class="codes"><pre class="brush: clojure">(defn set-default-value [tag-str defaults]  
+  (let [tag-name (-&gt; tag-str
+                   (clojure.string/replace #&quot;\{\{\s*&quot; )
+                   (clojure.string/replace #&quot;\s*\}\}&quot; ))]
+    (if-let [value (get defaults tag-name)]
+      (str &quot;{{&quot; tag-name &quot;|default:\ value &quot;\&quot;}}&quot;)
+      tag-str)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn read-template [template blocks defaults]
   (let [buf (StringBuilder.)
         [parent blocks]
         (with-open [rdr (reader (resource-path template))]
           (loop [blocks (or blocks {})
                  ch (read-char rdr)
-                 parent nil]            
+                 parent nil]
             (cond
               (nil? ch) [parent blocks]
               (open-tag? ch rdr)
-              (let [tag-str (read-tag-content rdr)]                
+              (let [tag-str (read-tag-content rdr)]
                 (cond
+                  (and defaults
+                       (re-matches #&quot;\{\{\s*.*\s*\}\}&quot; tag-str))
+                  (do (.append buf (set-default-value tag-str defaults))
+                      (recur blocks (read-char rdr) parent))
                   ;;if the template extends another it's not the root
                   ;;this template is allowed to only contain blocks
                   (re-matches #&quot;\{\%\s*extends.*&quot; tag-str)
@@ -3748,10 +3825,10 @@ take care of its compilation.</p>
               :else
               (do
                 (if (nil? parent) (.append buf ch))
-                (recur blocks (read-char rdr) parent)))))]
-    (if parent (recur parent blocks) (.toString buf))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn preprocess-template [template]
-  (-&gt; (read-template template {}) insert-includes))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.util" name="selmer.util"><h1 class="project-name">selmer.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+                (recur blocks (read-char rdr) parent)))))]    
+    (if parent (recur parent blocks defaults) (.toString buf))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn preprocess-template [template &amp; [blocks defaults]]  
+  (-&gt; (read-template template blocks defaults) insert-includes))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.util" name="selmer.util"><h1 class="project-name">selmer.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns selmer.util
   (:require [clojure.java.io :as io])
   (:import java.io.File))</pre></td></tr><tr><td class="docs">
@@ -3785,22 +3862,25 @@ take care of its compilation.</p>
                {:tag-value (first content)}
                {:tag-name (keyword (first content))
                 :args (next content)})))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn peek-rdr [^java.io.Reader rdr]
+  (.mark rdr 1)
+  (let [result (read-char rdr)]
+    (.reset rdr)
+    result))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro -&gt;buf [[buf] &amp; body]
   `(let [~buf (StringBuilder.)]
     (do ~@body)
     (.toString ~buf)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn read-tag-content [rdr]
   (-&gt;buf [buf]
-    (.append buf *tag-open*)
-    (loop [ch (read-char rdr)]
-      (.append buf ch)
-      (when (not= *tag-close* ch)
-        (recur (read-char rdr))))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn peek-rdr [^java.io.Reader rdr]
-  (.mark rdr 1)
-  (let [result (read-char rdr)]
-    (.reset rdr)
-    result))</pre></td></tr><tr><td class="docs">
+    (let [filter? (not= *tag-second* (peek-rdr rdr))]
+      (.append buf *tag-open*)      
+      (loop [ch (read-char rdr)]
+        (.append buf ch)
+        (when (not= *tag-close* ch)
+          (recur (read-char rdr))))
+      (when filter?
+        (.append buf (read-char rdr))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn open-tag? [ch rdr]
   (and (= *tag-open* ch) 
        (let [next-ch (peek-rdr rdr)]
