@@ -20,6 +20,8 @@
 (def ^:dynamic ^Character *filter-close* \})
 (def ^:dynamic ^Character *tag-second* \%)
 
+(re-seq #"(?:[^\s\"]|\"[^\"]*\")+" "foo date:\"bar baz\" x")
+
 (defn read-tag-info [rdr]
   (let [buf (StringBuilder.)
         tag-type (if (= *filter-open* (read-char rdr)) :filter :expr)]
@@ -31,7 +33,7 @@
         (.append buf ch1)
         (recur ch2 (read-char rdr))))
     
-    (let [content (->>  (.split (.toString buf) " ") (remove empty?) (map (fn [^String s] (.trim s))))]
+    (let [content (->>  (.toString buf) (re-seq #"(?:[^\s\"]|\"[^\"]*\")+") (remove empty?) (map (fn [^String s] (.trim s))))]
       (merge {:tag-type tag-type}
              (if (= :filter tag-type)
                {:tag-value (first content)}

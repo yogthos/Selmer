@@ -325,10 +325,12 @@
 (deftest filter-no-value
   (is (= "" (render "{{f|upper}}" {}))))
 
+
+
 (deftest filter-date
   (let [date (java.util.Date.)]
-    (is (= (.format (java.text.SimpleDateFormat. "yyyy-MM-dd_HH:mm:ss") date)
-           (render "{{f|date:\"yyyy-MM-dd_HH:mm:ss\"}}" {:f date})))))
+    (is (= (.format (java.text.SimpleDateFormat. "yyyy-MM-dd HH:mm:ss") date)
+           (render "{{f|date:\"yyyy-MM-dd HH:mm:ss\"}}" {:f date})))))
 
 (deftest filter-hash-md5
   (is (= "acbd18db4cc2f85cedef654fccc4a4d8"

@@ -89,6 +89,7 @@ applied filter."
         (re-seq #"(?:[^:\"]|\"[^\"]*\")+" s)
         args (fix-filter-args args)
         filter (get-filter filter-name)]
+    
     (if filter 
       (fn [x]
         (apply filter x args))
@@ -106,8 +107,9 @@ filter is \"safe\"."
                              (re-seq #"(?:[^|\"]|\"[^\"]*\")+"))
         accessor (split-filter-val val)
         filters (->> filters
-                      (map filter-str->fn)
-                      (reverse))]
+                     (map filter-str->fn)
+                     (reverse))]
+    
     (fn [context-map]
       (let [x (get-in context-map accessor)]
         #_(when-not x
