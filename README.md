@@ -126,9 +126,19 @@ that accepts a value and returns its replacement:
 [upper] (#upper)
 
 #### add
+`(render "{{add_me|add:2:3:4}}" {:add_me 2})` => `11`
+
 #### addslashes
+Nota bene, the slashes aren't actually in the input string, but they *are* going to be in the input. Just trying to write valid Clojure code.
+
+`(render "{{name|addslashes}}" {:name "\"Russian tea is best tea\""})` => `"\"Russian tea is best tea\""`
+
 #### capitalize
+`(render "{{name|capitalize}}" {:name "russian tea is best tea"})` => `"Russian tea is best tea"`
+
 #### center
+`(render "{{name|center:20}}" {:name "bitemyapp"})` => `"      bitemyapp     "`
+
 #### count
 `(render "{{name|count}}" {:name "Yogthos"})` => `"7"`
 
@@ -139,7 +149,17 @@ that accepts a value and returns its replacement:
 `(render "{{creation-time|date:\"yyyy-MM-dd_HH:mm:ss\"}}" {:created-at (java.util.Date.)})` => `"2013-07-28_20:51:48"`
 
 #### default
+`(render "{{name|default:"I <3 ponies"}}" {:name "bitemyapp"})` => `"bitemyapp"`
+`(render "{{name|default:"I <3 ponies"}}" {:name nil})` => `"I <3 ponies"`
+`(render "{{name|default:"I <3 ponies"}}" {:name []})` => `"[]"`
+`(render "{{name|default:"I <3 ponies"}}" {})` => `"I <3 ponies"`
+
 #### default-if-empty
+`(render "{{name|default:"I <3 ponies"}}" {:name "bitemyapp"})` => `"bitemyapp"`
+`(render "{{name|default:"I <3 ponies"}}" {:name nil})` => `"I <3 ponies"`
+`(render "{{name|default:"I <3 ponies"}}" {:name []})` => `"I <3 ponies"`
+`(render "{{name|default:"I <3 ponies"}}" {})` => `"I <3 ponies"`
+
 #### double-format
 #### first
 #### get-digit
