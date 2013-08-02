@@ -10,7 +10,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 Leiningen
 
 ```clojure
-[selmer "0.2.6"]
+[selmer "0.2.7"]
 ```
 
 ## Marginalia documentation
@@ -360,5 +360,6 @@ prevents any tags inside from being parsed:
 #### with
 injects the specified keys into the context map:
 
-`(render "{% with total=business.employees|count %}{{ total }} employee{{ business.employees|pluralize }}{% endwith %}"
-               {:business {:employees (range 5)}})` => `"5 employees"
+`(render 
+  "{% with total=business.employees|count %}{{ total }}{% endwith %}"
+   {:business {:employees (range 5)}})` => `"5 employees"
