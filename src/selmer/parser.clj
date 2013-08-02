@@ -129,7 +129,7 @@
 ;; FunctionNode call-sites or TextNode content. open-tag? fn returns
 ;; true or false based on character lookahead to see if it's {{ or {%
 
-(defn to-node [tag content buf rdr]
+(defn append-node [content tag buf rdr]
   (-> content
     (conj (TextNode. (.toString buf)))
     (conj (FunctionNode. (parse-tag tag rdr)))))
@@ -156,7 +156,7 @@
                     end-tags (next (drop-while #(not= tag-name %) end-tags))]
                 (.setLength buf 0)
                 (recur (if (empty? end-tags) nil (read-char rdr)) tags [] open-tag end-tags))
-              (let [content (to-node tag content buf rdr)]
+              (let [content (append-node content tag buf rdr)]
                 (.setLength buf 0)
                 (recur (read-char rdr) tags content cur-tag end-tags))))
         :else

@@ -113,9 +113,10 @@
             (if-not (re-matches #"\{\%\s*endverbatim\s*\%\}" tag)
               (do (.append buf tag)
                 (recur (read-char rdr)))))
-          :else (do
-                  (.append buf ch)
-                  (recur (read-char rdr))))))))
+          :else
+          (do
+            (.append buf ch)
+            (recur (read-char rdr))))))))
 
 (defn verbatim-handler [args _ render rdr]
   (let [content (read-verbatim rdr)]

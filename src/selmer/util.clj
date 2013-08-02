@@ -31,7 +31,10 @@
         (.append buf ch1)
         (recur ch2 (read-char rdr))))
     
-    (let [content (->>  (.toString buf) (re-seq #"(?:[^\s\"]|\"[^\"]*\")+") (remove empty?) (map (fn [^String s] (.trim s))))]
+    (let [content (->> (.toString buf) 
+                       (re-seq #"(?:[^\s\"]|\"[^\"]*\")+")
+                       (remove empty?)
+                       (map (fn [^String s] (.trim s))))]
       (merge {:tag-type tag-type}
              (if (= :filter tag-type)
                {:tag-value (first content)}
@@ -66,7 +69,7 @@
          (or (= *filter-open* next-ch)
              (= *tag-second* next-ch)))))
 
-(defn split-by-quotes [s]
+(defn split-by-args [s]
   (let [rdr (StringReader. s)
         buf (StringBuilder.)]
     (loop [items []

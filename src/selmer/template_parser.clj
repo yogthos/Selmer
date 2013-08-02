@@ -17,7 +17,7 @@
   (when defaults
     (->> defaults
          (apply str)
-         split-by-quotes
+         split-by-args
          (partition 2)
          (map vec)
          (into {}))))
@@ -33,9 +33,9 @@
           (let [tag-str (read-tag-content rdr)]
             (.append buf 
               (if (re-matches #"\{\%\s*include.*" tag-str)
-                (let [params (seq (.split ^String (get-tag-params #"include" tag-str) " "))
-                      source (.replaceAll ^String (first params) "\"" "")
-                      defaults (parse-defaults (nnext params))]                  
+                (let [params   (seq (.split ^String (get-tag-params #"include" tag-str) " "))
+                      source   (.replaceAll ^String (first params) "\"" "")
+                      defaults (parse-defaults (nnext params))]
                   (preprocess-template source {} defaults))
               tag-str)))
           (.append buf ch))
@@ -56,10 +56,10 @@
          ch (read-char rdr)]    
     (if (and (pos? blocks-to-close) ch)
       (if (open-tag? ch rdr)
-        (let [tag-str (read-tag-content rdr)
-              block? (re-matches #"\{\%\s*block.*" tag-str)
-              block-name (if block? (get-tag-params #"block" tag-str))
-              super-tag? (re-matches #"\{\{\s*block.super\s*\}\}" tag-str) 
+        (let [tag-str        (read-tag-content rdr)
+              block?         (re-matches #"\{\%\s*block.*" tag-str)
+              block-name     (if block? (get-tag-params #"block" tag-str))
+              super-tag?     (re-matches #"\{\{\s*block.super\s*\}\}" tag-str) 
               existing-block (if block-name (get-in blocks [block-name :content]))]
           (when (write-tag? buf existing-block blocks-to-close omit-close-tag?)
             (.append buf tag-str))
@@ -91,11 +91,11 @@
   (clojure.string/replace block #"\{\{\s*block.super\s*\}\}" parent-content))
 
 (defn read-block [rdr block-tag blocks]
-  (let [block-name (get-tag-params #"block" block-tag)
+  (let [block-name     (get-tag-params #"block" block-tag)
         existing-block (get blocks block-name)]
     (if existing-block
       (do (consume-block rdr) blocks)
-      (let [buf (doto (StringBuilder.) (.append block-tag))
+      (let [buf        (doto (StringBuilder.) (.append block-tag))
             has-super? (consume-block rdr buf blocks)]
         (assoc blocks block-name
                {:super has-super?
@@ -112,8 +112,6 @@
         (.append ^StringBuilder buf block-tag)
         (consume-block rdr buf blocks)))))
 
-
-
 (defn set-default-value [tag-str defaults]
   (let [tag-name (-> tag-str
                    (clojure.string/replace #"\{\{\s*" "")
@@ -127,7 +125,7 @@
         [parent blocks]
         (with-open [rdr (reader (resource-path template))]
           (loop [blocks (or blocks {})
-                 ch (read-char rdr)
+                 ch     (read-char rdr)
                  parent nil]
             (cond
               (nil? ch) [parent blocks]
