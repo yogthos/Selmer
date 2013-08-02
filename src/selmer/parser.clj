@@ -50,7 +50,7 @@
          :with with-handler}))
 
 ;; add-tag! is a hella nifty macro. Example use:
-;; (add-tag! :bar (fn [args context-map] (clojure.string/join "," args)))
+;; (add-tag! :joined (fn [args context-map] (clojure.string/join "," args)))
 
 (defmacro add-tag! [k handler & tags]
   " tag name, fn handler, and maybe tags "

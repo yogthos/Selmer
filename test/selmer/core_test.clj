@@ -96,7 +96,7 @@
 
 
 (deftest test-verbatim
-  (is (= "{{if dying}}{{/if}}"
+  (is (= "{{if dying}}Still alive.{{/if}}"
          (render "{% verbatim %}{{if dying}}Still alive.{{/if}}{% endverbatim %}" {}))))
 
 (deftest test-with
