@@ -50,48 +50,22 @@ modified timestamp of the files changes. Alternatively you can turn caching on a
 
 ### Tag Types
 
-#### Variables
+### Built-in Tags
 
-Variables are used to inject dynamic content into the text of the template. The values for the variables
-are looked up in the context map as can be seen in the example above. When a value is missing then an 
-empty string is rendered in its place.
+[extends] (#extends)
+[include] (#include)
+[block] (#block)
+[block.super](#block)
+[if] (#if)
+[ifequal] (#ifequal)
+[for] (#for)
+[now] (#now)
+[comment] (#comment)
+[firstof] (#firstof)
+[verbatim] (#verbatim)
+[with] (#with)
 
-By default variables are defined using the double curly braces: `{{myvar}}`. 
-
-A variables can also be nested data structures, eg:
-
-`(render "{{person.name}}" {:person {:name "John Doe"}})`
-
-`(render "{{foo.bar.0.baz}}" {:foo {:bar [{:baz "hi"}]}})`
-
-#### Filters
-
-In many cases you may wish to postprocess the value of a variable. For example, you might want to convert
-it to upper case, pluralize it, or parse it as a date. This can be done by specifying a filter following the
-name of the variable. The filters are separated using the `|` character.
-
-For example, if we wanted to convert the variable to upper case we could write `{{user-name|upper}}`. When
-rendered with `{:user-name "Yogthos"}` it would produce `YOGTHOS` as its output.
-
-Some filters can take parameters. `{{domain|hash:"md5"}}` rendered with `{:domain "example.org"}` would produce
-`1bdf72e04d6b50c82a48c7e4dd38cc69`.
-
-Finally, you can easily register custom filters in addition to those already provided. A filter is simply a function
-that accepts a value and returns its replacement:
-
-```clojure
-(use 'selmer.filters)
-
-(add-filter! :embiginate clojure.string/upper-case)
-(render "{{shout|embiginate}}" {:shout "hello"})
-=>"HELLO"
-
-(add-filter! :empty? empty?)
-(render "{{files|empty?}}" {:files []})
-=>"true"
-``` 
-
-### Default Filters
+### Built-in Filters
 
 [add] (#add)
 [addslashes](#addslashes)
@@ -124,6 +98,49 @@ that accepts a value and returns its replacement:
 [sort-by-reversed] (#sort-by-reversed)
 [sort-reversed] (#sort-reversed)
 [upper] (#upper)
+
+## Variables
+
+Variables are used to inject dynamic content into the text of the template. The values for the variables
+are looked up in the context map as can be seen in the example above. When a value is missing then an 
+empty string is rendered in its place.
+
+By default variables are defined using the double curly braces: `{{myvar}}`. 
+
+A variables can also be nested data structures, eg:
+
+`(render "{{person.name}}" {:person {:name "John Doe"}})`
+
+`(render "{{foo.bar.0.baz}}" {:foo {:bar [{:baz "hi"}]}})`
+
+## Filters
+
+In many cases you may wish to postprocess the value of a variable. For example, you might want to convert
+it to upper case, pluralize it, or parse it as a date. This can be done by specifying a filter following the
+name of the variable. The filters are separated using the `|` character.
+
+For example, if we wanted to convert the variable to upper case we could write `{{user-name|upper}}`. When
+rendered with `{:user-name "Yogthos"}` it would produce `YOGTHOS` as its output.
+
+Some filters can take parameters. `{{domain|hash:"md5"}}` rendered with `{:domain "example.org"}` would produce
+`1bdf72e04d6b50c82a48c7e4dd38cc69`.
+
+Finally, you can easily register custom filters in addition to those already provided. A filter is simply a function
+that accepts a value and returns its replacement:
+
+```clojure
+(use 'selmer.filters)
+
+(add-filter! :embiginate clojure.string/upper-case)
+(render "{{shout|embiginate}}" {:shout "hello"})
+=>"HELLO"
+
+(add-filter! :empty? empty?)
+(render "{{files|empty?}}" {:files []})
+=>"true"
+``` 
+
+### Built-in Filters
 
 #### add
 #### addslashes
@@ -237,21 +254,7 @@ tags can also contain content and intermediate tags:
 (render "{% foo %} some text {% bar %} some more text {% baz %}" {})
 =>"{:foo {:args nil, :content \" some text \"}, :bar {:args nil, :content \" some more text \"}}"
 ```
-
-### Default Tags
-
-[extends] (#extends)
-[include] (#include)
-[block] (#block)
-[block.super](#block)
-[if] (#if)
-[ifequal] (#ifequal)
-[for] (#for)
-[now] (#now)
-[comment] (#comment)
-[firstof] (#firstof)
-[verbatim] (#verbatim)
-[with] (#with)
+### Built-in Tags
 
 #### include
 
