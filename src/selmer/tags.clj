@@ -134,11 +134,11 @@
                                   (assoc context-map k (v context-map)))
                                 context-map args)))))
 
-(defn script-handler [[uri] _ _ _]
+(defn script-handler [[^String uri] _ _ _]
   (fn [{:keys [servlet-context]}]
     (str "<script src=\"" servlet-context (.substring uri 1) " type=\"text/javascript\"></script>")))
 
-(defn style-handler [[uri] _ _ _]
+(defn style-handler [[^String uri] _ _ _]
   (fn [{:keys [servlet-context]}]
     (str "<link href=\"" servlet-context (.substring uri 1) " rel=\"stylesheet\" type=\"text/css\" />")))
 

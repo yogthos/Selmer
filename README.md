@@ -10,7 +10,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 Leiningen
 
 ```clojure
-[selmer "0.2.7"]
+[selmer "0.2.9"]
 ```
 
 ## Marginalia documentation
@@ -110,16 +110,18 @@ as follows:
 
 ### Built-in Tags
 
-[extends] (#extends)
-[include] (#include)
 [block] (#block)
 [block.super](#block)
+[comment] (#comment)
 [if] (#if)
 [ifequal] (#ifequal)
+[include] (#include)
+[extends] (#extends)
+[firstof] (#firstof)
 [for] (#for)
 [now] (#now)
-[comment] (#comment)
-[firstof] (#firstof)
+[script] (#script)
+[style] (#style)
 [verbatim] (#verbatim)
 [with] (#with)
 
@@ -404,6 +406,20 @@ ignores any content inside the block
 renders the first occurance of supplied keys that doesn't resolve to false:
 
 `(render "{% firstof var1 var2 var3 %}" {:var2 "x" :var3 "not me"})` => `"x"`
+
+#### script
+
+The script tag will generate an HTML script tag and prepend the value of the `servlet-context` key
+to the URI. When `servlet-context` key is not present then the original URI is set.
+
+`(render "{% style \"/css/screen.css\" %}" {:servlet-context "/myapp"})` => '"<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"'
+
+#### style
+
+The script tag will generate an HTML script tag and prepend the value of the `servlet-context` key
+to the URI. When `servlet-context` key is not present then the original URI is set.
+
+`(render "{% script \"/js/site.js\" %}" {:servlet-context "/myapp"})` => '"<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"'
 
 #### verbatim
 prevents any tags inside from being parsed:
