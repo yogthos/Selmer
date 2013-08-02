@@ -91,28 +91,82 @@ that accepts a value and returns its replacement:
 =>"true"
 ``` 
 
-#### Default Filters
+### Default Filters
 
-**upper**
+[add] (#add)
+[addslashes](#addslashes)
+[capitalize] (#capitalize)
+[center] (#center)
+[count] (#count)
+[date] (#date)
+[default] (#default)
+[default-if-empty] (#default-if-empty)
+[double-format] (#double-format)
+[first] (#first)
+[get-digit] (#get-digit)
+[hash] (#hash)
+[join] (#join)
+[json] (#json)
+[last] (#last)
+[length] (#length)
+[length-is] (#length-is)
+[linebreaks] (#linebreaks)
+[linebreaks-br] (#linebreaks-br)
+[linenumbers] (#linenumbers)
+[lower] (#lower)
+[pluralize] (#pluralize)
+[rand-nth] (#rand-nth)
+[remove] (#remove)
+[remove-tags] (#remove-tags)
+[safe] (#safe)
+[sort] (#sort)
+[sort-by] (#sort-by)
+[sort-by-reversed] (#sort-by-reversed)
+[sort-reversed] (#sort-reversed)
+[upper] (#upper)
 
-`(render "{{shout|upper}}" {:shout "hello"})` => `"HELLO"`
-
-**date**
-
-`(render "{{creation-time|date:\"yyyy-MM-dd_HH:mm:ss\"}}" {:created-at (java.util.Date.)})` => `"2013-07-28_20:51:48"`
-
-**hash**
-
-`(render "{{domain|hash:\"md5\"}}" {:domain "example.org"})` => `"1bdf72e04d6b50c82a48c7e4dd38cc69"`
-
-**count**
-
+#### add
+#### addslashes
+#### capitalize
+#### center
+#### count
 `(render "{{name|count}}" {:name "Yogthos"})` => `"7"`
 
 `(render "{{items|count}}" {:items [1 2 3 4]})` => `"4"`
 
-**pluralize**
 
+#### date
+`(render "{{creation-time|date:\"yyyy-MM-dd_HH:mm:ss\"}}" {:created-at (java.util.Date.)})` => `"2013-07-28_20:51:48"`
+
+#### default
+#### default-if-empty
+#### double-format
+#### first
+#### get-digit
+#### hash
+available hashes: `md5`, `sha`, `sha256`, `sha384`, `sha512
+`(render "{{domain|hash:\"md5\"}}" {:domain "example.org"})` => `"1bdf72e04d6b50c82a48c7e4dd38cc69"`
+
+
+#### join
+#### json
+by default content will be escaped
+
+`(render "{{data|json}}" {:data [1 2 {:foo 27 :dan "awesome"}]})` => `"[1,2,{&quot;foo&quot;:27,&quot;dan&quot;:&quot;awesome&quot;}]"`
+
+if you wish to render it unescaped use the `safe` filter:
+
+`(render "{{f|json|safe}}" {:f {:foo 27 :dan "awesome"}})`
+
+
+#### last
+#### length
+#### length-is
+#### linebreaks
+#### linebreaks-br
+#### linenumbers
+#### lower
+#### pluralize
 Returns the correct (English) pluralization based on the variable. This works with many words, but certainly not all (eg. foot/feet, mouse/mice, etc.)
 
 `(render "{{items|count}} item{{items|pluralize}}" {:items []})` => `"0 items"`
@@ -127,17 +181,23 @@ Returns the correct (English) pluralization based on the variable. This works wi
 
 `(render "{{people|count}} lad{{people|pluralize:\"y\":\"ies\"}}" {:people [1 2]})` => `"2 ladies"`
 
-**json**
 
-`(render "{{data|json}}" {:data [1 2 {:foo 27 :dan "awesome"}]})` => `"[1,2,{&quot;foo&quot;:27,&quot;dan&quot;:&quot;awesome&quot;}]"`
-
-**safe**
-
+#### rand-nth
+#### remove
+#### remove-tags
+#### safe
 By default Selmer will HTML escape all variables, The `safe` filter exempts the variable from being html-escaped:
 
 `(render "{{data}}" {:data "<foo>"})` => `"&lt;foo&gt;"`
 
 `(render "{{data|safe}}" {:data "<foo>"})` => `"<foo>"`
+
+#### sort
+#### sort-by
+#### sort-by-reversed
+#### sort-reversed
+#### upper
+`(render "{{shout|upper}}" {:shout "hello"})` => `"HELLO"`
 
 **Tags**
 
@@ -178,7 +238,7 @@ tags can also contain content and intermediate tags:
 =>"{:foo {:args nil, :content \" some text \"}, :bar {:args nil, :content \" some more text \"}}"
 ```
 
-#### Default Tags
+### Default Tags
 
 **include**
 
@@ -221,8 +281,7 @@ For example, say we have a base template called `base.html` and a child template
 {% block foo %}<p>This text will override the text in the parent</p>{% endblock %}
 ```
 
-**if**
-
+#### if
 It's an `if` -- only render the body if the conditional is true.
 
 `{% if condition %}yes!{% endif %}`
@@ -237,8 +296,7 @@ filters work for the conditions:
   {:files []})
 ```
 
-**ifequal/endifequal** *block*
-
+#### ifequal
 Only render the body if the two args are equal (according to clojure.core/=).
 
 `{% ifequal foo bar %}yes!{% endifequal %}`
@@ -249,6 +307,7 @@ Only render the body if the two args are equal (according to clojure.core/=).
 
 **for/endfor** *block*
 
+#### for
 Render the body one time for each element in the list. Each render will introduce the following variables into the context: 
 
 * `forloop.first`
@@ -265,5 +324,28 @@ you can also iterate over nested data structures, eg:
 
 `{% for item in items %} <tr><td>{{item.name}}</td><td>{{item.age}}</td></tr> {% endfor %}`
 
+#### now
+renders current time 
 
+`(render (str "{% now \"" date-format "\"%}") {})` => `"\"01 08 2013\""`
 
+#### comment
+comments any content inside the block
+
+`(render "foo bar {% comment %} baz test {{x}} {% endcomment %} blah" {})`
+
+#### firstof
+renders the first occurance of supplied keys that doesn't resolve to false:
+
+`(render "{% firstof var1 var2 var3 %}" {:var2 "x" :var3 "not me"})` => `"x"`
+
+#### verbatim
+prevents any tags inside from being parsed:
+
+`(render "{% verbatim %}{{if dying}}Still alive.{{/if}}{% endverbatim %}" {})` => `"{{if dying}}Still alive.{{/if}}"`
+
+#### with
+injects the specified keys into the context map:
+
+`(render "{% with total=business.employees|count %}{{ total }} employee{{ business.employees|pluralize }}{% endwith %}"
+               {:business {:employees (range 5)}})` => `"5 employees"
