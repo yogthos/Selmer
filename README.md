@@ -216,8 +216,15 @@ if you wish to render it unescaped use the `safe` filter:
 
 
 #### last
+`(render "{{sequence|last}}" {:sequence 12.34567})` => `7`
+`(render "{{sequence|last}}" {:sequence [1 2 3 4]})` => `4`
+
 #### length
+`(render "{{sequence|length}}" {:sequence [1 2 3 4]})` => `4`
+
 #### length-is
+`(render "{{sequence|length-is:4}}" {:sequence [1 2 3 4]})` => `true`
+
 #### linebreaks
 #### linebreaks-br
 #### linenumbers
