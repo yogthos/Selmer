@@ -48,22 +48,7 @@ When rendering files Selmer will cache the compiled template. A recompile will b
 modified timestamp of the files changes. Alternatively you can turn caching on and off using `(selmer.parser/cache-on!)` and
  `(selmer.parser/cache-off!)` respectively. 
 
-### Tag Types
-
-### Built-in Tags
-
-[extends] (#extends)
-[include] (#include)
-[block] (#block)
-[block.super](#block)
-[if] (#if)
-[ifequal] (#ifequal)
-[for] (#for)
-[now] (#now)
-[comment] (#comment)
-[firstof] (#firstof)
-[verbatim] (#verbatim)
-[with] (#with)
+Selmer comes with a rich set of built-in tags and filters:
 
 ### Built-in Filters
 
@@ -98,6 +83,22 @@ modified timestamp of the files changes. Alternatively you can turn caching on a
 [sort-by-reversed] (#sort-by-reversed)
 [sort-reversed] (#sort-reversed)
 [upper] (#upper)
+
+### Built-in Tags
+
+[extends] (#extends)
+[include] (#include)
+[block] (#block)
+[block.super](#block)
+[if] (#if)
+[ifequal] (#ifequal)
+[for] (#for)
+[now] (#now)
+[comment] (#comment)
+[firstof] (#firstof)
+[verbatim] (#verbatim)
+[with] (#with)
+
 
 ## Variables
 
