@@ -154,6 +154,17 @@
   (is (= (render "{{foo.bar}}" {:foo {:bar 42}})
          "42")))
 
+(deftest script-style
+  (is
+    (= "<script src=\"/js/site.js\" type=\"text/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {})))
+  (is
+    (= "<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:servlet-context "/myapp"})))
+  (is
+    (= "<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
+       (render "{% style \"/css/screen.css\" %}" {:servlet-context "/myapp"}))))
+
 (deftest render-test
   (= "<ul><li>0</li><li>1</li><li>2</li><li>3</li><li>4</li></ul>"
      (render-template (parse (java.io.StringReader. "<ul>{% for item in items %}<li>{{item}}</li>{% endfor %}</ul>"))

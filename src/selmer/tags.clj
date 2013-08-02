@@ -88,7 +88,7 @@
   (let [content (get-in (tag-content rdr :block :endblock) [:block :content])]
     (fn [context-map] (render content context-map))))
 
-(defn now-handler [args _ render rdr]
+(defn now-handler [args _ _ _]
   (fn [context-map]    
     ((:date @filters) (java.util.Date.) (clojure.string/join " " args))))
 
@@ -97,7 +97,7 @@
     (fn [_] 
       (render (filter (partial instance? selmer.node.TextNode) content) {}))))
 
-(defn first-of-handler [args _ render rdr]
+(defn first-of-handler [args _ _ _]
   (let [args (map compile-filter-body args)]
     (fn [context-map]
       (let [first-true (->> args (map #(% context-map)) (remove empty?) (drop-while false?) first)]
@@ -117,7 +117,7 @@
                   (.append buf ch)
                   (recur (read-char rdr))))))))
 
-(defn verbatim-handler [args tag-content render rdr]
+(defn verbatim-handler [args _ render rdr]
   (let [content (read-verbatim rdr)]
     (fn [context-map] content)))
 
@@ -133,6 +133,14 @@
                                 (fn [context-map [k v]]
                                   (assoc context-map k (v context-map)))
                                 context-map args)))))
+
+(defn script-handler [[uri] _ _ _]
+  (fn [{:keys [servlet-context]}]
+    (str "<script src=\"" servlet-context (.substring uri 1) " type=\"text/javascript\"></script>")))
+
+(defn style-handler [[uri] _ _ _]
+  (fn [{:keys [servlet-context]}]
+    (str "<link href=\"" servlet-context (.substring uri 1) " rel=\"stylesheet\" type=\"text/css\" />")))
 
 ;;helpers for custom tag definition
 (defn render-tags [context-map tags]
