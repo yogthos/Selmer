@@ -110,7 +110,7 @@ map. The rest of the arguments are optional and are always strings."
                  n)))
 
      ;;; Get the ith digit of a number
-     ;;; 1 is the rightmost digit     
+     ;;; 1 is the rightmost digit
      :get-digit
      (fn [n i]
        (let [nv (vec (str n))
@@ -122,7 +122,7 @@ map. The rest of the arguments are optional and are always strings."
              (if (= \. d)
                (nv (dec i))
                d)))))
- 
+
      :hash
      (fn [^String s hash]
        (case hash

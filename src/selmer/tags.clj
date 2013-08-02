@@ -55,7 +55,7 @@
       :else [(TextNode. "")])
     context-map))
 
-(defn if-result [value]  
+(defn if-result [value]
   (condp = value
     nil     false
     ""      false
@@ -78,8 +78,8 @@
   (let [tags (tag-content rdr :ifequal :else :endifequal)
         args (for [^String arg args]
                (if (= \" (first arg)) 
-                 (.substring arg 1 (dec (.length arg))) 
-                 (compile-filter-body arg)))]   
+                 (.substring arg 1 (dec (.length arg)))
+                 (compile-filter-body arg)))]
     (fn [context-map]
       (let [condition (apply = (map #(if (fn? %) (% context-map) %) args))]
         (render-if render context-map condition (:ifequal  tags) (:else tags))))))
@@ -105,7 +105,7 @@
 
 (defn read-verbatim [rdr]
   (->buf [buf]
-    (loop [ch (read-char rdr)]      
+    (loop [ch (read-char rdr)]
       (when ch
         (cond
           (open-tag? ch rdr)
@@ -122,7 +122,7 @@
     (fn [context-map] content)))
 
 (defn parse-with [^String arg]
-  (let [[id value] (.split arg "=")]    
+  (let [[id value] (.split arg "=")]
     [(keyword id) (compile-filter-body value)]))
 
 (defn with-handler [args tag-content render rdr]

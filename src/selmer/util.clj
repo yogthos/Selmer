@@ -1,6 +1,6 @@
 (ns selmer.util
   (:require [clojure.java.io :as io])
-  (:import java.io.File))
+  (:import java.io.File java.io.StringReader))
 
 (defn read-char [^java.io.Reader rdr]
   (let [ch (.read rdr)]
@@ -65,6 +65,33 @@
        (let [next-ch (peek-rdr rdr)]
          (or (= *filter-open* next-ch)
              (= *tag-second* next-ch)))))
+
+(defn split-by-quotes [s]
+  (let [rdr (StringReader. s)
+        buf (StringBuilder.)]
+    (loop [items []
+           ch (read-char rdr)
+           open? false]
+      (cond
+        (nil? ch) items
+        
+        (and open? (= ch \"))
+        (let [value (.trim (.toString buf))]
+          (.setLength buf 0)          
+          (recur (conj items value) (read-char rdr) false))
+        
+        (= ch \")
+        (recur items (read-char rdr) true)
+        
+        (= ch \=)
+        (let [id (.trim (.toString buf))]
+          (.setLength buf 0)
+          (recur (conj items id) (read-char rdr) open?))
+        
+        :else
+        (do
+          (.append buf ch) 
+          (recur items (read-char rdr) open?))))))
 
 #_(defn resource-path
   "returns the path to the public folder of the application"

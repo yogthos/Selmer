@@ -13,37 +13,10 @@
 (defn get-tag-params [tag-id block-str]
   (-> block-str (split tag-id) second (split #"%") first trim))
 
-(defn split-by-quotes [s]
-  (let [rdr (StringReader. s)
-        buf (StringBuilder.)]
-    (loop [items []
-           ch (read-char rdr)
-           open? false]
-      (cond
-        (nil? ch) items
-        
-        (and open? (= ch \"))
-        (let [value (.trim (.toString buf))]          
-          (.setLength buf 0)          
-          (recur (conj items value) (read-char rdr) false))
-        
-        (= ch \")
-        (recur items (read-char rdr) true)
-        
-        (= ch \=)
-        (let [id (.trim (.toString buf))]
-          (.setLength buf 0)
-          (recur (conj items id) (read-char rdr) open?))
-        
-        :else 
-        (do 
-          (.append buf ch) 
-          (recur items (read-char rdr) open?))))))
-
 (defn parse-defaults [defaults]
   (when defaults
-    (->> defaults 
-         (apply str) 
+    (->> defaults
+         (apply str)
          split-by-quotes
          (partition 2)
          (map vec)
@@ -51,7 +24,7 @@
 
 (defn insert-includes
   "parse any included templates and splice them in replacing the include tags"
-  [template] 
+  [template]
   (->buf [buf]
     (with-open [rdr (reader (StringReader. template))]
     (loop [ch (read-char rdr)]
@@ -87,7 +60,7 @@
               block? (re-matches #"\{\%\s*block.*" tag-str)
               block-name (if block? (get-tag-params #"block" tag-str))
               super-tag? (re-matches #"\{\{\s*block.super\s*\}\}" tag-str) 
-              existing-block (if block-name (get-in blocks [block-name :content]))]          
+              existing-block (if block-name (get-in blocks [block-name :content]))]
           (when (write-tag? buf existing-block blocks-to-close omit-close-tag?)
             (.append buf tag-str))
           (recur
@@ -114,24 +87,24 @@
           (recur blocks-to-close has-super? (read-char rdr))))
       (boolean has-super?))))
 
-(defn rewrite-super [block parent-content]      
+(defn rewrite-super [block parent-content]
   (clojure.string/replace block #"\{\{\s*block.super\s*\}\}" parent-content))
 
-(defn read-block [rdr block-tag blocks]  
+(defn read-block [rdr block-tag blocks]
   (let [block-name (get-tag-params #"block" block-tag)
-        existing-block (get blocks block-name)]    
+        existing-block (get blocks block-name)]
     (if existing-block
-      (do (consume-block rdr) blocks)      
+      (do (consume-block rdr) blocks)
       (let [buf (doto (StringBuilder.) (.append block-tag))
-            has-super? (consume-block rdr buf blocks)]        
-        (assoc blocks block-name 
+            has-super? (consume-block rdr buf blocks)]
+        (assoc blocks block-name
                {:super has-super?
                 :content (.toString buf)})))))
 
-(defn process-block [rdr buf block-tag blocks]    
-  (let [block-name (get-tag-params #"block" block-tag)]    
-    (if-let [existing-content (get-in blocks [block-name :content])]      
-      (.append ^StringBuilder buf 
+(defn process-block [rdr buf block-tag blocks]
+  (let [block-name (get-tag-params #"block" block-tag)]
+    (if-let [existing-content (get-in blocks [block-name :content])]
+      (.append ^StringBuilder buf
         (rewrite-super
           existing-content
           (->buf [buf] (consume-block rdr buf blocks true))))
@@ -141,7 +114,7 @@
 
 
 
-(defn set-default-value [tag-str defaults]  
+(defn set-default-value [tag-str defaults]
   (let [tag-name (-> tag-str
                    (clojure.string/replace #"\{\{\s*" "")
                    (clojure.string/replace #"\s*\}\}" ""))]
@@ -194,8 +167,8 @@
               :else
               (do
                 (if (nil? parent) (.append buf ch))
-                (recur blocks (read-char rdr) parent)))))]    
+                (recur blocks (read-char rdr) parent)))))]
     (if parent (recur parent blocks defaults) (.toString buf))))
 
-(defn preprocess-template [template & [blocks defaults]]  
+(defn preprocess-template [template & [blocks defaults]]
   (-> (read-template template blocks defaults) insert-includes))
