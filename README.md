@@ -240,9 +240,14 @@ tags can also contain content and intermediate tags:
 
 ### Default Tags
 
-[add] (#add)
-[add] (#add)
-[add] (#add)
+[if] (#if)
+[ifequal] (#ifequal)
+[for] (#for)
+[now] (#now)
+[comment] (#comment)
+[firstof] (#firstof)
+[verbatim] (#verbatim)
+[with] (#with)
 
 **include**
 
@@ -334,9 +339,9 @@ renders current time
 `(render (str "{% now \"" date-format "\"%}") {})` => `"\"01 08 2013\""`
 
 #### comment
-comments any content inside the block
+ignores any content inside the block
 
-`(render "foo bar {% comment %} baz test {{x}} {% endcomment %} blah" {})`
+`(render "foo bar {% comment %} baz test {{x}} {% endcomment %} blah" {})` => `"foo bar  baz test  blah"`
 
 #### firstof
 renders the first occurance of supplied keys that doesn't resolve to false:
