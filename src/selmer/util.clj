@@ -20,8 +20,6 @@
 (def ^:dynamic ^Character *filter-close* \})
 (def ^:dynamic ^Character *tag-second* \%)
 
-(re-seq #"(?:[^\s\"]|\"[^\"]*\")+" "foo date:\"bar baz\" x")
-
 (defn read-tag-info [rdr]
   (let [buf (StringBuilder.)
         tag-type (if (= *filter-open* (read-char rdr)) :filter :expr)]
@@ -105,4 +103,3 @@
   (-> (Thread/currentThread)
       (.getContextClassLoader)
       (.getResource template)))
-
