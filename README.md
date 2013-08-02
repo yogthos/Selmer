@@ -199,7 +199,7 @@ By default Selmer will HTML escape all variables, The `safe` filter exempts the 
 #### upper
 `(render "{{shout|upper}}" {:shout "hello"})` => `"HELLO"`
 
-**Tags**
+## Tags
 
 Selmer supports two types of tags. The tags can be inline, which means that they consist of a single
 tag statement such as `include` or `extends`, or contain a body and intermediate tags,
@@ -239,6 +239,10 @@ tags can also contain content and intermediate tags:
 ```
 
 ### Default Tags
+
+[add] (#add)
+[add] (#add)
+[add] (#add)
 
 **include**
 
