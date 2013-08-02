@@ -93,9 +93,9 @@
     ((:date @filters) (java.util.Date.) (clojure.string/join " " args))))
 
 (defn comment-handler [args tag-content render rdr]
-  (do
-    (tag-content rdr :comment :endcomment)
-    (fn [context-map] "")))
+  (let [content (tag-content rdr :comment :endcomment)]    
+    (fn [_] 
+      (render (filter (partial instance? selmer.node.TextNode) content) {}))))
 
 (defn first-of-handler [args _ render rdr]
   (let [args (map compile-filter-body args)]
