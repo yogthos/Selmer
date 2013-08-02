@@ -200,7 +200,7 @@ Nota bene, the slashes aren't actually in the input string, but they *are* going
 `(render "{{tis-a-number|get-digit:1}}" {:tis-a-number 12.34567})` => `7`
 
 #### hash
-available hashes: `md5`, `sha`, `sha256`, `sha384`, `sha512
+available hashes: `md5`, `sha`, `sha256`, `sha384`, `sha512`
 `(render "{{domain|hash:\"md5\"}}" {:domain "example.org"})` => `"1bdf72e04d6b50c82a48c7e4dd38cc69"`
 
 
