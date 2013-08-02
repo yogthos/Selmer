@@ -240,6 +240,10 @@ tags can also contain content and intermediate tags:
 
 ### Default Tags
 
+[extends] (#extends)
+[include] (#include)
+[block] (#block)
+[block.super](#block.super)
 [if] (#if)
 [ifequal] (#ifequal)
 [for] (#for)
@@ -249,25 +253,25 @@ tags can also contain content and intermediate tags:
 [verbatim] (#verbatim)
 [with] (#with)
 
-**include**
+#### include
 
 replaces itself with the contents of the referenced template
 
 `{% include "path/to/comments.html" %}`
 
-**block**
+#### block
 
 Allows specifying a block of content that can be overwritten using the template inheritance discussed below.
 
 `{% block foo %}This text can be overridden later{% endblock %}`
 
-**block.super**
+#### block.super
 
 Can be used inside a block to insert the content from the parent block in its place
 
 `{% block foo %} {{block.super}} some content{% endblock %}`
 
-**extends**
+#### extends
 
 This tag is used to reference a parent template. The blocks in parents are recursively overridden by
 the blocks from child templates.
