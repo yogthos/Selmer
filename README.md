@@ -155,14 +155,21 @@ Nota bene, the slashes aren't actually in the input string, but they *are* going
 `(render "{{name|default:"I <3 ponies"}}" {})` => `"I <3 ponies"`
 
 #### default-if-empty
-`(render "{{name|default:"I <3 ponies"}}" {:name "bitemyapp"})` => `"bitemyapp"`
-`(render "{{name|default:"I <3 ponies"}}" {:name nil})` => `"I <3 ponies"`
-`(render "{{name|default:"I <3 ponies"}}" {:name []})` => `"I <3 ponies"`
-`(render "{{name|default:"I <3 ponies"}}" {})` => `"I <3 ponies"`
+`(render "{{name|default-if-empty:"I <3 ponies"}}" {:name "bitemyapp"})` => `"bitemyapp"`
+`(render "{{name|default-if-empty:"I <3 ponies"}}" {:name nil})` => `"I <3 ponies"`
+`(render "{{name|default-if-empty:"I <3 ponies"}}" {:name []})` => `"I <3 ponies"`
+`(render "{{name|default-if-empty:"I <3 ponies"}}" {})` => `"I <3 ponies"`
 
 #### double-format
+`(render "{{tis-a-number|double-format:2}}" {:tis-a-number 10.00001})` => `10.00`
+`(render "{{tis-a-number|double-format}}" {:tis-a-number 10.00001})` => `10.0`
+
 #### first
+`(render "{{seq-of-some-sort|first}}" {:seq-of-some-sort [:dog :cat :bird :bird :bird :is :the :word]})` => `:dog`
+
 #### get-digit
+`(render "{{tis-a-number|get-digit:1}}" {:tis-a-number 12.34567})` => `7`
+
 #### hash
 available hashes: `md5`, `sha`, `sha256`, `sha384`, `sha512
 `(render "{{domain|hash:\"md5\"}}" {:domain "example.org"})` => `"1bdf72e04d6b50c82a48c7e4dd38cc69"`
