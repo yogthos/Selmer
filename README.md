@@ -10,7 +10,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 Leiningen
 
 ```clojure
-[selmer "0.3.0"]
+[selmer "0.3.2"]
 ```
 
 ## Marginalia documentation
@@ -113,6 +113,7 @@ as follows:
 [block] (#block)
 [block.super](#block)
 [comment] (#comment)
+[cycle] (#cycle)
 [if] (#if)
 [ifequal] (#ifequal)
 [include] (#include)
@@ -353,6 +354,12 @@ Allows specifying a block of content that can be overwritten using the template 
 Can be used inside a block to insert the content from the parent block in its place
 
 `{% block foo %} {{block.super}} some content{% endblock %}`
+
+#### cycle
+
+Will cycle through the supplied argument.
+
+`(render "{% for i in items %}<li class={% cycle \"blue\" \"white\" %}>{{i}}</li>{% endfor %}" {:items (range 5)})` => `"<li class=\"blue\">0</li><li class=\"white\">1</li><li class=\"blue\">2</li><li class=\"white\">3</li><li class=\"blue\">4</li>"`
 
 #### extends
 

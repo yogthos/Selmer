@@ -129,12 +129,12 @@
 ;; FunctionNode call-sites or TextNode content. open-tag? fn returns
 ;; true or false based on character lookahead to see if it's {{ or {%
 
-(defn append-node [content tag buf rdr]
+(defn append-node [content tag ^StringBuilder buf rdr]
   (-> content
     (conj (TextNode. (.toString buf)))
     (conj (FunctionNode. (parse-tag tag rdr)))))
 
-(defn update-tags [tag tags content args buf]
+(defn update-tags [tag tags content args ^StringBuilder buf]
   (assoc tags tag
          {:args args
           :content (conj content (TextNode. (.toString buf)))}))
