@@ -259,6 +259,10 @@ replaces itself with the contents of the referenced template
 
 `{% include "path/to/comments.html" %}`
 
+optionally, you can supply default arguments any tags matching these will have the `default` filter applied using the value supplied:
+
+`{% include "templates/inheritance/child.html" with name="Jane Doe" greeting="Hello!" %}`
+
 #### block
 
 Allows specifying a block of content that can be overwritten using the template inheritance discussed below.
