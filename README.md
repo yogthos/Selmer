@@ -181,6 +181,7 @@ Nota bene, the slashes aren't actually in the input string, but they *are* going
 `(render "{{name|default:"I <3 ponies"}}" {:name "bitemyapp"})` => `"bitemyapp"`
 `(render "{{name|default:"I <3 ponies"}}" {:name nil})` => `"I <3 ponies"`
 `(render "{{name|default:"I <3 ponies"}}" {:name []})` => `"[]"`
+
 `(render "{{name|default:"I <3 ponies"}}" {})` => `"I <3 ponies"`
 
 #### default-if-empty
@@ -201,6 +202,7 @@ Nota bene, the slashes aren't actually in the input string, but they *are* going
 
 #### hash
 available hashes: `md5`, `sha`, `sha256`, `sha384`, `sha512`
+
 `(render "{{domain|hash:\"md5\"}}" {:domain "example.org"})` => `"1bdf72e04d6b50c82a48c7e4dd38cc69"`
 
 
