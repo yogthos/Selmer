@@ -129,6 +129,16 @@
 ;; FunctionNode call-sites or TextNode content. open-tag? fn returns
 ;; true or false based on character lookahead to see if it's {{ or {%
 
+(defn to-node [tag content buf rdr]
+  (-> content
+    (conj (TextNode. (.toString buf)))
+    (conj (FunctionNode. (parse-tag tag rdr)))))
+
+(defn update-tags [tag tags content args buf]
+  (assoc tags tag
+         {:args args
+          :content (conj content (TextNode. (.toString buf)))}))
+
 (defn tag-content [rdr start-tag & end-tags]
   (let [buf (StringBuilder.)]
     (loop [ch       (read-char rdr)
@@ -141,16 +151,12 @@
         tags
         (open-tag? ch rdr)
         (let [{:keys [tag-name args] :as tag} (read-tag-info rdr)]
-          (if-let [open-tag (and tag-name (some #{tag-name} end-tags))]
-              (let [tags     (assoc tags cur-tag
-                                    {:args args
-                                     :content (conj content (TextNode. (.toString buf)))})
-                    end-tags (next (drop-while #(not= tag-name %) end-tags))]                
+          (if-let [open-tag  (and tag-name (some #{tag-name} end-tags))]
+              (let [tags     (update-tags cur-tag tags content args buf)
+                    end-tags (next (drop-while #(not= tag-name %) end-tags))]
                 (.setLength buf 0)
                 (recur (if (empty? end-tags) nil (read-char rdr)) tags [] open-tag end-tags))
-              (let [content (-> content
-                              (conj (TextNode. (.toString buf)))
-                              (conj (FunctionNode. (parse-tag tag rdr))))]
+              (let [content (to-node tag content buf rdr)]
                 (.setLength buf 0)
                 (recur (read-char rdr) tags content cur-tag end-tags))))
         :else
