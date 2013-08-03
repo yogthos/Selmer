@@ -167,6 +167,7 @@ that accepts a value and returns its replacement:
 
 #### add
 `(render "{{add_me|add:2:3:4}}" {:add_me 2})` => `11`
+
 `(render "{{h|add:e:l:l:o}}" {:h "h"})` => `"hello"`
 
 #### addslashes
@@ -198,8 +199,11 @@ Can be used inside a block to insert the content from the parent block in its pl
 
 #### date
 Valid predefined date, time formats: `shortDate` `shortTime` `shortDateTime` `mediumDate` `mediumTime` `mediumDateTime` `longDate` `longTime` `longDateTime` `fullDate` `fullTime` `fullDateTime`
+
 `(render "{{creation-time|date:\"yyyy-MM-dd_HH:mm:ss\"}}" {:created-at (java.util.Date.)})` => `"2013-07-28_20:51:48"`
+
 `(render "{{today|date:shortDate}}" {:today (java.util.Date.)})` => `"8/3/13"`
+
 `(render "{{now|date:shortDateTime}}" {:now (java.util.Date.)})` => `"8/3/13 2:08 PM"`
 
 #### default
