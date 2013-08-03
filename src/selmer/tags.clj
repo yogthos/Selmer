@@ -63,14 +63,6 @@
     false   false
     true))
 
-(def if-operators
-  {"==" =
-   "!=" not=
-   "<" <
-   ">" >
-   "<=" <=
-   ">=" >=})
-
 (defn if-handler [[condition1 condition2] tag-content render rdr]
   " Handler of if-condition tags. Expects conditions, enclosed
   tag-content, render boolean. Returns anonymous fn that will expect
