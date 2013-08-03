@@ -202,13 +202,15 @@ map. The rest of the arguments are optional and are always strings."
      ;;; Return true when the count of the coll matches the argument
      :length-is
      (fn [coll n]
-       (throw-when-expecting-seqable coll)
+       (when-not (nil? coll)
+         (throw-when-expecting-seqable coll))
        (let [n (Long/valueOf ^String n)]
          (= n (count coll))))
 
      :count-is
      (fn [coll n]
-       (throw-when-expecting-seqable coll)
+       (when-not (nil? coll)
+         (throw-when-expecting-seqable coll))
        (let [n (Long/valueOf ^String n)]
          (= n (count coll))))
 
