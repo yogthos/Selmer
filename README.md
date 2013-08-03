@@ -19,9 +19,9 @@ Leiningen
 
 ## Usage
 
-[Jump tp Filters](#filters)
+### [Jump tp Filters](#filters)
 
-[Jump tp Tags](#tags)
+### [Jump tp Tags](#tags)
 
 ### [Jump tp Template Inheritance](#template-inheritance)
 
