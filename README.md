@@ -19,11 +19,11 @@ Leiningen
 
 ## Usage
 
-### [Jump tp Filters](#filters)
+### [Jump to Filters](#filters)
 
-### [Jump tp Tags](#tags)
+### [Jump to Tags](#tags)
 
-### [Jump tp Template Inheritance](#template-inheritance)
+### [Jump to Template Inheritance](#template-inheritance)
 
 
 ### Templates
@@ -53,15 +53,15 @@ To render a file we can call `render-file` instead:
 
 When rendering files Selmer will cache the compiled template. A recompile will be triggered if the last
 modified timestamp of the files changes. Alternatively you can turn caching on and off using `(selmer.parser/cache-on!)` and
- `(selmer.parser/cache-off!)` respectively. 
+ `(selmer.parser/cache-off!)` respectively.
 
 ## Variables and Tags
 
 Variables are used to inject dynamic content into the text of the template. The values for the variables
-are looked up in the context map as can be seen in the example above. When a value is missing then an 
+are looked up in the context map as can be seen in the example above. When a value is missing then an
 empty string is rendered in its place.
 
-By default variables are defined using the double curly braces: `{{myvar}}`. 
+By default variables are defined using the double curly braces: `{{myvar}}`.
 
 A variables can also be nested data structures, eg:
 
@@ -158,7 +158,7 @@ that accepts a value and returns its replacement:
 (add-filter! :empty? empty?)
 (render "{{files|empty?}}" {:files []})
 =>"true"
-``` 
+```
 
 ### Built-in Filters
 
@@ -316,10 +316,10 @@ such as `if`, `else`, `endif`.
 For example if we wanted to iterate over a collection of items, we could write the following:
 
 ```clojure
-(render 
-  "{% for user in users %}{{user.name}}{% endfor %}"     
+(render
+  "{% for user in users %}{{user.name}}{% endfor %}"
   {:users [{:name "John"} {:name "Jane"}]})
-=>"JohnJane"  
+=>"JohnJane"
 ```
 
 It's also possible to define custom tags using the `add-tag!` macro:
@@ -330,7 +330,7 @@ It's also possible to define custom tags using the `add-tag!` macro:
 (add-tag! :foo
   (fn [args context-map]
     (str "foo " (first args))))
-    
+
 (render "{% foo quux %} {% foo baz %}" {})
 =>"foo quux foo baz"
 ```
@@ -341,7 +341,7 @@ tags can also contain content and intermediate tags:
   (fn [args context-map content]
     (str content))
   :bar :baz)
-    
+
 (render "{% foo %} some text {% bar %} some more text {% baz %}" {})
 =>"{:foo {:args nil, :content \" some text \"}, :bar {:args nil, :content \" some more text \"}}"
 ```
@@ -419,7 +419,7 @@ Only render the body if the two args are equal (according to clojure.core/=).
 **for/endfor** *block*
 
 #### for
-Render the body one time for each element in the list. Each render will introduce the following variables into the context: 
+Render the body one time for each element in the list. Each render will introduce the following variables into the context:
 
 * `forloop.first`
 * `forloop.last`
@@ -436,7 +436,7 @@ you can also iterate over nested data structures, eg:
 `{% for item in items %} <tr><td>{{item.name}}</td><td>{{item.age}}</td></tr> {% endfor %}`
 
 #### now
-renders current time 
+renders current time
 
 `(render (str "{% now \"" date-format "\"%}") {})` => `"\"01 08 2013\""`
 
@@ -455,7 +455,7 @@ renders the first occurance of supplied keys that doesn't resolve to false:
 The script tag will generate an HTML script tag and prepend the value of the `servlet-context` key
 to the URI. When `servlet-context` key is not present then the original URI is set.
 
-`(render "{% style \"/css/screen.css\" %}" {:servlet-context "/myapp"})` => 
+`(render "{% style \"/css/screen.css\" %}" {:servlet-context "/myapp"})` =>
 ```
 "<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
 ```
@@ -464,7 +464,7 @@ to the URI. When `servlet-context` key is not present then the original URI is s
 The script tag will generate an HTML script tag and prepend the value of the `servlet-context` key
 to the URI. When `servlet-context` key is not present then the original URI is set.
 
-`(render "{% script \"/js/site.js\" %}" {:servlet-context "/myapp"})` => 
+`(render "{% script \"/js/site.js\" %}" {:servlet-context "/myapp"})` =>
 ```
 "<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
 ```
@@ -494,10 +494,10 @@ will be overwritten by blocks from the child with the same name. For example if 
 {% endblock %}
 
 {% block content %}
-{% endblock %}	
+{% endblock %}
 
 {% block footer %}
-{% endblock %}	
+{% endblock %}
 </body>
 </html>
 ```
@@ -525,7 +525,7 @@ will be overwritten by blocks from the child with the same name. For example if 
 
 {% block content %}
 Some content
-{% endblock %}	
+{% endblock %}
 ```
 
 If we called `(render-file "child-b.html" {})` then the compiled template would look as follows:
@@ -559,7 +559,7 @@ to look as follows:
 
 {% block content %}
 Some content
-{% endblock %}	
+{% endblock %}
 ```
 
 Then we'd have the following output:
@@ -593,7 +593,7 @@ of the tag:
 
 ```xml
 <html>
-{% include "content.html" %}	
+{% include "content.html" %}
 </html>
 ```
 
@@ -617,7 +617,7 @@ It's also possible to specify default values for the included templates:
 
 ```xml
 <html>
-{% include "content.html" content="some content"%}	
+{% include "content.html" content="some content"%}
 </html>
 ```
 
