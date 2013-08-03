@@ -89,8 +89,7 @@ applied filter."
         (re-seq #"(?:[^:\"]|\"[^\"]*\")+" s)
         args (fix-filter-args args)
         filter (get-filter filter-name)]
-    
-    (if filter 
+    (if filter
       (fn [x]
         (apply filter x args))
       (throw (Exception. (str "No filter defined with the name '" filter-name "'"))))))
@@ -101,18 +100,23 @@ context-map and will apply the filters one after the other to the value
 from the map. Finally it will escape the end result unless the last
 filter is \"safe\"."
   [s]
-  (let [[val & filters] (->> s
-                             (s/trim)
-                             ;; Ignore pipes and allow escaped doublequotes inside doublequotes
-                             (re-seq #"(?:[^|\"]|\"[^\"]*\")+"))
+  (let [[val & filter-strs] (->> s
+                                 (s/trim)
+                                 ;; Ignore pipes and allow escaped doublequotes inside doublequotes
+                                 (re-seq #"(?:[^|\"]|\"[^\"]*\")+"))
         accessor (split-filter-val val)
-        filters (->> filters
-                     (map filter-str->fn)
-                     (reverse))]
-    
+        filters (->> filter-strs
+                     (map filter-str->fn))]
+
     (fn [context-map]
       (let [x (get-in context-map accessor)]
-        #_(when-not x
-          (println "Warning:" val "returns nil"))
         ;; Escape by default unless the last filter is 'safe'
-        (escape-html ((apply comp filters) x))))))
+        (escape-html
+         (reduce
+          (fn [acc [filter-str filter]]
+            (try (filter acc)
+                 (catch Exception e
+                   (throw (Exception. (str "On filter body '" s "' and filter '" filter-str
+                                           "' this error occurred: " (.getMessage e)))))))
+          x
+          (map vector filter-strs filters)))))))
