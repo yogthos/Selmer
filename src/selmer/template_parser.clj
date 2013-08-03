@@ -45,10 +45,12 @@
   (let [template (get-tag-params #"extends" tag-str)]
     (.substring ^String template 1 (dec (.length ^String template)))))
 
-(defn write-tag? [buf existing-block blocks-to-close omit-close-tag?]
+(defn write-tag? [buf super-tag? existing-block blocks-to-close omit-close-tag?]
   (and buf
-       (not existing-block)
-       (> blocks-to-close (if omit-close-tag? 1 0))))
+       (or super-tag?
+           (and 
+             (not existing-block)
+             (> blocks-to-close (if omit-close-tag? 1 0))))))
 
 (defn consume-block [rdr & [^StringBuilder buf blocks omit-close-tag?]]
   (loop [blocks-to-close 1
@@ -61,7 +63,9 @@
               block-name     (if block? (get-tag-params #"block" tag-str))
               super-tag?     (re-matches #"\{\{\s*block.super\s*\}\}" tag-str) 
               existing-block (if block-name (get-in blocks [block-name :content]))]
-          (when (write-tag? buf existing-block blocks-to-close omit-close-tag?)
+          ;;check if we wish to write the closing tag for the block. If we're
+          ;;injecting block.super, then we want to omit it
+          (when (write-tag? buf super-tag? existing-block blocks-to-close omit-close-tag?)
             (.append buf tag-str))
           (recur
             (long 
@@ -87,14 +91,30 @@
           (recur blocks-to-close has-super? (read-char rdr))))
       (boolean has-super?))))
 
-(defn rewrite-super [block parent-content]
+(defn rewrite-super [block parent-content]  
   (clojure.string/replace block #"\{\{\s*block.super\s*\}\}" parent-content))
 
 (defn read-block [rdr block-tag blocks]
   (let [block-name     (get-tag-params #"block" block-tag)
         existing-block (get blocks block-name)]
-    (if existing-block
+    (cond
+      ;;we have a child block with a {{block.super}} tag, we'll need to
+      ;;grab the contents of the parent and inject them in the child
+      (:super existing-block)
+      (let [child-content  (:content existing-block)
+            parent-content (StringBuilder.)
+            has-super?     (consume-block rdr parent-content blocks true)]
+        (assoc blocks block-name
+               {:super has-super?
+                :content (rewrite-super child-content (.toString parent-content))}))
+      
+      ;;we've got a child block without a super tag, the parent will be replaced
+      existing-block
       (do (consume-block rdr) blocks)
+      
+      ;;this is the first occurance of the block and we simply add it to the
+      ;;map of blocks we've already seen
+      :else
       (let [buf        (doto (StringBuilder.) (.append block-tag))
             has-super? (consume-block rdr buf blocks)]
         (assoc blocks block-name
@@ -103,10 +123,10 @@
 
 (defn process-block [rdr buf block-tag blocks]
   (let [block-name (get-tag-params #"block" block-tag)]
-    (if-let [existing-content (get-in blocks [block-name :content])]
+    (if-let [child-content (get-in blocks [block-name :content])]
       (.append ^StringBuilder buf
         (rewrite-super
-          existing-content
+          child-content
           (->buf [buf] (consume-block rdr buf blocks true))))
       (do
         (.append ^StringBuilder buf block-tag)
