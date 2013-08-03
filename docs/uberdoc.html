@@ -3411,8 +3411,7 @@ post-parsing vectors of INode elements.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn render-template [template context-map]
   &quot; vector of ^selmer.node.INodes and a context map.&quot;
-  (let [buf (StringBuilder.)
-        context-map (assoc context-map :cache? @cache?)]
+  (let [buf (StringBuilder.)]
     (doseq [^selmer.node.INode element template]
         (if-let [value (.render-node element context-map)]
           (.append buf value)))
@@ -3590,7 +3589,7 @@ take care of its compilation.</p>
     &quot;false&quot; false
     false   false
     true))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn if-operators
+</td><td class="codes"><pre class="brush: clojure">(def if-operators
   {&quot;==&quot; =
    &quot;!=&quot; not=
    &quot;&lt;&quot; &lt;
