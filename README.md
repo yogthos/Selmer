@@ -568,7 +568,6 @@ Then we'd have the following output:
 <html>
 <body>
 {% block header %}
-I come from parent 
 
 <h1>child-a header</h1>
 
