@@ -3028,7 +3028,7 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>selmer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">selmer</h1><h2 class="project-version">0.3.2</h2><br /><p>Django templates for Clojure</p>
+</script><title>selmer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">selmer</h1><h2 class="project-version">0.3.3</h2><br /><p>Django templates for Clojure</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">criterium</td><td class="dotted"><hr /></td><td class="dep-version">0.4.1</td></tr><tr><td class="dep-name">joda-time</td><td class="dotted"><hr /></td><td class="dep-version">2.2</td></tr><tr><td class="dep-name">commons-codec</td><td class="dotted"><hr /></td><td class="dep-version">1.6</td></tr><tr><td class="dep-name">sonian/carica</td><td class="dotted"><hr /></td><td class="dep-version">1.0.3</td></tr><tr><td class="dep-name">cheshire</td><td class="dotted"><hr /></td><td class="dep-version">5.2.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#selmer.filter-parser">selmer.filter-parser</a></li><li><a href="#selmer.filters">selmer.filters</a></li><li><a href="#selmer.node">selmer.node</a></li><li><a href="#selmer.parser">selmer.parser</a></li><li><a href="#selmer.tags">selmer.tags</a></li><li><a href="#selmer.template-parser">selmer.template-parser</a></li><li><a href="#selmer.util">selmer.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.filter-parser" name="selmer.filter-parser"><h1 class="project-name">selmer.filter-parser</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Accessors are separated by dots like {{ foo.bar.0 }}
 which gets translated into (get-in context-map [:foo :bar 0]). So you
 can nest vectors and maps in your context-map.</p>
@@ -3728,10 +3728,12 @@ take care of its compilation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn get-parent [tag-str]
   (let [template (get-tag-params #&quot;extends&quot; tag-str)]
     (.substring ^String template 1 (dec (.length ^String template)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn write-tag? [buf existing-block blocks-to-close omit-close-tag?]
+</td><td class="codes"><pre class="brush: clojure">(defn write-tag? [buf super-tag? existing-block blocks-to-close omit-close-tag?]
   (and buf
-       (not existing-block)
-       (&gt; blocks-to-close (if omit-close-tag? 1 0))))</pre></td></tr><tr><td class="docs">
+       (or super-tag?
+           (and 
+             (not existing-block)
+             (&gt; blocks-to-close (if omit-close-tag? 1 0))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn consume-block [rdr &amp; [^StringBuilder buf blocks omit-close-tag?]]
   (loop [blocks-to-close 1
          has-super? false
@@ -3743,7 +3745,9 @@ take care of its compilation.</p>
               block-name     (if block? (get-tag-params #&quot;block&quot; tag-str))
               super-tag?     (re-matches #&quot;\{\{\s*block.super\s*\}\}&quot; tag-str) 
               existing-block (if block-name (get-in blocks [block-name :content]))]
-          (when (write-tag? buf existing-block blocks-to-close omit-close-tag?)
+          ;;check if we wish to write the closing tag for the block. If we're
+          ;;injecting block.super, then we want to omit it
+          (when (write-tag? buf super-tag? existing-block blocks-to-close omit-close-tag?)
             (.append buf tag-str))
           (recur
             (long 
@@ -3765,13 +3769,27 @@ take care of its compilation.</p>
           (when buf (.append buf ch))
           (recur blocks-to-close has-super? (read-char rdr))))
       (boolean has-super?))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn rewrite-super [block parent-content]
+</td><td class="codes"><pre class="brush: clojure">(defn rewrite-super [block parent-content]  
   (clojure.string/replace block #&quot;\{\{\s*block.super\s*\}\}&quot; parent-content))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn read-block [rdr block-tag blocks]
   (let [block-name     (get-tag-params #&quot;block&quot; block-tag)
         existing-block (get blocks block-name)]
-    (if existing-block
+    (cond
+      ;;we have a child block with a {{block.super}} tag, we'll need to
+      ;;grab the contents of the parent and inject them in the child
+      (:super existing-block)
+      (let [child-content  (:content existing-block)
+            parent-content (StringBuilder.)
+            has-super?     (consume-block rdr parent-content blocks true)]
+        (assoc blocks block-name
+               {:super has-super?
+                :content (rewrite-super child-content (.toString parent-content))}))
+      ;;we've got a child block without a super tag, the parent will be replaced
+      existing-block
       (do (consume-block rdr) blocks)
+      ;;this is the first occurance of the block and we simply add it to the
+      ;;map of blocks we've already seen
+      :else
       (let [buf        (doto (StringBuilder.) (.append block-tag))
             has-super? (consume-block rdr buf blocks)]
         (assoc blocks block-name
@@ -3779,10 +3797,10 @@ take care of its compilation.</p>
                 :content (.toString buf)})))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn process-block [rdr buf block-tag blocks]
   (let [block-name (get-tag-params #&quot;block&quot; block-tag)]
-    (if-let [existing-content (get-in blocks [block-name :content])]
+    (if-let [child-content (get-in blocks [block-name :content])]
       (.append ^StringBuilder buf
         (rewrite-super
-          existing-content
+          child-content
           (-&gt;buf [buf] (consume-block rdr buf blocks true))))
       (do
         (.append ^StringBuilder buf block-tag)
