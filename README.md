@@ -111,7 +111,6 @@ as follows:
 ### Built-in Tags
 
 [block] (#block)
-[block.super](#block)
 [comment] (#comment)
 [cycle] (#cycle)
 [if] (#if)
@@ -348,12 +347,6 @@ optionally, you can supply default arguments any tags matching these will have t
 Allows specifying a block of content that can be overwritten using the template inheritance discussed below.
 
 `{% block foo %}This text can be overridden later{% endblock %}`
-
-#### block.super
-
-Can be used inside a block to insert the content from the parent block in its place
-
-`{% block foo %} {{block.super}} some content{% endblock %}`
 
 #### cycle
 
