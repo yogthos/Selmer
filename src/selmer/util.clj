@@ -106,3 +106,7 @@
   (-> (Thread/currentThread)
       (.getContextClassLoader)
       (.getResource template)))
+
+(defn check-template-exists [file-path]
+  (when-not (.exists (java.io.File. file-path))
+    (throw (Exception. (str "temaplate: \"" file-path "\" not found")))))

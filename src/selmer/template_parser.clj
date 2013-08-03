@@ -141,6 +141,7 @@
       tag-str)))
 
 (defn read-template [template blocks defaults]
+  (check-template-exists (.getPath ^java.net.URL (resource-path template)))
   (let [buf (StringBuilder.)
         [parent blocks]
         (with-open [rdr (reader (resource-path template))]

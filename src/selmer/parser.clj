@@ -88,8 +88,7 @@
         {:keys [template last-modified]} (get @templates filename)
         last-modified-file (.lastModified (java.io.File. ^String file-path))]
       
-    (when-not (.exists (java.io.File. file-path))
-      (throw (Exception. (str "temaplate: \"" file-path "\" not found"))))
+    (check-template-exists file-path)
         
     (if (and @cache? last-modified (= last-modified last-modified-file))
       (render-template template context-map)
