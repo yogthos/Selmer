@@ -167,6 +167,7 @@ that accepts a value and returns its replacement:
 
 #### add
 `(render "{{add_me|add:2:3:4}}" {:add_me 2})` => `11`
+`(render "{{h|add:e:l:l:o}}" {:h "h"})` => `"hello"`
 
 #### addslashes
 Nota bene, the slashes aren't actually in the input string, but they *are* going to be in the input. Just trying to write valid Clojure code.
