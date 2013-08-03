@@ -3107,7 +3107,7 @@ applied filter.</p>
         (re-seq #&quot;(?:[^:\&quot;]|\&quot;[^\&quot;]*\&quot;)+&quot; s)
         args (fix-filter-args args)
         filter (get-filter filter-name)]
-    (if filter 
+    (if filter
       (fn [x]
         (apply filter x args))
       (throw (Exception. (str &quot;No filter defined with the name '&quot; filter-name &quot;'&quot;))))))</pre></td></tr><tr><td class="docs"><p>Turns a string like foo|filter1:x|filter2:y into a fn that expects a
@@ -3116,20 +3116,25 @@ from the map. Finally it will escape the end result unless the last
 filter is "safe".</p>
 </td><td class="codes"><pre class="brush: clojure">(defn compile-filter-body
   [s]
-  (let [[val &amp; filters] (-&gt;&gt; s
-                             (s/trim)
-                             ;; Ignore pipes and allow escaped doublequotes inside doublequotes
-                             (re-seq #&quot;(?:[^|\&quot;]|\&quot;[^\&quot;]*\&quot;)+&quot;))
+  (let [[val &amp; filter-strs] (-&gt;&gt; s
+                                 (s/trim)
+                                 ;; Ignore pipes and allow escaped doublequotes inside doublequotes
+                                 (re-seq #&quot;(?:[^|\&quot;]|\&quot;[^\&quot;]*\&quot;)+&quot;))
         accessor (split-filter-val val)
-        filters (-&gt;&gt; filters
-                     (map filter-str-&gt;fn)
-                     (reverse))]
+        filters (-&gt;&gt; filter-strs
+                     (map filter-str-&gt;fn))]
     (fn [context-map]
       (let [x (get-in context-map accessor)]
-        #_(when-not x
-          (println &quot;Warning:&quot; val &quot;returns nil&quot;))
         ;; Escape by default unless the last filter is 'safe'
-        (escape-html ((apply comp filters) x))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.filters" name="selmer.filters"><h1 class="project-name">selmer.filters</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>To create a filter use the function add-filter! which takes a name and a fn.
+        (escape-html
+         (reduce
+          (fn [acc [filter-str filter]]
+            (try (filter acc)
+                 (catch Exception e
+                   (throw (Exception. (str &quot;On filter body '&quot; s &quot;' and filter '&quot; filter-str
+                                           &quot;' this error occurred: &quot; (.getMessage e)))))))
+          x
+          (map vector filter-strs filters)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.filters" name="selmer.filters"><h1 class="project-name">selmer.filters</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>To create a filter use the function add-filter! which takes a name and a fn.
 The first argument to the fn is always the value obtained from the context
 map. The rest of the arguments are optional and are always strings.</p>
 </td><td class="codes"><pre class="brush: clojure">(ns selmer.filters
@@ -3152,28 +3157,43 @@ map. The rest of the arguments are optional and are always strings.</p>
    &quot;fullDate&quot;        (DateTimeFormat/fullDate)
    &quot;fullTime&quot;        (DateTimeFormat/fullTime)
    &quot;fullDateTime&quot;    (DateTimeFormat/fullDateTime)
-   })</pre></td></tr><tr><td class="docs"><p>Format a date, expects an instance of DateTime (Joda Time) or Date.
-The format can be a key from valid-date-formats or a manually defined format
-Look in
-http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
-for formatting help.
-You can also format time with this.</p>
-</td><td class="codes"><pre class="brush: clojure">(defn ^DateTime fix-date
+   })
+(defn ^DateTime fix-date
   [d]
   (cond (instance? DateTime d) d
         (instance? java.util.Date d) (DateTime. d)
         :else
         (try (DateTime. d)
              (catch Exception _
-               (throw (IllegalArgumentException. (str d &quot; is not a valid date format.&quot;)))))))</pre></td></tr><tr><td class="docs">
+               (throw (IllegalArgumentException. (str d &quot; is not a valid date format.&quot;)))))))</pre></td></tr><tr><td class="docs"><p>Throws an exception with the given msg when (seq x) will fail (excluding nil)</p>
+
+<p>Used in filters when we are expecting a collection but instead got nil or a number
+or something else just as useless.
+Some clojure functions silently do the wrong thing when given invalid arguments. This
+aims to prevent that.</p>
+</td><td class="codes"><pre class="brush: clojure">(defn throw-when-expecting-seqable
+  [x &amp; [msg]]
+  (let [is-seqable (and (not (nil? x))
+                        (or (seq? x)
+                            (instance? clojure.lang.Seqable x)
+                            (string? x)
+                            (instance? Iterable x)
+                            (-&gt; ^Object x .getClass .isArray)
+                            (instance? java.util.Map x)))
+        ^String msg (if msg msg (str &quot;Expected '&quot; (if (nil? x) &quot;nil&quot; (str x)) &quot;' to be a collection of some sort.&quot;))]
+    (when-not is-seqable
+      (throw (Exception. msg)))))</pre></td></tr><tr><td class="docs"><p>Similar to the above only with numbers</p>
+</td><td class="codes"><pre class="brush: clojure">(defn throw-when-expecting-number
+  [x &amp; [msg]]
+  (let [^String msg (if msg msg (str &quot;Expected '&quot; (if (nil? x) &quot;nil&quot; (str x)) &quot;' to be a number.&quot;))]
+    (when-not (number? x)
+      (throw (Exception. msg)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defonce filters
-  (atom 
-    {:sort       sort
-     :length     count
-     :count      count
-     :first      first
-     :rand-nth   rand-nth
-     :capitalize s/capitalize
+  (atom
+    {;;; Useful for doing crazy stuff like {{ foo|length-is:3|join:&quot;/&quot; }}
+     ;;; Without blowing up I guess
+     :str
+     str
      ;;; Try to add the arguments as numbers
      ;;; If it fails concatenate them as strings
      :add
@@ -3187,15 +3207,17 @@ You can also format time with this.</p>
      :addslashes
      (fn [s]
        (-&gt;&gt; s
-         (mapcat (fn [c]
-                   (if (= \' c)
-                     [\\ c]
-                     [c])))
-         (apply str)))
+            (str)
+            (mapcat (fn [c]
+                      (if (or (= \&quot; c) (= \' c))
+                        [\\ c]
+                        [c])))
+            (apply str)))
      ;;; Center a string given a width
      :center
      (fn [s w]
-       (let [w (Long/valueOf (s/trim w))
+       (let [s (str s)
+             w (Long/valueOf (s/trim w))
              c (count s)
              l (Math/ceil (/ (- w c) 2))
              r (Math/floor (/ (- w c) 2))]
@@ -3203,6 +3225,12 @@ You can also format time with this.</p>
            (apply str (repeat l \space))
            s
            (apply str (repeat r \space)))))
+     ;;; Format a date, expects an instance of DateTime (Joda Time) or Date.
+     ;;; The format can be a key from valid-date-formats or a manually defined format
+     ;;; Look in
+     ;;; http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
+     ;;; for formatting help.
+     ;;; You can also format time with this.
      :date
      (fn [d fmt]
        (let [fixed-date (fix-date d)
@@ -3218,17 +3246,24 @@ You can also format time with this.</p>
      ;;; Default if coll is empty
      :default-if-empty
      (fn [coll default]
+       (throw-when-expecting-seqable coll)
        (if (empty? coll)
          default
          coll))
      ;;; With no decimal places it rounds to 1 decimal place
      :double-format
      (fn [n &amp; [decimal-places]]
+       (throw-when-expecting-number n)
        (let [n (double n)]
          (format (str &quot;%.&quot; (if decimal-places decimal-places &quot;1&quot;) &quot;f&quot;)
                  n)))
+     :first
+     (fn [coll]
+       (throw-when-expecting-seqable coll)
+       (first coll))
      ;;; Get the ith digit of a number
      ;;; 1 is the rightmost digit
+     ;;; Returns the number if the index is out of bounds
      :get-digit
      (fn [n i]
        (let [nv (vec (str n))
@@ -3241,52 +3276,87 @@ You can also format time with this.</p>
                (nv (dec i))
                d)))))
      :hash
-     (fn [^String s hash]
-       (case hash
-         &quot;md5&quot; (DigestUtils/md5Hex s)
-         &quot;sha&quot; (DigestUtils/shaHex s)
-         &quot;sha256&quot; (DigestUtils/sha256Hex s)
-         &quot;sha384&quot; (DigestUtils/sha384Hex s)
-         &quot;sha512&quot; (DigestUtils/sha512Hex s)
-         (throw (IllegalArgumentException. (str hash &quot; is not a valid hash algorithm.&quot;)))))
+     (fn [s hash]
+       (let [s (str s)]
+         (case hash
+           &quot;md5&quot; (DigestUtils/md5Hex s)
+           &quot;sha&quot; (DigestUtils/shaHex s)
+           &quot;sha256&quot; (DigestUtils/sha256Hex s)
+           &quot;sha384&quot; (DigestUtils/sha384Hex s)
+           &quot;sha512&quot; (DigestUtils/sha512Hex s)
+           (throw (IllegalArgumentException. (str &quot;'&quot; hash &quot;' is not a valid hash algorithm.&quot;))))))
      :join
-     (fn [coll sep] (s/join sep coll))
+     (fn [coll sep]
+       (throw-when-expecting-seqable coll)
+       (s/join sep coll))
      :json
-     (fn [s] (json/generate-string s))
+     (fn [x] (json/generate-string x))
      :last
      (fn [coll]
+       (throw-when-expecting-seqable coll)
        (if (vector? coll)
          (coll (dec (count coll)))
          (last coll)))
+     ;;; Exception to the rule: nil counts to 0
+     :length
+     (fn [coll]
+       (if (nil? coll)
+         0
+         (do
+           (throw-when-expecting-seqable coll)
+           (count coll))))
+     ;;; Exception to the rule: nil counts to 0
+     :count
+     (fn [coll]
+       (if (nil? coll)
+         0
+         (do
+           (throw-when-expecting-seqable coll)
+           (count coll))))
      ;;; Return true when the count of the coll matches the argument
      :length-is
      (fn [coll n]
+       (throw-when-expecting-seqable coll)
+       (let [n (Long/valueOf ^String n)]
+         (= n (count coll))))
+     :count-is
+     (fn [coll n]
+       (throw-when-expecting-seqable coll)
        (let [n (Long/valueOf ^String n)]
          (= n (count coll))))
      ;;; Single newlines become &lt;br /&gt;, double newlines mean new paragraph
      :linebreaks
      (fn [s]
-       (let [br (s/replace s #&quot;\n&quot; &quot;&lt;br /&gt;&quot;)
+       (let [s (str s)
+             br (s/replace s #&quot;\n&quot; &quot;&lt;br /&gt;&quot;)
              p (s/replace br #&quot;&lt;br /&gt;&lt;br /&gt;&quot; &quot;&lt;/p&gt;&lt;p&gt;&quot;)
              c (s/replace p #&quot;&lt;p&gt;$&quot; )]
          (if (re-seq #&quot;&lt;/p&gt;$&quot; c)
            (str &quot;&lt;p&gt;&quot; c)
            (str &quot;&lt;p&gt;&quot; c &quot;&lt;/p&gt;&quot;))))
      :linebreaks-br
-     (fn [s] (s/replace s #&quot;\n&quot; &quot;&lt;br /&gt;&quot;))
+     (fn [s]
+       (let [s (str s)]
+         (s/replace s #&quot;\n&quot; &quot;&lt;br /&gt;&quot;)))
      ;;; Display text with line numbers
      :linenumbers
      (fn [s]
-       (-&gt;&gt; (s/split s #&quot;\n&quot;)
-         (map-indexed
-           (fn [i line]
-             (str (inc i) &quot;. &quot; line)))
-         (s/join &quot;\n&quot;)))
+       (let [s (str s)]
+         (-&gt;&gt; (s/split s #&quot;\n&quot;)
+              (map-indexed
+               (fn [i line]
+                 (str (inc i) &quot;. &quot; line)))
+              (s/join &quot;\n&quot;))))
+     :rand-nth
+     (fn [coll]
+       (throw-when-expecting-seqable coll)
+       (rand-nth coll))
      ;;; Turns the to-remove string into a set of chars
-     ;;; That are removed from the context string     
+     ;;; That are removed from the context string
      :remove
      (fn [s to-remove]
-       (let [to-remove (set to-remove)]
+       (let [s (str s)
+             to-remove (set to-remove)]
          (apply str (remove to-remove s))))
      ;;; Use like the following:
      ;;; You have {{ num-cherries }} cherr{{ num-cherries|pluralize:y:ies }}
@@ -3294,7 +3364,9 @@ You can also format time with this.</p>
      ;;; You have {{ num-messages }} message{{ num-messages|pluralize }}
      :pluralize
      (fn [n-or-coll &amp; opts]
-       (let [n (if (number? n-or-coll) n-or-coll (count n-or-coll))
+       (let [n (if (number? n-or-coll) n-or-coll
+                   (do (throw-when-expecting-seqable n-or-coll)
+                       (count n-or-coll)))
              plural (case (count opts)
                       0 &quot;s&quot;
                       1 (first opts)
@@ -3309,28 +3381,46 @@ You can also format time with this.</p>
      :safe
      (fn [s] [:safe s])
      :lower
-     (fn [s] (when s (s/lower-case s)))
+     (fn [s] (s/lower-case (str s)))
      :upper
-     (fn [s] (when s (s/upper-case s)))
+     (fn [s] (s/upper-case (str s)))
+     :capitalize
+     (fn [s] (s/capitalize (str s)))
+     ;; Capitalize every word
+     :title
+     (fn [s] (-&gt;&gt; (s/split (str s) #&quot; &quot;)
+                 (map s/capitalize)
+                 (s/join &quot; &quot;)))
+     :sort
+     (fn [coll]
+       (throw-when-expecting-seqable coll)
+       (sort coll))
      ;;; Sort by a keyword
      :sort-by
-     (fn [coll k] (sort-by (keyword k) coll))
+     (fn [coll k]
+       (throw-when-expecting-seqable coll)
+       (sort-by (keyword k) coll))
      :sort-by-reversed
      (fn [coll k]
+       (throw-when-expecting-seqable coll)
        (sort-by (keyword k) (comp - compare) coll))
      :sort-reversed
-     (fn [coll] (sort (comp - compare) coll))
+     (fn [coll]
+       (throw-when-expecting-seqable coll)
+       (sort (comp - compare) coll))
      ;;; Remove tags
-     ;;; Use like {{ value|remove-tags:b:span }}     
+     ;;; Use like {{ value|remove-tags:b:span }}
      :remove-tags
      (fn [s &amp; tags]
        (if-not tags
          s
-         (let [re (-&gt;&gt; tags
-                    (map (fn [t]
-                           (str &quot;&lt;&quot; t &quot;&gt;|&lt;/&quot; t &quot;&gt;&quot;))))
-               re (re-pattern (str &quot;(?:&quot; (s/join &quot;|&quot; re) &quot;)&quot;))]
-           (s/replace s re ))))}))</pre></td></tr><tr><td class="docs">
+         (let [s (str s)
+               tags (str &quot;(&quot; (s/join &quot;|&quot; tags) &quot;)&quot;)
+               opening (re-pattern (str &quot;(?i)&lt;&quot; tags &quot;(/?&gt;|(\\s+[^&gt;]*&gt;))&quot;))
+               closing (re-pattern (str &quot;(?i)&lt;/&quot; tags &quot;&gt;&quot;))]
+           (-&gt; s
+               (s/replace opening )
+               (s/replace closing )))))}))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn get-filter
   [name]
   (get @filters (keyword name)))</pre></td></tr><tr><td class="docs">
@@ -3589,13 +3679,6 @@ take care of its compilation.</p>
     &quot;false&quot; false
     false   false
     true))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def if-operators
-  {&quot;==&quot; =
-   &quot;!=&quot; not=
-   &quot;&lt;&quot; &lt;
-   &quot;&gt;&quot; &gt;
-   &quot;&lt;=&quot; &lt;=
-   &quot;&gt;=&quot; &gt;=})</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn if-handler [[condition1 condition2] tag-content render rdr]
   &quot; Handler of if-condition tags. Expects conditions, enclosed
   tag-content, render boolean. Returns anonymous fn that will expect
