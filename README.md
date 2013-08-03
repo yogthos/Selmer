@@ -547,6 +547,43 @@ Some content
 </html>
 ```
 
+It's also possible to include content from the parent block using the `{{block.super}}` hint. If we change `child-b.html`
+to look as follows:
+
+```xml
+{% extends "child-a.html" %}
+{% block header %}
+{{block.super}}
+<h1>child-b header</h1>
+{% endblock %}
+
+{% block content %}
+Some content
+{% endblock %}	
+```
+
+Then we'd have the following output:
+
+```xml
+<html>
+<body>
+{% block header %}
+
+<h1>child-a header</h1>
+
+<h1>child-b header</h1>
+{% endblock %}
+{% block content %}
+Some content
+{% endblock %}
+
+{% block footer %}
+<p>footer</p>
+{% endblock %}
+</body>
+</html>
+```
+
 ### Including Templates
 
 Templates can also `include` other templates. In this case the contents of the child are simply spliced in place
