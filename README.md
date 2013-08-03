@@ -468,6 +468,4 @@ prevents any tags inside from being parsed:
 #### with
 injects the specified keys into the context map:
 
-`(render 
-  "{% with total=business.employees|count %}{{ total }}{% endwith %}"
-   {:business {:employees (range 5)}})` => `"5 employees"
+`(render "{% with total=business.employees|count %}{{ total }}{% endwith %}" {:business {:employees (range 5)}})` => `"5 employees"`
