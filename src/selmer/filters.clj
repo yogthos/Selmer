@@ -8,8 +8,6 @@ map. The rest of the arguments are optional and are always strings."
            [org.joda.time.format DateTimeFormat DateTimeFormatter]
            [org.apache.commons.codec.digest DigestUtils]))
 
-;;; TODO - maybe dont let exceptions happen in filters
-
 (def valid-date-formats
   {"shortDate"       (DateTimeFormat/shortDate)
    "shortTime"       (DateTimeFormat/shortTime)
