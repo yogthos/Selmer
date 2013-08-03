@@ -19,11 +19,11 @@ Leiningen
 
 ## Usage
 
-### [Filters](#filters)
+[Jump tp Filters](#filters)
 
-### [Tags](#tags)
+[Jump tp Tags](#tags)
 
-### [Template Inheritance](#template-inheritance)
+### [Jump tp Template Inheritance](#template-inheritance)
 
 
 ### Templates
