@@ -89,6 +89,7 @@ as follows:
 [capitalize] (#capitalize)
 [center] (#center)
 [count] (#count)
+[count-is] (#count-is)
 [date] (#date)
 [default] (#default)
 [default-if-empty] (#default-if-empty)
@@ -114,6 +115,8 @@ as follows:
 [sort-by] (#sort-by)
 [sort-by-reversed] (#sort-by-reversed)
 [sort-reversed] (#sort-reversed)
+[str] (#str)
+[title] (#title)
 [upper] (#upper)
 
 ### Built-in Tags
@@ -188,9 +191,15 @@ Can be used inside a block to insert the content from the parent block in its pl
 
 `(render "{{items|count}}" {:items [1 2 3 4]})` => `"4"`
 
+#### count-is
+`(render "{{x|count-is:3}}" {:x [1 2 3]})` => `"true"`
+`(render "{{x|count-is:0}}" {})` => `"true"`
 
 #### date
+Valid predefined date, time formats: `shortDate` `shortTime` `shortDateTime` `mediumDate` `mediumTime` `mediumDateTime` `longDate` `longTime` `longDateTime` `fullDate` `fullTime` `fullDateTime`
 `(render "{{creation-time|date:\"yyyy-MM-dd_HH:mm:ss\"}}" {:created-at (java.util.Date.)})` => `"2013-07-28_20:51:48"`
+`(render "{{today|date:shortDate}}" {:today (java.util.Date.)})` => `"8/3/13"`
+`(render "{{now|date:shortDateTime}}" {:now (java.util.Date.)})` => `"8/3/13 2:08 PM"`
 
 #### default
 `(render "{{name|default:"I <3 ponies"}}" {:name "bitemyapp"})` => `"bitemyapp"`
@@ -273,6 +282,7 @@ Returns the correct (English) pluralization based on the variable. This works wi
 
 `(render "{{people|count}} lad{{people|pluralize:\"y\":\"ies\"}}" {:people [1 2]})` => `"2 ladies"`
 
+`(render "{{people}} lad{{people|pluralize:\"y\":\"ies\"}}" {:people 2})` => `"2 ladies"`
 
 #### rand-nth
 returns rand-nths value from a collection:
@@ -303,6 +313,11 @@ same as sort, but in reverse order
 
 #### sort-by-reversed
 same as sort-by, but in reverse order
+
+#### str
+Like the clojure function `str`. So you can do crazy stuff like:
+`(render "{{people|length-is:2|str|join:\"-\"}} lad{{people|pluralize:\"y\":\"ies\"}}" {:people [1 2]})` => `"t-r-u-e ladies"`
+Without raising an exception.
 
 #### upper
 `(render "{{shout|upper}}" {:shout "hello"})` => `"HELLO"`
