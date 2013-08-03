@@ -469,3 +469,123 @@ prevents any tags inside from being parsed:
 injects the specified keys into the context map:
 
 `(render "{% with total=business.employees|count %}{{ total }}{% endwith %}" {:business {:employees (range 5)}})` => `"5 employees"`
+
+## Template Inheritance
+
+### Extending Templates
+
+Templates can inherit from other templates using the `extends` tag. When extending a template, any blocks in the parent
+will be overwritten by blocks from the child with the same name. For example if we had the following scenario:
+
+`base.html`
+
+```xml
+<html>
+<body>
+{% block header %}
+{% endblock %}
+
+{% block content %}
+{% endblock %}	
+
+{% block footer %}
+{% endblock %}	
+</body>
+</html>
+```
+
+`child-a.html`
+
+```xml
+{% extends "base.html" %}
+{% block header %}
+<h1>child-a header</h1>
+{% endblock %}
+
+{% block footer %}
+<p>footer</p>
+{% endblock %}
+```
+
+`child-b.html`
+
+```xml
+{% extends "child-a.html" %}
+{% block header %}
+<h1>child-b header</h1>
+{% endblock %}
+
+{% block content %}
+Some content
+{% endblock %}	
+```
+
+If we called `(render-file "child-b.html" {})` then the compiled template would look as follows:
+
+```xml
+<html>
+<body>
+{% block header %}
+<h1>child-b header</h1>
+{% endblock %}
+{% block content %}
+Some content
+{% endblock %}
+
+{% block footer %}
+<p>footer</p>
+{% endblock %}
+</body>
+</html>
+```
+
+### Including Templates
+
+Templates can also `include` other templates. In this case the contents of the child are simply spliced in place
+of the tag:
+
+`base.html`
+
+```xml
+<html>
+{% include "content.html" %}	
+</html>
+```
+
+`content.html`
+
+```xml
+<body>content</body>
+```
+
+results in:
+
+```xml
+<html>
+<body>content</body>
+</html>
+```
+
+It's also possible to specify default values for the included templates:
+
+`base.html`
+
+```xml
+<html>
+{% include "content.html" content="some content"%}	
+</html>
+```
+
+`content.html`
+
+```xml
+<body>{{content}}</body>
+```
+
+results in:
+
+```xml
+<html>
+<body>{{content|default:"some content"}}</body>
+</html>
+```
