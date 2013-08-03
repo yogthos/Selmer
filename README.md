@@ -324,6 +324,10 @@ Like the clojure function `str`. So you can do crazy stuff like:
 `(render "{{people|length-is:2|str|join:\"-\"}} lad{{people|pluralize:\"y\":\"ies\"}}" {:people [1 2]})` => `"t-r-u-e ladies"`
 Without raising an exception.
 
+#### title
+Capitalize the words of a string
+`(render "{{s|title}}" {:s "my fancy title"})` => `"My Fancy Title"`
+
 #### upper
 `(render "{{shout|upper}}" {:shout "hello"})` => `"HELLO"`
 
