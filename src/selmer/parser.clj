@@ -35,6 +35,9 @@
 (defn cache-off! []
   (reset! cache? false))
 
+(defn set-resource-path![path]
+  (reset! custom-resource-path path))
+
 ;; expr-tags are {% if ... %}, {% ifequal ... %},
 ;; {% for ... %}, and {% block blockname %}
 
@@ -86,7 +89,9 @@
   last-modified on files. Uses classpath for filename path "
   (let [file-path (.getPath ^java.net.URL (resource-path filename))
         {:keys [template last-modified]} (get @templates filename)
-        last-modified-file (.lastModified (java.io.File. ^String file-path))]
+        last-modified-file (if (in-jar? file-path)
+                             -1 ;;can't check last modified inside a jar
+                             (.lastModified (java.io.File. ^String file-path)))]
       
     (check-template-exists file-path)
         

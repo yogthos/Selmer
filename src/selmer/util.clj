@@ -2,6 +2,9 @@
   (:require [clojure.java.io :as io])
   (:import java.io.File java.io.StringReader))
 
+(def custom-resource-path (atom nil))
+
+
 (defn read-char [^java.io.Reader rdr]
   (let [ch (.read rdr)]
     (if-not (== -1 ch) (char ch))))
@@ -102,11 +105,16 @@
   (if-let [path (io/resource (or path "."))]
     (.getPath path)))
 
-(defn resource-path [template]
-  (-> (Thread/currentThread)
-      (.getContextClassLoader)
-      (.getResource template)))
+(defn in-jar? [file-path]
+  (.contains file-path "jar!/"))
 
-(defn check-template-exists [file-path]
-  (when-not (.exists (java.io.File. file-path))
+(defn resource-path [template]
+  (or @custom-resource-path
+      (-> (Thread/currentThread)
+        (.getContextClassLoader)
+        (.getResource template))))
+
+(defn check-template-exists [^String file-path]
+  (when-not (or (in-jar? file-path)
+                (.exists (java.io.File. file-path)))
     (throw (Exception. (str "temaplate: \"" file-path "\" not found")))))
