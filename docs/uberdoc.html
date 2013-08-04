@@ -3028,7 +3028,7 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>selmer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">selmer</h1><h2 class="project-version">0.3.3</h2><br /><p>Django templates for Clojure</p>
+</script><title>selmer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">selmer</h1><h2 class="project-version">0.3.4</h2><br /><p>Django templates for Clojure</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">criterium</td><td class="dotted"><hr /></td><td class="dep-version">0.4.1</td></tr><tr><td class="dep-name">joda-time</td><td class="dotted"><hr /></td><td class="dep-version">2.2</td></tr><tr><td class="dep-name">commons-codec</td><td class="dotted"><hr /></td><td class="dep-version">1.6</td></tr><tr><td class="dep-name">sonian/carica</td><td class="dotted"><hr /></td><td class="dep-version">1.0.3</td></tr><tr><td class="dep-name">cheshire</td><td class="dotted"><hr /></td><td class="dep-version">5.2.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#selmer.filter-parser">selmer.filter-parser</a></li><li><a href="#selmer.filters">selmer.filters</a></li><li><a href="#selmer.node">selmer.node</a></li><li><a href="#selmer.parser">selmer.parser</a></li><li><a href="#selmer.tags">selmer.tags</a></li><li><a href="#selmer.template-parser">selmer.template-parser</a></li><li><a href="#selmer.util">selmer.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.filter-parser" name="selmer.filter-parser"><h1 class="project-name">selmer.filter-parser</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Accessors are separated by dots like {{ foo.bar.0 }}
 which gets translated into (get-in context-map [:foo :bar 0]). So you
 can nest vectors and maps in your context-map.</p>
@@ -3142,8 +3142,7 @@ map. The rest of the arguments are optional and are always strings.</p>
             [cheshire.core :as json :only [generate-string]])
   (:import [org.joda.time DateTime]
            [org.joda.time.format DateTimeFormat DateTimeFormatter]
-           [org.apache.commons.codec.digest DigestUtils]))</pre></td></tr><tr><td class="docs"><p>TODO - maybe dont let exceptions happen in filters</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
+           [org.apache.commons.codec.digest DigestUtils]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def valid-date-formats
   {&quot;shortDate&quot;       (DateTimeFormat/shortDate)
    &quot;shortTime&quot;       (DateTimeFormat/shortTime)
@@ -3316,12 +3315,14 @@ aims to prevent that.</p>
      ;;; Return true when the count of the coll matches the argument
      :length-is
      (fn [coll n]
-       (throw-when-expecting-seqable coll)
+       (when-not (nil? coll)
+         (throw-when-expecting-seqable coll))
        (let [n (Long/valueOf ^String n)]
          (= n (count coll))))
      :count-is
      (fn [coll n]
-       (throw-when-expecting-seqable coll)
+       (when-not (nil? coll)
+         (throw-when-expecting-seqable coll))
        (let [n (Long/valueOf ^String n)]
          (= n (count coll))))
      ;;; Single newlines become &lt;br /&gt;, double newlines mean new paragraph
@@ -3476,7 +3477,9 @@ template. Works fine for active local development and production.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn cache-on! []
   (reset! cache? true))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn cache-off! []
-  (reset! cache? false))</pre></td></tr><tr><td class="docs"><p>expr-tags are {% if ... %}, {% ifequal ... %},
+  (reset! cache? false))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn set-resource-path![path]
+  (reset! custom-resource-path path))</pre></td></tr><tr><td class="docs"><p>expr-tags are {% if ... %}, {% ifequal ... %},
 {% for ... %}, and {% block blockname %}</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defonce expr-tags
@@ -3520,9 +3523,10 @@ auto-memoization of compiler output.</p>
   last-modified on files. Uses classpath for filename path &quot;
   (let [file-path (.getPath ^java.net.URL (resource-path filename))
         {:keys [template last-modified]} (get @templates filename)
-        last-modified-file (.lastModified (java.io.File. ^String file-path))]
-    (when-not (.exists (java.io.File. file-path))
-      (throw (Exception. (str &quot;temaplate: \ file-path &quot;\&quot; not found&quot;))))
+        last-modified-file (if (in-jar? file-path)
+                             -1 ;;can't check last modified inside a jar
+                             (.lastModified (java.io.File. ^String file-path)))]
+    (check-template-exists file-path)
     (if (and @cache? last-modified (= last-modified last-modified-file))
       (render-template template context-map)
       (let [template (parse-file filename opts)]
@@ -3896,6 +3900,7 @@ take care of its compilation.</p>
       (str &quot;{{&quot; tag-name &quot;|default:\ value &quot;\&quot;}}&quot;)
       tag-str)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn read-template [template blocks defaults]
+  (check-template-exists (.getPath ^java.net.URL (resource-path template)))
   (let [buf (StringBuilder.)
         [parent blocks]
         (with-open [rdr (reader (resource-path template))]
@@ -3941,6 +3946,7 @@ take care of its compilation.</p>
 </td><td class="codes"><pre class="brush: clojure">(ns selmer.util
   (:require [clojure.java.io :as io])
   (:import java.io.File java.io.StringReader))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def custom-resource-path (atom nil))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn read-char [^java.io.Reader rdr]
   (let [ch (.read rdr)]
     (if-not (== -1 ch) (char ch))))</pre></td></tr><tr><td class="docs"><p>Works best for small collections seemingly.</p>
@@ -4025,8 +4031,15 @@ take care of its compilation.</p>
   [&amp; [path]]
   (if-let [path (io/resource (or path &quot;.&quot;))]
     (.getPath path)))
-(defn resource-path [template]
-  (-&gt; (Thread/currentThread)
-      (.getContextClassLoader)
-      (.getResource template)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+(defn in-jar? [file-path]
+  (.contains file-path &quot;jar!/&quot;))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn resource-path [template]
+  (or @custom-resource-path
+      (-&gt; (Thread/currentThread)
+        (.getContextClassLoader)
+        (.getResource template))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn check-template-exists [^String file-path]
+  (when-not (or (in-jar? file-path)
+                (.exists (java.io.File. file-path)))
+    (throw (Exception. (str &quot;temaplate: \ file-path &quot;\&quot; not found&quot;)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
        SyntaxHighlighter.all()</script></body></html>
