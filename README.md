@@ -7,7 +7,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 
 ## Installation
 
-Leiningen
+#### Leiningen
 
 ```clojure
 [selmer "0.3.4"]
