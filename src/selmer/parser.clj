@@ -109,7 +109,7 @@
 (defn expr-tag [{:keys [tag-name args] :as tag} rdr]
   (if-let [handler (tag-name @expr-tags)]
     (handler args tag-content render-template rdr)
-    (throw (Exception. (str "unrecognized tag: " tag-name)))))
+    (throw (Exception. (str "unrecognized tag: " tag-name " - did you forget to close a tag?")))))
 
 ;; Same as a vanilla data tag with a value, but composes
 ;; the filter fns. Like, {{ data-var | upper | safe }}
