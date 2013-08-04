@@ -109,12 +109,13 @@
   (.contains file-path "jar!/"))
 
 (defn resource-path [template]
-  (or @custom-resource-path
-      (-> (Thread/currentThread)
-        (.getContextClassLoader)
-        (.getResource template))))
+  (if-let [path @custom-resource-path]
+    (java.net.URL. (str "file:///" path template)) 
+    (-> (Thread/currentThread)
+      (.getContextClassLoader)
+      (.getResource template))))
 
 (defn check-template-exists [^String file-path]
   (when-not (or (in-jar? file-path)
                 (.exists (java.io.File. file-path)))
-    (throw (Exception. (str "temaplate: \"" file-path "\" not found")))))
+    (throw (Exception. (str "template: \"" file-path "\" not found")))))
