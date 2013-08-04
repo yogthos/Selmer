@@ -117,5 +117,8 @@
 
 (defn check-template-exists [^String file-path]
   (when-not (or (in-jar? file-path)
-                (.exists (java.io.File. file-path)))
+                (-> file-path
+                    (java.net.URLDecoder/decode "utf-8")
+                    (java.io.File. )
+                    (.exists)))
     (throw (Exception. (str "template: \"" file-path "\" not found")))))
