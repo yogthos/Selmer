@@ -11,7 +11,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 #### Leiningen
 
 ```clojure
-[selmer "0.3.4"]
+[selmer "0.3.5"]
 ```
 
 ## Marginalia documentation
@@ -55,6 +55,16 @@ To render a file we can call `render-file` instead:
 When rendering files Selmer will cache the compiled template. A recompile will be triggered if the last
 modified timestamp of the files changes. Alternatively you can turn caching on and off using `(selmer.parser/cache-on!)` and
  `(selmer.parser/cache-off!)` respectively.
+ 
+By default the templates are located relative to the `ClassLoader` URL. If you'd like to set a custom location for the 
+templates, you can use `selmer.parser/set-resource-path!` to do that:
+
+```clojure
+(selmer.parser/set-resource-path! "/var/html/templates/")
+```
+
+The application will then look for templates at this location. This can be useful if you're deploying the application
+as a jar and would like to be able to modify the HTML without having to redeploy it.
 
 ## Variables and Tags
 
