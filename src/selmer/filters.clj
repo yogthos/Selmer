@@ -22,6 +22,7 @@ map. The rest of the arguments are optional and are always strings."
    "fullTime"        (DateTimeFormat/fullTime)
    "fullDateTime"    (DateTimeFormat/fullDateTime)
    })
+
 (defn ^DateTime fix-date
   [d]
   (cond (instance? DateTime d) d

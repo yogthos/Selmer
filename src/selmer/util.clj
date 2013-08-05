@@ -99,14 +99,15 @@
           (.append buf ch) 
           (recur items (read-char rdr) open?))))))
 
-#_(defn resource-path
-  "returns the path to the public folder of the application"
-  [& [path]]
-  (if-let [path (io/resource (or path "."))]
-    (.getPath path)))
+(def in-jar? 
+  (memoize
+    (fn [^String file-path]
+      (.contains file-path "jar!/"))))
 
-(defn in-jar? [file-path]
-  (.contains file-path "jar!/"))
+(def decode-path
+  (memoize
+    (fn [file-path]      
+      (java.net.URLDecoder/decode file-path "utf-8"))))
 
 (defn resource-path [template]
   (if-let [path @custom-resource-path]
@@ -117,8 +118,5 @@
 
 (defn check-template-exists [^String file-path]
   (when-not (or (in-jar? file-path)
-                (-> file-path
-                    (java.net.URLDecoder/decode "utf-8")
-                    (java.io.File. )
-                    (.exists)))
+                (.exists (java.io.File. ^String (decode-path file-path))))
     (throw (Exception. (str "template: \"" file-path "\" not found")))))
