@@ -196,8 +196,8 @@
 ;; Primary compile-time parse routine. Work we don't want happening after
 ;; first template render. Vector output from parse* gets memoized by render-file.
 
-(defn parse [file & [{:keys [tag-open tag-close filter-open
-             filter-close tag-second custom-tags custom-filters]}]]
+(defn parse [file &
+             [{:keys [tag-open tag-close filter-open filter-close tag-second custom-tags custom-filters]}]]
   (binding [*tag-open*     (or tag-open *tag-open*)
             *tag-close*    (or tag-close *tag-close*)
             *filter-open*  (or filter-open *filter-open*)
