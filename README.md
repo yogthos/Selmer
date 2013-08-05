@@ -11,7 +11,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 #### Leiningen
 
 ```clojure
-[selmer "0.3.5"]
+[selmer "0.3.6"]
 ```
 
 ## Marginalia documentation
@@ -65,6 +65,28 @@ templates, you can use `selmer.parser/set-resource-path!` to do that:
 
 The application will then look for templates at this location. This can be useful if you're deploying the application
 as a jar and would like to be able to modify the HTML without having to redeploy it.
+
+By default, Selmer uses `{% %}` to indicate the start and the end of an expression, and `{{ }}` tags for variables.
+This might conflict with clientside frameworks such as AngularJS. In this case you can specify custom tags by passing
+a map containing any of the following keys to the parser:
+
+```clojure
+:tag-open
+:tag-close
+:filter-open
+:filter-close
+:tag-second
+:custom-tags
+:custom-filters
+```
+
+```clojure
+(render "[% for ele in foo %]{{[{ele}]}}[%endfor%]"
+                 {:foo [1 2 3]}
+                 {:tag-open \[
+                  :tag-close \]})                  
+=>"{{1}}{{2}}{{3}}"                  
+```
 
 ## Variables and Tags
 
