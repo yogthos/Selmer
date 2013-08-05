@@ -66,7 +66,7 @@ templates, you can use `selmer.parser/set-resource-path!` to do that:
 The application will then look for templates at this location. This can be useful if you're deploying the application
 as a jar and would like to be able to modify the HTML without having to redeploy it.
 
-By default, Selmer uses `{% %}` to indicate the start and the end of an expression, and `{{ }}` tags for variables.
+By default, Selmer uses `{%` and `%}` to indicate the start and the end of an expression, while using `{{` and `}}` for for variables.
 This might conflict with clientside frameworks such as AngularJS. In this case you can specify custom tags by passing
 a map containing any of the following keys to the parser:
 
