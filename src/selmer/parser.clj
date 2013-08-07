@@ -35,7 +35,7 @@
 (defn cache-off! []
   (reset! cache? false))
 
-(defn set-resource-path! [path]
+(defn set-resource-path! [^String path]
   (let [path (if (or (nil? path)
                      (.endsWith path "/"))
                path
