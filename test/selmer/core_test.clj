@@ -429,3 +429,11 @@
          (render "{{f|safe}}" {:f "<foo>"})))
   (is (= "<FOO>"
          (render "{{f|upper|safe}}" {:f "<foo>"}))))
+
+(deftest custom-resource-path-setting
+  (is nil? @custom-resource-path)
+  (is (= "/some/path/" (set-resource-path! "/some/path")))
+  (is (= "/any/other/path/" (set-resource-path! "/any/other/path/")))
+  (set-resource-path! nil)
+  (is nil? @custom-resource-path)
+  )

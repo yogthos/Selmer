@@ -35,8 +35,12 @@
 (defn cache-off! []
   (reset! cache? false))
 
-(defn set-resource-path![path]
-  (reset! custom-resource-path path))
+(defn set-resource-path! [path]
+  (let [path (if (or (nil? path)
+                     (.endsWith path "/"))
+               path
+               (str path "/"))]
+    (reset! custom-resource-path path)))
 
 ;; expr-tags are {% if ... %}, {% ifequal ... %},
 ;; {% for ... %}, and {% block blockname %}
