@@ -18,7 +18,7 @@
 
 ;; Ahead decl because some fns call into each other.
 
-(declare parse parse-file expr-tag tag-content)
+(declare parse parse-file tag-content)
 
 ;; Memoization atom for templates. If you pass a filepath instead
 ;; of a string, we'll use the last-modified timestamp to cache the
