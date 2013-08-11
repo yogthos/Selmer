@@ -154,6 +154,8 @@
            cur-tag  start-tag
            end-tags end-tags]
       (cond
+        (and (nil? ch) (not-empty end-tags))
+        (throw (Exception. (str "No closing tag found for " start-tag)))
         (nil? ch)
         tags
         (open-tag? ch rdr)
