@@ -45,13 +45,13 @@
     (cond 
       (and condition first-block)
       (:content first-block)
-      
+
       (and (not condition) first-block)
       (:content second-block)
-      
+
       condition
       (:content second-block)
-      
+
       :else [(TextNode. "")])
     context-map))
 

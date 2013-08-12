@@ -76,13 +76,13 @@
                   (consume-block
                     (StringReader. existing-block) buf (dissoc blocks block-name))
                   blocks-to-close)
-                
+
                 block?
                 (inc blocks-to-close)
 
                 (re-matches #"\{\%\s*endblock.*" tag-str)
                 (dec blocks-to-close)
-                
+
                 :else blocks-to-close))
             (or has-super? super-tag?)
             (read-char rdr)))
@@ -107,11 +107,11 @@
         (assoc blocks block-name
                {:super has-super?
                 :content (rewrite-super child-content (.toString parent-content))}))
-      
+
       ;;we've got a child block without a super tag, the parent will be replaced
       existing-block
       (do (consume-block rdr) blocks)
-      
+
       ;;this is the first occurance of the block and we simply add it to the
       ;;map of blocks we've already seen
       :else
@@ -150,7 +150,7 @@
                  parent nil]
             (cond
               (nil? ch) [parent blocks]
-              
+
               (open-tag? ch rdr)
               (let [tag-str (read-tag-content rdr)]
                 (cond
@@ -158,31 +158,31 @@
                        (re-matches #"\{\{\s*.*\s*\}\}" tag-str))
                   (do (.append buf (set-default-value tag-str defaults))
                       (recur blocks (read-char rdr) parent))
-                  
+
                   ;;if the template extends another it's not the root
                   ;;this template is allowed to only contain blocks
                   (re-matches #"\{\%\s*extends.*" tag-str)
                   (recur blocks (read-char rdr) (get-parent tag-str))
-                                    
+
                   ;;if we have a parent then we simply want to add the
                   ;;block to the block map if it hasn't been added already
                   (and parent (re-matches #"\{\%\s*block.*" tag-str))
                   (recur (read-block rdr tag-str blocks) (read-char rdr) parent)
-                  
+
                   ;;if the template has blocks, but no parent it's the root
                   ;;we either replace the block with an existing one from a child
                   ;;template or read the block from this template
                   (re-matches #"\{\%\s*block.*" tag-str)
                   (do (process-block rdr buf tag-str blocks)
                     (recur blocks (read-char rdr) parent))
-                  
+
                   ;;if we are in the root template we'll accumulate the content
                   ;;into a buffer, this will be the resulting template string
                   (nil? parent)
                   (do
                     (.append buf tag-str)
                     (recur blocks (read-char rdr) parent))))
-              
+
               :else
               (do
                 (if (nil? parent) (.append buf ch))

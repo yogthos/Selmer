@@ -33,7 +33,7 @@
                          (= *tag-close* ch2)))
         (.append buf ch1)
         (recur ch2 (read-char rdr))))
-    
+
     (let [content (->> (.toString buf) 
                        (re-seq #"(?:[^\s\"]|\"[^\"]*\")+")
                        (remove empty?)
@@ -80,20 +80,20 @@
            open? false]
       (cond
         (nil? ch) items
-        
+
         (and open? (= ch \"))
         (let [value (.trim (.toString buf))]
           (.setLength buf 0)          
           (recur (conj items value) (read-char rdr) false))
-        
+
         (= ch \")
         (recur items (read-char rdr) true)
-        
+
         (= ch \=)
         (let [id (.trim (.toString buf))]
           (.setLength buf 0)
           (recur (conj items id) (read-char rdr) open?))
-        
+
         :else
         (do
           (.append buf ch) 

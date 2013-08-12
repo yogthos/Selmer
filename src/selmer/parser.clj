@@ -96,9 +96,9 @@
         last-modified-file (if (in-jar? file-path)
                              -1 ;;can't check last modified inside a jar
                              (.lastModified (java.io.File. ^String file-path)))]
-      
+
     (check-template-exists file-path)
-        
+
     (if (and @cache? last-modified (= last-modified last-modified-file))
       (render-template template context-map)
       (let [template (parse-file filename opts)]
