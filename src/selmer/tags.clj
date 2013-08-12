@@ -1,6 +1,6 @@
 (ns selmer.tags
   (:require selmer.node
-            [selmer.filter-parser :refer [compile-filter-body]]
+            [selmer.filter-parser :refer [compile-filter-body fix-accessor]]
             [selmer.filters :refer [filters]]
             [selmer.util :refer :all])
   (:import [selmer.node INode TextNode FunctionNode]))
@@ -8,8 +8,8 @@
 ;; A tag can modify the context map for its body
 ;; It has full control of its body which means that it has to
 ;; take care of its compilation.
-(defn parse-arg [^String arg]  
-  (map keyword (.split arg "\\.")))
+(defn parse-arg [^String arg]
+  (fix-accessor (.split arg "\\.")))
 
 (defn for-handler [[^String id _ ^String items] tag-content render rdr]
   (let [content (tag-content rdr :for :empty :endfor)

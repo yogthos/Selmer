@@ -117,6 +117,9 @@
                {:business {:name "foocorp"}}))))
 (deftest test-for
   (is
+    (= " s  a "
+      (render "{%for x in foo.0%} {{x.id}} {%endfor%}" {:foo [[{:id "s"} {:id "a"}]]})))
+  (is
     (= "<ul><li>Sorry, no athletes in this list.</li><ul>"
        (render (str "<ul>"
                     "{% for athlete in athlete_list %}"
