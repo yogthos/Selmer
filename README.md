@@ -493,6 +493,10 @@ you can also iterate over nested data structures, eg:
 
 `{% for item in items %} <tr><td>{{item.name}}</td><td>{{item.age}}</td></tr> {% endfor %}`
 
+you can also specify the default content if there are no items using the `{% empty %}` tag:
+
+`(render "{% for i in foo %} {{i}} {% empty %}no elements{% endfor %}" {})` => `"no elements"`
+
 #### now
 renders current time
 
