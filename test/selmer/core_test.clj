@@ -129,6 +129,9 @@
                     "{% endfor %}"
                     "<ul>")
                {})))
+  (is
+    (= "a,bc,d"
+       (render "{% for x,y in items %}{{x}},{{y}}{% endfor %}" {:items [["a" "b"] ["c" "d"]]})))
   (is (= "" (render "{% for i in items %}{{i}}{% endfor %}" {})))
   (is (= "" (render "{% for i in items %}{{i}}{% endfor %}" {:i "foo"})))
   (is (= "" (render "{% for i in items %}{{i}}{% endfor %}" {:items []})))

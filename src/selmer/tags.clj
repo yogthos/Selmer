@@ -11,11 +11,18 @@
 (defn parse-arg [^String arg]
   (fix-accessor (.split arg "\\.")))
 
+(defn create-value-mappings [context-map ids value]
+  (if (= 1 (count ids))
+    (assoc-in context-map (first ids) value)
+    (reduce
+      (fn [m [path value]] (assoc-in m path value))
+      context-map (map vector ids value))))
+
 (defn for-handler [[^String id _ ^String items] tag-content render rdr]
   (let [content (tag-content rdr :for :empty :endfor)
         for-content (get-in content [:for :content])
         empty-content (get-in content [:empty :content])
-        id (parse-arg id)
+        ids (map parse-arg (.split id ","))
         item-keys (parse-arg items)]
     (fn [context-map]
       (let [buf (StringBuilder.)
@@ -33,7 +40,7 @@
                    :revcounter0 (- length counter)
                    :first (= counter 0)
                    :last (= counter (dec length))}]
-              (->> (assoc (assoc-in context-map id value)
+              (->> (assoc (create-value-mappings context-map ids value)
                           :forloop loop-info
                           :parentloop loop-info)
                 (render for-content)
