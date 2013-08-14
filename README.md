@@ -425,7 +425,14 @@ Allows specifying a block of content that can be overwritten using the template 
 
 Will cycle through the supplied argument.
 
-`(render "{% for i in items %}<li class={% cycle \"blue\" \"white\" %}>{{i}}</li>{% endfor %}" {:items (range 5)})` => `"<li class=\"blue\">0</li><li class=\"white\">1</li><li class=\"blue\">2</li><li class=\"white\">3</li><li class=\"blue\">4</li>"`
+```
+(render "{% for i in items %}<li class={% cycle \"blue\" \"white\" %}>{{i}}</li>{% endfor %}"
+        {:items (range 5)})
+```
+=> 
+```
+"<li class=\"blue\">0</li><li class=\"white\">1</li><li class=\"blue\">2</li><li class=\"white\">3</li><li class=\"blue\">4</li>"
+```
 
 #### extends
 
