@@ -423,7 +423,7 @@ Allows specifying a block of content that can be overwritten using the template 
 
 #### cycle
 
-Will cycle through the supplied argument.
+Will cycle through the supplied values.
 
 ```
 (render "{% for i in items %}<li class={% cycle \"blue\" \"white\" %}>{{i}}</li>{% endfor %}"
