@@ -392,16 +392,18 @@ It's also possible to define custom tags using the `add-tag!` macro:
 (render "{% foo quux %} {% foo baz %}" {})
 =>"foo quux foo baz"
 ```
-tags can also contain content and intermediate tags:
+it's also possible to add block tags. When adding a block tag, the handler
+function should accept the tag arguments, the context map, and the content.
+The content will be keyed on the opening tag name as can be seen below:
 
 ```clojure
-(add-tag! :foo
-  (fn [args context-map content]
-    (str content))
-  :bar :baz)
+(add-tag! :uppercase
+          (fn [args context-map content]
+            (.toUpperCase (get-in content [:uppercase :content])))
+          :enduppercase)
 
-(render "{% foo %} some text {% bar %} some more text {% baz %}" {})
-=>"{:foo {:args nil, :content \" some text \"}, :bar {:args nil, :content \" some more text \"}}"
+(render "{% uppercase %}foo {{bar}} baz{% enduppercase %}" {:bar "injected"})
+=>"FOO INJECTED BAZ"
 ```
 ### Built-in Tags
 
