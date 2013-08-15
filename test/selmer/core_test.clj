@@ -46,34 +46,34 @@
   (let [s "{a b c} \nd"]
     (is (= s (render s {})))))
 
+
 (deftest inheritance
-  
-  (is 
-    (= "<html>\n<body>\n{% block header %}\nB header\n\n<h1>child-a header</h1>\n<<\noriginal header\n>>\n\n{% endblock %}\n{% block content %}\nSome content\n{% endblock %}\n\n{% block footer %}\n<p>footer</p>\n{% endblock %}\n</body>\n</html>"
+  (is
+    (= "<html>\n<body>{% block header %}\nB header\n\n<h1>child-a header</h1>\n<<\noriginal header\n>>\n\n{% endblock %}\n\n<div>{% block content %}\nSome content\n{% endblock %}</div>\n\n{% block footer %}\n<p>footer</p>\n{% endblock %}</body>\n</html>"
        (preprocess-template "templates/inheritance/child-b.html")))
   (is
     (= "{{greeting|default:\"Hello!\"}} {{name|default:\"JaneDoe\"}}"
        (preprocess-template "templates/inheritance/parent.html")))
   (is
-    (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n            Hello \n         World\n{% endblock %}    </body>\n</html>"
+    (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n            Hello \n         World\n{% endblock %}\n    </body>\n</html>"
        (preprocess-template "templates/inheritance/super-b.html")))
   (is
-    (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n\n            Hello \n         World\nCruel World\n{% endblock %}    </body>\n</html>"
-       (preprocess-template "templates/inheritance/super-c.html")))  
+    (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n\n            Hello \n         World\nCruel World\n{% endblock %}\n    </body>\n</html>"
+       (preprocess-template "templates/inheritance/super-c.html")))
   (is
-    (= "start a\n{% block a %}{% endblock %}stop a\n\n{% block content %}{% endblock %}\nHello, {{name}}!\n"
+    (= "start a\n{% block a %}{% endblock %}\nstop a\n\n{% block content %}{% endblock %}\n\nHello, {{name}}!\n"
        (preprocess-template "templates/inheritance/inherit-a.html")))
   (is
-    (= "start a\n{% block a %}\nstart b\n{% block b %}{% endblock %}\nstop b\n{% endblock %}stop a\n\n{% block content %}content{% endblock %}\nHello, {{name}}!\n"
+    (= "start a\n{% block a %}\nstart b\n{% block b %}{% endblock %}\nstop b\n{% endblock %}\nstop a\n\n{% block content %}content{% endblock %}\n\nHello, {{name}}!\n"
        (preprocess-template "templates/inheritance/inherit-b.html")))
   (is
-    (= "start a\n{% block a %}\nstart b\n{% block b %}\nstart c\nstop c\n{% endblock %}stop b\n{% endblock %}stop a\n\n{% block content %}content{% endblock %}\nHello, {{name}}!\n"
+    (= "start a\n{% block a %}\nstart b\n{% block b %}\nstart c\nstop c\n{% endblock %}\nstop b\n{% endblock %}\nstop a\n\n{% block content %}content{% endblock %}\n\nHello, {{name}}!\n"
       (preprocess-template "templates/inheritance/inherit-c.html")))
   (is
-    (= "Base template.\n\n\t\n<p></p>\n"
+    (= "Base template.\n\n\t\n<p></p>\n\n\n"
        (render-file "templates/child.html" {})))
   (is
-    (= "Base template.\n\n\t\n<p>blah</p>\n"
+    (= "Base template.\n\n\t\n<p>blah</p>\n\n\n"
        (render-file "templates/child.html" {:content "blah"}))))
 
 (deftest custom-tags

@@ -54,41 +54,40 @@
 
 (defn consume-block [rdr & [^StringBuilder buf blocks omit-close-tag?]]
   (loop [blocks-to-close 1
-         has-super? false
-         ch (read-char rdr)]    
-    (if (and (pos? blocks-to-close) ch)
-      (if (open-tag? ch rdr)
-        (let [tag-str        (read-tag-content rdr)
-              block?         (re-matches #"\{\%\s*block.*" tag-str)
-              block-name     (if block? (get-tag-params #"block" tag-str))
-              super-tag?     (re-matches #"\{\{\s*block.super\s*\}\}" tag-str) 
-              existing-block (if block-name (get-in blocks [block-name :content]))]
-          ;;check if we wish to write the closing tag for the block. If we're
-          ;;injecting block.super, then we want to omit it
-          (when (write-tag? buf super-tag? existing-block blocks-to-close omit-close-tag?)
-            (.append buf tag-str))
-          (recur
-            (long 
-              (cond
-                existing-block
-                (do 
-                  (consume-block rdr)
-                  (consume-block
-                    (StringReader. existing-block) buf (dissoc blocks block-name))
-                  blocks-to-close)
+         has-super? false]
+    (if (and (pos? blocks-to-close) (peek-rdr rdr))
+      (let [ch (read-char rdr)]
+        (if (open-tag? ch rdr)
+          (let [tag-str        (read-tag-content rdr)
+                block?         (re-matches #"\{\%\s*block.*" tag-str)
+                block-name     (if block? (get-tag-params #"block" tag-str))
+                super-tag?     (re-matches #"\{\{\s*block.super\s*\}\}" tag-str) 
+                existing-block (if block-name (get-in blocks [block-name :content]))]
+            ;;check if we wish to write the closing tag for the block. If we're
+            ;;injecting block.super, then we want to omit it
+            (when (write-tag? buf super-tag? existing-block blocks-to-close omit-close-tag?)
+              (.append buf tag-str))
+            (recur
+              (long 
+                (cond
+                  existing-block
+                  (do 
+                    (consume-block rdr)
+                    (consume-block
+                      (StringReader. existing-block) buf (dissoc blocks block-name))
+                    blocks-to-close)
 
-                block?
-                (inc blocks-to-close)
-
-                (re-matches #"\{\%\s*endblock.*" tag-str)
-                (dec blocks-to-close)
-
-                :else blocks-to-close))
-            (or has-super? super-tag?)
-            (read-char rdr)))
-        (do
-          (when buf (.append buf ch))
-          (recur blocks-to-close has-super? (read-char rdr))))
+                  block?
+                  (inc blocks-to-close)
+                  
+                  (re-matches #"\{\%\s*endblock.*" tag-str)
+                  (dec blocks-to-close)
+                  
+                  :else blocks-to-close))
+              (or has-super? super-tag?)))
+          (do
+            (when buf (.append buf ch))
+            (recur blocks-to-close has-super?))))
       (boolean has-super?))))
 
 (defn rewrite-super [block parent-content]  
