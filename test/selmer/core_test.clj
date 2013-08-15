@@ -1,5 +1,5 @@
 (ns selmer.core-test
-  (:use clojure.test selmer.parser selmer.template-parser selmer.tags selmer.util)
+  (:use clojure.test selmer.filters selmer.parser selmer.template-parser selmer.tags selmer.util)
   (:import java.io.File))
 
 (def path (str "test/templates" File/separator))
@@ -443,3 +443,13 @@
   (set-resource-path! nil)
   (is nil? @custom-resource-path)
   )
+
+(deftest safe-filter
+  (add-filter! :foo  (fn [x] [:safe (.toUpperCase x)]))
+  (is 
+    (= "<DIV>I'M SAFE</DIV>"
+       (render "{{x|foo}}" {:x "<div>I'm safe</div>"})))
+  (add-filter! :bar #(.toUpperCase %))
+  (is
+    (= "&lt;DIV&gt;I&#39;M NOT SAFE&lt;/DIV&gt;"
+      (render "{{x|bar}}" {:x "<div>I'm not safe</div>"}))))
