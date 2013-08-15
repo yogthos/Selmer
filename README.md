@@ -197,6 +197,17 @@ that accepts a value and returns its replacement:
 =>"true"
 ```
 
+by default the content of the filter will be escaped, if you'd like to make a safe filter then wrap it's body
+in a vector with a `:safe` keyword:
+
+```clojure
+(add-filter! :foo  (fn [x] [:safe (.toUpperCase x)]))
+
+(render "{{x|foo}}" {:x "<div>I'm safe</div>"})
+=>"<DIV>I'M SAFE</DIV>"
+```
+
+
 ### Built-in Filters
 
 #### add
