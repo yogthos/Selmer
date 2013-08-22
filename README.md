@@ -111,7 +111,11 @@ To render a file we can call `render-file` instead:
 ### \*\*Important\*\*
 
 When rendering files Selmer will cache the compiled template. A recompile will be triggered if the last
-modified timestamp of the files changes. Alternatively you can turn caching on and off using `(selmer.parser/cache-on!)` and
+modified timestamp of the file changes. Note that changes in files referenced by the template **will not**
+trigger a recompile. This means that if your template extends or includes other templates you must touch
+the file that's being rendered for changes to take effect.
+
+Alternatively you can turn caching on and off using `(selmer.parser/cache-on!)` and
  `(selmer.parser/cache-off!)` respectively.
  
 By default the templates are located relative to the `ClassLoader` URL. If you'd like to set a custom location for the 
