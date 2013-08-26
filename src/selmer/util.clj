@@ -32,9 +32,9 @@
 (def ^:dynamic ^Pattern   *filter-open-pattern* nil)
 (def ^:dynamic ^Pattern   *filter-close-pattern* nil)
 (def ^:dynamic ^Pattern   *filter-pattern* nil)
-(def ^:dynamic ^String    *include-pattern* nil)
-(def ^:dynamic ^String    *extends-pattern* nil)
-(def ^:dynamic ^String    *block-pattern* nil)
+(def ^:dynamic ^Pattern   *include-pattern* nil)
+(def ^:dynamic ^Pattern   *extends-pattern* nil)
+(def ^:dynamic ^Pattern   *block-pattern* nil)
 (def ^:dynamic ^Pattern   *block-super-pattern* nil)
 (def ^:dynamic ^Pattern   *endblock-pattern* nil)
 
