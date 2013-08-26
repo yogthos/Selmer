@@ -224,13 +224,13 @@
             *filter-open*  filter-open
             *filter-close* filter-close
             *tag-second*   tag-second
-            *tag-second-pattern* (pattern tag-second)
-            *filter-open-pattern* (pattern "\\" tag-open "\\" filter-open "\\s*")
+            *tag-second-pattern*   (pattern tag-second)
+            *filter-open-pattern*  (pattern "\\" tag-open "\\" filter-open "\\s*")
             *filter-close-pattern* (pattern "\\s*\\" filter-close "\\" tag-close)
-            *filter-pattern* (pattern "\\" tag-open "\\" filter-open "\\s*.*\\s*\\" filter-close "\\" tag-close)
-            *include-pattern* (pattern "\\" tag-open "\\" tag-second "\\s*include.*")
-            *extends-pattern* (pattern "\\" tag-open "\\" tag-second "\\s*extends.*")
-            *block-pattern* (pattern "\\" tag-open "\\" tag-second "\\s*block.*")
-            *block-super-pattern* (pattern "\\" tag-open "\\" filter-open "\\s*block.super\\s*\\" filter-close "\\" tag-close)
-            *endblock-pattern* (pattern "\\" tag-open "\\" tag-second "\\s*endblock.*")]
+            *filter-pattern*       (pattern "\\" tag-open "\\" filter-open "\\s*.*\\s*\\" filter-close "\\" tag-close)
+            *include-pattern*      (pattern "\\" tag-open "\\" tag-second "\\s*include.*")
+            *extends-pattern*      (pattern "\\" tag-open "\\" tag-second "\\s*extends.*")
+            *block-pattern*        (pattern "\\" tag-open "\\" tag-second "\\s*block.*")
+            *block-super-pattern*  (pattern "\\" tag-open "\\" filter-open "\\s*block.super\\s*\\" filter-close "\\" tag-close)
+            *endblock-pattern*     (pattern "\\" tag-open "\\" tag-second "\\s*endblock.*")]
     (parse-fn input params)))
