@@ -18,7 +18,7 @@
 
 ;; Ahead decl because some fns call into each other.
 
-(declare parse parse-file tag-content)
+(declare parse parse-input parse-file tag-content)
 
 ;; Memoization atom for templates. If you pass a filepath instead
 ;; of a string, we'll use the last-modified timestamp to cache the
@@ -79,7 +79,7 @@
 
 (defn render [s context-map & [opts]]
   " render takes the string, the context-map and possibly also opts. "
-  (render-template (parse (java.io.StringReader. s) opts) context-map))
+  (render-template (parse parse-input (java.io.StringReader. s) opts) context-map))
 
 ;; Primary fn you interact with as a user, you pass a path that
 ;; exists somewhere in your class-path, typically something like
@@ -101,7 +101,7 @@
 
     (if (and @cache? last-modified (= last-modified last-modified-file))
       (render-template template context-map)
-      (let [template (parse-file filename opts)]
+      (let [template (parse parse-file filename opts)]
         (swap! templates assoc filename {:template template
                                          :last-modified last-modified-file})
         (render-template template context-map)))))
@@ -202,18 +202,35 @@
 ;; Primary compile-time parse routine. Work we don't want happening after
 ;; first template render. Vector output from parse* gets memoized by render-file.
 
-(defn parse [file &
-             [{:keys [tag-open tag-close filter-open filter-close tag-second custom-tags custom-filters]}]]
-  (binding [*tag-open*     (or tag-open *tag-open*)
-            *tag-close*    (or tag-close *tag-close*)
-            *filter-open*  (or filter-open *filter-open*)
-            *filter-close* (or filter-close *filter-close*)
-            *tag-second*   (or tag-second *tag-second*)]
-    (swap! expr-tags merge custom-tags)
-    (swap! filters merge custom-filters)
-    (parse* file)))
+(defn parse-input [input & [{:keys [custom-tags custom-filters]}]]
+  (swap! expr-tags merge custom-tags)
+  (swap! filters merge custom-filters)
+  (parse* input))
 
 ;; File-aware parse wrapper.
 
-(defn parse-file [file & [params]]
-  (-> file preprocess-template (java.io.StringReader.) (parse params)))
+(defn parse-file [file params]
+  (-> file preprocess-template (java.io.StringReader.) (parse-input params)))
+
+(defn parse [parse-fn input & [{:keys [tag-open tag-close filter-open filter-close tag-second]
+                                :or {tag-open      *tag-open*
+                                     tag-close    *tag-close*
+                                     filter-open  *filter-open*
+                                     filter-close *filter-close*
+                                     tag-second   *tag-second*}
+                                :as params}]]
+  (binding [*tag-open*     tag-open
+            *tag-close*    tag-close
+            *filter-open*  filter-open
+            *filter-close* filter-close
+            *tag-second*   tag-second
+            *tag-second-pattern* (pattern tag-second)
+            *filter-open-pattern* (pattern "\\" tag-open "\\" filter-open "\\s*")
+            *filter-close-pattern* (pattern "\\s*\\" filter-close "\\" tag-close)
+            *filter-pattern* (pattern "\\" tag-open "\\" filter-open "\\s*.*\\s*\\" filter-close "\\" tag-close)
+            *include-pattern* (pattern "\\" tag-open "\\" tag-second "\\s*include.*")
+            *extends-pattern* (pattern "\\" tag-open "\\" tag-second "\\s*extends.*")
+            *block-pattern* (pattern "\\" tag-open "\\" tag-second "\\s*block.*")
+            *block-super-pattern* (pattern "\\" tag-open "\\" filter-open "\\s*block.super\\s*\\" filter-close "\\" tag-close)
+            *endblock-pattern* (pattern "\\" tag-open "\\" tag-second "\\s*endblock.*")]
+    (parse-fn input params)))

@@ -16,22 +16,22 @@
                   :foo :endfoo)]
     (is 
       (= "some bar content" 
-         (render-template (parse (java.io.StringReader. "{% foo %}some {{bar}} content{% endfoo %}")
+         (render-template (parse parse-input (java.io.StringReader. "{% foo %}some {{bar}} content{% endfoo %}")
                         {:custom-tags {:foo handler}}) {:bar "bar"}))))
   
   (let [handler (tag-handler
                   (fn [args context-map] (clojure.string/join "," args))
                   :bar)]
     (is (= "arg1,arg2"
-           (render-template (parse (java.io.StringReader. "{% bar arg1 arg2 %}")
+           (render-template (parse parse-input (java.io.StringReader. "{% bar arg1 arg2 %}")
                           {:custom-tags {:bar handler}}) {}))))
   
   (add-tag! :bar (fn [args context-map] (clojure.string/join "," args)))
-  (render-template (parse (java.io.StringReader. "{% bar arg1 arg2 %}")) {}))
+  (render-template (parse parse-input (java.io.StringReader. "{% bar arg1 arg2 %}")) {}))
 
 (deftest custom-filter-test
   (is (= "BAR"
-         (render-template (parse (java.io.StringReader. "{{bar|embiginate}}")
+         (render-template (parse parse-input (java.io.StringReader. "{{bar|embiginate}}")
                         {:custom-filters
                          {:embiginate (fn [^String s] (.toUpperCase s))}}) {:bar "bar"}))))
 
@@ -48,33 +48,43 @@
 
 
 (deftest inheritance
-  (is
-    (= "<html>\n<body>{% block header %}\nB header\n\n<h1>child-a header</h1>\n<<\noriginal header\n>>\n\n{% endblock %}\n\n<div>{% block content %}\nSome content\n{% endblock %}</div>\n\n{% block footer %}\n<p>footer</p>\n{% endblock %}</body>\n</html>"
-       (preprocess-template "templates/inheritance/child-b.html")))
-  (is
-    (= "{{greeting|default:\"Hello!\"}} {{name|default:\"JaneDoe\"}}"
-       (preprocess-template "templates/inheritance/parent.html")))
-  (is
-    (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n            Hello \n         World\n{% endblock %}\n    </body>\n</html>"
-       (preprocess-template "templates/inheritance/super-b.html")))
-  (is
-    (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n\n            Hello \n         World\nCruel World\n{% endblock %}\n    </body>\n</html>"
-       (preprocess-template "templates/inheritance/super-c.html")))
-  (is
-    (= "start a\n{% block a %}{% endblock %}\nstop a\n\n{% block content %}{% endblock %}\n\nHello, {{name}}!\n"
-       (preprocess-template "templates/inheritance/inherit-a.html")))
-  (is
-    (= "start a\n{% block a %}\nstart b\n{% block b %}{% endblock %}\nstop b\n{% endblock %}\nstop a\n\n{% block content %}content{% endblock %}\n\nHello, {{name}}!\n"
-       (preprocess-template "templates/inheritance/inherit-b.html")))
-  (is
-    (= "start a\n{% block a %}\nstart b\n{% block b %}\nstart c\nstop c\n{% endblock %}\nstop b\n{% endblock %}\nstop a\n\n{% block content %}content{% endblock %}\n\nHello, {{name}}!\n"
-      (preprocess-template "templates/inheritance/inherit-c.html")))
-  (is
-    (= "Base template.\n\n\t\n<p></p>\n\n\n"
-       (render-file "templates/child.html" {})))
-  (is
-    (= "Base template.\n\n\t\n<p>blah</p>\n\n\n"
-       (render-file "templates/child.html" {:content "blah"}))))
+  (binding
+    [*tag-second-pattern* (pattern *tag-second*)
+     *filter-open-pattern* (pattern "\\" *tag-open* "\\" *filter-open* "\\s*")
+     *filter-close-pattern* (pattern "\\s*\\" *filter-close* "\\" *tag-close*)
+     *filter-pattern* (pattern "\\" *tag-open* "\\" *filter-open* "\\s*.*\\s*\\" *filter-close* "\\" *tag-close*)
+     *include-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*include.*")
+     *extends-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*extends.*")
+     *block-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*block.*")
+     *block-super-pattern* (pattern "\\" *tag-open* "\\" *filter-open* "\\s*block.super\\s*\\" *filter-close* "\\" *tag-close*)
+     *endblock-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*endblock.*")]
+    (is
+      (= "<html>\n<body>{% block header %}\nB header\n\n<h1>child-a header</h1>\n<<\noriginal header\n>>\n\n{% endblock %}\n\n<div>{% block content %}\nSome content\n{% endblock %}</div>\n\n{% block footer %}\n<p>footer</p>\n{% endblock %}</body>\n</html>"
+         (preprocess-template "templates/inheritance/child-b.html")))
+    (is
+      (= "{{greeting|default:\"Hello!\"}} {{name|default:\"JaneDoe\"}}"
+         (preprocess-template "templates/inheritance/parent.html")))
+    (is
+      (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n            Hello \n         World\n{% endblock %}\n    </body>\n</html>"
+         (preprocess-template "templates/inheritance/super-b.html")))
+    (is
+      (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n\n            Hello \n         World\nCruel World\n{% endblock %}\n    </body>\n</html>"
+         (preprocess-template "templates/inheritance/super-c.html")))
+    (is
+      (= "start a\n{% block a %}{% endblock %}\nstop a\n\n{% block content %}{% endblock %}\n\nHello, {{name}}!\n"
+         (preprocess-template "templates/inheritance/inherit-a.html")))
+    (is
+      (= "start a\n{% block a %}\nstart b\n{% block b %}{% endblock %}\nstop b\n{% endblock %}\nstop a\n\n{% block content %}content{% endblock %}\n\nHello, {{name}}!\n"
+         (preprocess-template "templates/inheritance/inherit-b.html")))
+    (is
+      (= "start a\n{% block a %}\nstart b\n{% block b %}\nstart c\nstop c\n{% endblock %}\nstop b\n{% endblock %}\nstop a\n\n{% block content %}content{% endblock %}\n\nHello, {{name}}!\n"
+         (preprocess-template "templates/inheritance/inherit-c.html")))
+    (is
+      (= "Base template.\n\n\t\n<p></p>\n\n\n"
+         (render-file "templates/child.html" {})))
+    (is
+      (= "Base template.\n\n\t\n<p>blah</p>\n\n\n"
+         (render-file "templates/child.html" {:content "blah"})))))
 
 (deftest custom-tags
   (is
@@ -82,7 +92,17 @@
        (render "[% for ele in foo %]<<[{ele}]>>[%endfor%]"
                {:foo [1 2 3]}
                {:tag-open \[
-                :tag-close \]}))))
+                :tag-close \]})))
+  
+  (is
+    (= "Base template.\n\n\t\n<p></p>\n\n\n"
+       (render-file "templates/child-custom.html"
+                    {}
+                    {:tag-open \[
+                     :tag-close \]
+                     :filter-open \(
+                     :filter-close \)
+                     :tag-second \#}))))
 
 (deftest test-now
   (let [date-format "dd MM yyyy"
@@ -138,12 +158,12 @@
   (is
     (= "1234567890"
        (render-template
-         (parse (java.io.StringReader. 
+         (parse parse-input (java.io.StringReader. 
                   "{% for item in list %}{% for i in item.items %}{{i}}{% endfor %}{% endfor %}")) 
          {:list [{:items [1 2 3]} {:items [4 5 6]} {:items [7 8 9 0]}]})))
 (is (= "bob"
        (render-template
-         (parse (java.io.StringReader. 
+         (parse parse-input (java.io.StringReader. 
                   "{% for item in list.items %}{{item.name}}{% endfor %}")) 
          {:list {:items [{:name "bob"}]}})))
 (is (= (render "{% for ele in foo %}<<{{ele}}>>{%endfor%}"
@@ -155,7 +175,7 @@
 
 (deftest nested-for-test
   (= "<html>\n<body>\n<ul>\n\n\t<li>\n\t\n\ttest\n\t\t</li>\n\n\t<li>\n\t\n\ttest1\n\t\t</li>\n\n</ul>\n</body>\n</html>"
-    (render-template (parse (str path "nested-for.html"))
+    (render-template (parse parse-input (str path "nested-for.html"))
             {:name "Bob" :users [[{:name "test" }] [{:name "test1" }]]})))
 
 (deftest test-map-lookup
@@ -183,7 +203,7 @@
 
 (deftest render-test
   (= "<ul><li>0</li><li>1</li><li>2</li><li>3</li><li>4</li></ul>"
-     (render-template (parse (java.io.StringReader. "<ul>{% for item in items %}<li>{{item}}</li>{% endfor %}</ul>"))
+     (render-template (parse parse-input (java.io.StringReader. "<ul>{% for item in items %}<li>{{item}}</li>{% endfor %}</ul>"))
              {:items (range 5)})))
 
 (deftest nested-forloop-first
@@ -221,20 +241,20 @@
 (deftest if-tag-test
   (is
     (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"bar\"\n\n\n\n\t\n\tinner\n\t\n"
-       (render-template (parse (str path "if.html")) {:nested "x" :inner "y"})))
+       (render-template (parse parse-input (str path "if.html")) {:nested "x" :inner "y"})))
   
   (is
     (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"foo\"\n\n\n"
-       (render-template (parse (str path "if.html")) {:user-id "bob"})))  
+       (render-template (parse parse-input (str path "if.html")) {:user-id "bob"})))  
   (is
     (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"bar\"\n\n\n"
-       (render-template (parse (str path "if.html")) {:foo false})))
+       (render-template (parse parse-input (str path "if.html")) {:foo false})))
   (is
     (= "\n<h1>FOO!</h1>\n\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"bar\"\n\n\n"
-       (render-template (parse (str path "if.html")) {:foo true})))
+       (render-template (parse parse-input (str path "if.html")) {:foo true})))
   (is
     (= "\n<h1>FOO!</h1>\n\n\n\n\n<h1>BAR!</h1>\n\n\n\n\"bar\"\n\n\n"
-       (render-template (parse (str path "if.html")) {:foo true :bar "test"})))
+       (render-template (parse parse-input (str path "if.html")) {:foo true :bar "test"})))
 
   (is
     (= " no value "
@@ -251,7 +271,7 @@
          "foo is false"))
 
   (let [template
-        (parse
+        (parse parse-input
           (java.io.StringReader.
             "{% if foo %}
              foo is true
@@ -283,17 +303,17 @@
 
 (deftest ifequal-tag-test  
   (= "\n<h1>equal!</h1>\n\n\n\n<p>not equal</p>\n"
-     (render-template (parse (str path "ifequal.html")) {:foo "bar"}))
+     (render-template (parse parse-input (str path "ifequal.html")) {:foo "bar"}))
   (= "\n\n<h1>equal!</h1>\n\n\n<p>not equal</p>\n"
-     (render-template (parse (str path "ifequal.html")) {:foo "baz" :bar "baz"}))
+     (render-template (parse parse-input (str path "ifequal.html")) {:foo "baz" :bar "baz"}))
   (= "\n\n<h1>equal!</h1>\n\n\n<h1>equal!</h1>\n"
-     (render-template (parse (str path "ifequal.html")) {:baz "test"}))
+     (render-template (parse parse-input (str path "ifequal.html")) {:baz "test"}))
   (= "\n\n<h1>equal!</h1>\n\n\n<p>not equal</p>\n"
-     (render-template (parse (str path "ifequal.html")) {:baz "fail"}))
+     (render-template (parse parse-input (str path "ifequal.html")) {:baz "fail"}))
 
   (is (= (render "{% ifequal foo|upper \"FOO\" %}yez{% endifequal %}" {:foo "foo"})
          "yez"))
-  
+
   (is (= (render "{% ifequal foo \"foo\" %}yez{% endifequal %}" {:foo "foo"})
          "yez"))
   (is (= (render "{% ifequal foo \"foo\" bar %}yez{% endifequal %}"

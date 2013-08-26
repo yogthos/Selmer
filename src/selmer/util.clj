@@ -1,9 +1,12 @@
 (ns selmer.util
   (:require [clojure.java.io :as io])
-  (:import java.io.File java.io.StringReader))
+  (:import java.io.File java.io.StringReader
+           java.util.regex.Pattern))
 
 (def custom-resource-path (atom nil))
 
+(defn pattern [& content]
+  (re-pattern (apply str content)))
 
 (defn read-char [^java.io.Reader rdr]
   (let [ch (.read rdr)]
@@ -17,11 +20,23 @@
       (assoc m k (assoc-in* (get m k) (next ks) v))
       (assoc m k v))))
 
+;; default tag characters
 (def ^:dynamic ^Character *tag-open* \{)
 (def ^:dynamic ^Character *tag-close* \})
 (def ^:dynamic ^Character *filter-open* \{)
 (def ^:dynamic ^Character *filter-close* \})
 (def ^:dynamic ^Character *tag-second* \%)
+
+;; tag regex patterns
+(def ^:dynamic ^Pattern   *tag-second-pattern* nil)
+(def ^:dynamic ^Pattern   *filter-open-pattern* nil)
+(def ^:dynamic ^Pattern   *filter-close-pattern* nil)
+(def ^:dynamic ^Pattern   *filter-pattern* nil)
+(def ^:dynamic ^String    *include-pattern* nil)
+(def ^:dynamic ^String    *extends-pattern* nil)
+(def ^:dynamic ^String    *block-pattern* nil)
+(def ^:dynamic ^Pattern   *block-super-pattern* nil)
+(def ^:dynamic ^Pattern   *endblock-pattern* nil)
 
 (defn read-tag-info [rdr]
   (let [buf (StringBuilder.)

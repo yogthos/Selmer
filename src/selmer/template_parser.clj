@@ -11,7 +11,7 @@
 (declare consume-block preprocess-template)
 
 (defn get-tag-params [tag-id block-str]
-  (-> block-str (split tag-id) second (split #"%") first trim))
+  (-> block-str (split tag-id) second (split *tag-second-pattern*) first trim))
 
 (defn parse-defaults [defaults]
   (when defaults
@@ -32,7 +32,7 @@
         (if (= *tag-open* ch)
           (let [tag-str (read-tag-content rdr)]
             (.append buf 
-              (if (re-matches #"\{\%\s*include.*" tag-str)
+              (if (re-matches *include-pattern* tag-str)
                 (let [params   (seq (.split ^String (get-tag-params #"include" tag-str) " "))
                       source   (.replaceAll ^String (first params) "\"" "")
                       defaults (parse-defaults (nnext params))]
@@ -59,9 +59,9 @@
       (let [ch (read-char rdr)]
         (if (open-tag? ch rdr)
           (let [tag-str        (read-tag-content rdr)
-                block?         (re-matches #"\{\%\s*block.*" tag-str)
+                block?         (re-matches *block-pattern* tag-str)
                 block-name     (if block? (get-tag-params #"block" tag-str))
-                super-tag?     (re-matches #"\{\{\s*block.super\s*\}\}" tag-str) 
+                super-tag?     (re-matches *block-super-pattern* tag-str) 
                 existing-block (if block-name (get-in blocks [block-name :content]))]
             ;;check if we wish to write the closing tag for the block. If we're
             ;;injecting block.super, then we want to omit it
@@ -79,10 +79,10 @@
 
                   block?
                   (inc blocks-to-close)
-                  
-                  (re-matches #"\{\%\s*endblock.*" tag-str)
+
+                  (re-matches *endblock-pattern* tag-str)
                   (dec blocks-to-close)
-                  
+
                   :else blocks-to-close))
               (or has-super? super-tag?)))
           (do
@@ -90,8 +90,8 @@
             (recur blocks-to-close has-super?))))
       (boolean has-super?))))
 
-(defn rewrite-super [block parent-content]  
-  (clojure.string/replace block #"\{\{\s*block.super\s*\}\}" parent-content))
+(defn rewrite-super [block parent-content]
+  (clojure.string/replace block *block-super-pattern* parent-content))
 
 (defn read-block [rdr block-tag blocks]
   (let [block-name     (get-tag-params #"block" block-tag)
@@ -133,10 +133,10 @@
 
 (defn set-default-value [tag-str defaults]
   (let [tag-name (-> tag-str
-                   (clojure.string/replace #"\{\{\s*" "")
-                   (clojure.string/replace #"\s*\}\}" ""))]
+                   (clojure.string/replace *filter-open-pattern* "")
+                   (clojure.string/replace *filter-close-pattern* ""))]
     (if-let [value (get defaults tag-name)]
-      (str "{{" tag-name "|default:\"" value "\"}}")
+      (str *tag-open* *filter-open* tag-name "|default:\"" value "\"" *filter-close* *tag-close*)
       tag-str)))
 
 (defn read-template [template blocks defaults]
@@ -154,24 +154,24 @@
               (let [tag-str (read-tag-content rdr)]
                 (cond
                   (and defaults
-                       (re-matches #"\{\{\s*.*\s*\}\}" tag-str))
+                       (re-matches *filter-pattern* tag-str))
                   (do (.append buf (set-default-value tag-str defaults))
                       (recur blocks (read-char rdr) parent))
 
                   ;;if the template extends another it's not the root
                   ;;this template is allowed to only contain blocks
-                  (re-matches #"\{\%\s*extends.*" tag-str)
+                  (re-matches *extends-pattern* tag-str)
                   (recur blocks (read-char rdr) (get-parent tag-str))
 
                   ;;if we have a parent then we simply want to add the
                   ;;block to the block map if it hasn't been added already
-                  (and parent (re-matches #"\{\%\s*block.*" tag-str))
+                  (and parent (re-matches *block-pattern* tag-str))
                   (recur (read-block rdr tag-str blocks) (read-char rdr) parent)
 
                   ;;if the template has blocks, but no parent it's the root
                   ;;we either replace the block with an existing one from a child
                   ;;template or read the block from this template
-                  (re-matches #"\{\%\s*block.*" tag-str)
+                  (re-matches *block-pattern* tag-str)
                   (do (process-block rdr buf tag-str blocks)
                     (recur blocks (read-char rdr) parent))
 
