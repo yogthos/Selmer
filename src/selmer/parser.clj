@@ -132,7 +132,7 @@
     (filter-tag tag)
     (expr-tag tag rdr)))
 
-;; Pretty fucking gnarly. Parses and detects tags which turn into
+;; Parses and detects tags which turn into
 ;; FunctionNode call-sites or TextNode content. open-tag? fn returns
 ;; true or false based on character lookahead to see if it's {{ or {%
 
