@@ -138,8 +138,6 @@ a map containing any of the following keys to the parser:
 :filter-open
 :filter-close
 :tag-second
-:custom-tags
-:custom-filters
 ```
 
 ```clojure
