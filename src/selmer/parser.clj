@@ -213,7 +213,7 @@
   (-> file preprocess-template (java.io.StringReader.) (parse-input params)))
 
 (defn parse [parse-fn input & [{:keys [tag-open tag-close filter-open filter-close tag-second]
-                                :or {tag-open      *tag-open*
+                                :or {tag-open     *tag-open*
                                      tag-close    *tag-close*
                                      filter-open  *filter-open*
                                      filter-close *filter-close*
