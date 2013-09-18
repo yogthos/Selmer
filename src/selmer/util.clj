@@ -128,8 +128,8 @@
   (if-let [path @custom-resource-path]
     (java.net.URL. (str "file:///" path template)) 
     (-> (Thread/currentThread)
-      (.getContextClassLoader)
-      (.getResource template))))
+        (.getContextClassLoader)
+        (.getResource template))))
 
 (defn check-template-exists [^String file-path]
   (when-not (or (in-jar? file-path)
