@@ -479,6 +479,8 @@ It's an `if` -- only render the body if the conditional is true.
 
 `{% if condition %}yes!{% endif %}`
 
+`{% if not condition %}yes!{% endif %}`
+
 `{% if condition %}yes!{% else %}no!{% endif %}`
 
 filters work for the conditions:
