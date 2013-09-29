@@ -255,7 +255,38 @@
   (is
     (= "\n<h1>FOO!</h1>\n\n\n\n\n<h1>BAR!</h1>\n\n\n\n\"bar\"\n\n\n"
        (render-template (parse parse-input (str path "if.html")) {:foo true :bar "test"})))
-
+  (is
+    (= ""
+       (render "{% if x > 2 %}bigger{% endif %}" {:v 3})))
+  (is
+    (= "ok"
+       (render "{% if x = 2.0 %}ok{% endif %}" {:x 2})))
+  (= "ok"
+       (render "{% if x|length = 5 %}ok{% endif %}" {:x (range 5)}))
+  (is
+    (= "bigger"
+       (render "{% if v > 2 %}bigger{% endif %}" {:v 3})))
+  (is
+    (= ""
+       (render "{% if v > 2 %}bigger{% endif %}" {:v 0})))
+  (is
+    (= "not bigger"
+       (render "{% if not v > 2 %}not bigger{% endif %}" {:v 0})))
+  (is
+    (= "smaller"
+       (render "{% if not v > 2 %}bigger{% else %}smaller{% endif %}" {:v 5})))
+  (is
+    (= "equal"
+       (render "{% if 5 = v %}equal{% endif %}" {:v 5})))
+  (is
+    (= ""
+       (render "{% if not 5 = v %}equal{% endif %}" {:v 5})))
+  (is
+    (= "greater equal"
+       (render "{% if 5 <= v %}greater equal{% endif %}" {:v 5})))
+  (is
+    (= "less equal"
+       (render "{% if 5 >= v %}less equal{% endif %}" {:v 5})))
   (is
     (= " no value "
        (render "{% if user-id %} has value {% else %} no value {% endif %}"  {})))

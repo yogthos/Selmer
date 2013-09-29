@@ -70,16 +70,54 @@
     false   false
     true))
 
-(defn if-handler [[condition1 condition2] tag-content render rdr]
+(defn if-default-handler [[condition1 condition2] if-tags else-tags render]
   " Handler of if-condition tags. Expects conditions, enclosed
   tag-content, render boolean. Returns anonymous fn that will expect
   runtime context-map. (Separate from compile-time) "
-  (let [tags (tag-content rdr :if :else :endif)
-        not? (and condition1 condition2 (= condition1 "not"))
+  (let [not? (and condition1 condition2 (= condition1 "not"))
         condition (compile-filter-body (or condition2 condition1))]
     (fn [context-map]
       (let [condition (if-result (condition context-map))]
-        (render-if render context-map (if not? (not condition) condition) (:if tags) (:else tags))))))
+        (render-if render context-map (if not? (not condition) condition) if-tags else-tags)))))
+
+(defn compare-numeric [op value arg-position]
+  (let [value (java.lang.Double/parseDouble value)
+        op (condp = op ">" > "<" < "=" == ">=" >= "<=" <=
+             (throw (Exception. (str "Unrecognized operator in 'if' statement: " op))))]
+    (if (= :first arg-position)
+      #(op (java.lang.Double/parseDouble %) value)
+      #(op value (java.lang.Double/parseDouble %)))))
+
+(defn parse-numeric-params [p1 op p2]
+  (if (re-matches #"[0-9]+" p1)
+    [(compare-numeric op p1 :second) p2]
+    [(compare-numeric op p2 :first) p1]))
+
+(defn render-if-numeric [render negate? [comparator context-key] context-map if-tags else-tags]
+  (render
+    (let [value (not-empty ((compile-filter-body context-key) context-map))
+          result (if value (comparator value) false)
+          result (if negate? (not result) result)]
+      (or (:content (if result if-tags else-tags))
+          [(TextNode. "")]))
+    context-map))
+
+(defn if-numeric-handler [[p1 p2 p3 p4 :as params] if-tags else-tags render]
+  (cond
+    (and p4 (not= p1 "not"))
+    (throw (Exception. (str "invalid params for if-tag: " params)))
+
+    (= "not" p1)
+    #(render-if-numeric render true (parse-numeric-params p2 p3 p4) % if-tags else-tags)
+
+    :else
+    #(render-if-numeric render false (parse-numeric-params p1 p2 p3) % if-tags else-tags)))
+
+(defn if-handler [params tag-content render rdr]
+  (let [{if-tags :if else-tags :else} (tag-content rdr :if :else :endif)] 
+    (if (< (count params) 3)
+      (if-default-handler params if-tags else-tags render)
+      (if-numeric-handler params if-tags else-tags render))))
 
 (defn ifequal-handler [args tag-content render rdr]
   (let [tags (tag-content rdr :ifequal :else :endifequal)
