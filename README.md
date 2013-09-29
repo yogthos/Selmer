@@ -11,7 +11,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 #### Leiningen
 
 ```clojure
-[selmer "0.4.2"]
+[selmer "0.4.3"]
 ```
 
 ## Marginalia documentation
@@ -482,6 +482,17 @@ It's an `if` -- only render the body if the conditional is true.
 `{% if not condition %}yes!{% endif %}`
 
 `{% if condition %}yes!{% else %}no!{% endif %}`
+
+numeric comparisons are also supported using the `=`, `<`, `>`, `<=` and `>=` operators
+
+`(render "{% if 5 >= x %}yes!{% endif %}" {:x 3})`
+
+`(render "{% if x > 5 %}yes!{% else %}no!{% endif %}" {:x 6})`
+
+`(render "{% if x > 5 %}yes!{% else %}no!{% endif %}" {:x 6})`
+
+`(render "{% if vals|length <= 3 %}yes!{% else %}no!{% endif %}" {:vals (range 3)})`
+
 
 filters work for the conditions:
 

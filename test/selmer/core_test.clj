@@ -242,7 +242,6 @@
   (is
     (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"bar\"\n\n\n\n\t\n\tinner\n\t\n"
        (render-template (parse parse-input (str path "if.html")) {:nested "x" :inner "y"})))
-  
   (is
     (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"foo\"\n\n\n"
        (render-template (parse parse-input (str path "if.html")) {:user-id "bob"})))  
