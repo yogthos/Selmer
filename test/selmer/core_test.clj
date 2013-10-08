@@ -90,9 +90,19 @@
          (render "{% if any foo bar baz %}hello{% endif %}" {:bar "foo"})))
     (is
       (= "hello"
-         (render "{% if not any foo bar baz %}hello{% endif %}" {})))))
-
-
+         (render "{% if not any foo bar baz %}hello{% endif %}" {})))
+    (is
+      (= "hello"
+         (render "{% if all foo bar %}hello{% endif %}" {:foo "foo" :bar "bar"})))
+    (is
+      (= ""
+         (render "{% if all foo bar %}hello{% endif %}" {:foo "foo"})))
+    (is
+      (= "hello"
+         (render "{% if not all foo bar baz %}hello{% endif %}" {:foo "foo"})))
+    (is
+      (= ""
+         (render "{% if not all foo bar %}hello{% endif %}" {:foo "foo" :bar "bar"})))))
 
 (deftest custom-tags
   (is

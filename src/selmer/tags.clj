@@ -102,13 +102,13 @@
           [(TextNode. "")]))
     context-map))
 
-(defn render-if-any [not? params if-tags else-tags render]
+(defn render-if-any-all [not? op params if-tags else-tags render]
   (let [filters (map compile-filter-body params)]
     (fn [context-map]
       (render-if
         render
         context-map
-        (let [test (some #{true} (map #(if-result (% context-map)) filters))]
+        (let [test (op #{true} (map #(if-result (% context-map)) filters))]
           (if not? (not test) test))
         if-tags else-tags))))
 
@@ -126,10 +126,12 @@
 (defn if-handler [params tag-content render rdr]
   (let [{if-tags :if else-tags :else} (tag-content rdr :if :else :endif)] 
     (cond
-      (= (first params) "any")
-      (render-if-any false (rest params) if-tags else-tags render)
-      (= ["not" "any"] (take 2 params))
-      (render-if-any true (drop 2 params) if-tags else-tags render)
+      (some #{"any" "all"} (take 2 params))
+      (let [[not? op] (if (= "not" (first params))
+                        [true (second params)]
+                        [false (first params)])
+            params    (if not? (drop 2 params) (rest params))]
+        (render-if-any-all not? (if (= "any" op) some every?) params if-tags else-tags render))
       (< (count params) 3)
       (if-default-handler params if-tags else-tags render)
       :else
