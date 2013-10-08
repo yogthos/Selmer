@@ -130,7 +130,7 @@
       (render-if-any false (rest params) if-tags else-tags render)
       (= ["not" "any"] (take 2 params))
       (render-if-any true (drop 2 params) if-tags else-tags render)
-      
+
       (< (count params) 3)
       (if-default-handler params if-tags else-tags render)
       :else
