@@ -11,7 +11,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 #### Leiningen
 
 ```clojure
-[selmer "0.4.3"]
+[selmer "0.4.4"]
 ```
 
 ## Marginalia documentation
@@ -475,6 +475,7 @@ For example, say we have a base template called `base.html` and a child template
 ```
 
 #### if
+
 It's an `if` -- only render the body if the conditional is true.
 
 `{% if condition %}yes!{% endif %}`
@@ -482,6 +483,14 @@ It's an `if` -- only render the body if the conditional is true.
 `{% if not condition %}yes!{% endif %}`
 
 `{% if condition %}yes!{% else %}no!{% endif %}`
+
+it's possible to use `any` and `all` operators to check multiple values:
+
+`(render "{% if any foo bar baz %}hello{% endif %}" {:bar "foo"})`
+
+`(render "{% if not any foo bar baz %}hello{% endif %}" {})`
+
+`(render "{% if all foo bar %}hello{% endif %}" {:foo "foo" :bar "bar"})`
 
 numeric comparisons are also supported using the `=`, `<`, `>`, `<=` and `>=` operators
 
