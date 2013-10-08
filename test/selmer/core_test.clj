@@ -18,14 +18,14 @@
       (= "some bar content" 
          (render-template (parse parse-input (java.io.StringReader. "{% foo %}some {{bar}} content{% endfoo %}")
                         {:custom-tags {:foo handler}}) {:bar "bar"}))))
-  
+
   (let [handler (tag-handler
                   (fn [args context-map] (clojure.string/join "," args))
                   :bar)]
     (is (= "arg1,arg2"
            (render-template (parse parse-input (java.io.StringReader. "{% bar arg1 arg2 %}")
                           {:custom-tags {:bar handler}}) {}))))
-  
+
   (add-tag! :bar (fn [args context-map] (clojure.string/join "," args)))
   (render-template (parse parse-input (java.io.StringReader. "{% bar arg1 arg2 %}")) {}))
 
@@ -84,7 +84,15 @@
          (render-file "templates/child.html" {})))
     (is
       (= "Base template.\n\n\t\n<p>blah</p>\n\n\n"
-         (render-file "templates/child.html" {:content "blah"})))))
+         (render-file "templates/child.html" {:content "blah"})))
+    (is
+      (= "hello"
+         (render "{% if any foo bar baz %}hello{% endif %}" {:bar "foo"})))
+    (is
+      (= "hello"
+         (render "{% if not any foo bar baz %}hello{% endif %}" {})))))
+
+
 
 (deftest custom-tags
   (is
