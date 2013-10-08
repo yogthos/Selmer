@@ -102,16 +102,6 @@
           [(TextNode. "")]))
     context-map))
 
-(defn render-if-any-all [not? op params if-tags else-tags render]
-  (let [filters (map compile-filter-body params)]
-    (fn [context-map]
-      (render-if
-        render
-        context-map
-        (let [test (op #{true} (map #(if-result (% context-map)) filters))]
-          (if not? (not test) test))
-        if-tags else-tags))))
-
 (defn if-numeric-handler [[p1 p2 p3 p4 :as params] if-tags else-tags render]
   (cond
     (and p4 (not= p1 "not"))
@@ -122,6 +112,16 @@
 
     :else
     #(render-if-numeric render false (parse-numeric-params p1 p2 p3) % if-tags else-tags)))
+
+(defn render-if-any-all [not? op params if-tags else-tags render]
+  (let [filters (map compile-filter-body params)]
+    (fn [context-map]
+      (render-if
+        render
+        context-map
+        (let [test (op #{true} (map #(if-result (% context-map)) filters))]
+          (if not? (not test) test))
+        if-tags else-tags))))
 
 (defn if-handler [params tag-content render rdr]
   (let [{if-tags :if else-tags :else} (tag-content rdr :if :else :endif)] 
@@ -152,7 +152,7 @@
     (fn [context-map] (render content context-map))))
 
 (defn now-handler [args _ _ _]
-  (fn [context-map]    
+  (fn [context-map]
     ((:date @filters) (java.util.Date.) (clojure.string/join " " args))))
 
 (defn comment-handler [args tag-content render rdr]
@@ -226,7 +226,7 @@
            (apply str (map #(.render-node ^selmer.node.INode % context-map) node))))])))
 
 (defn tag-handler [handler & tags]
-  (fn [args tag-content render rdr]    
+  (fn [args tag-content render rdr]
      (if-let [content (if (> (count tags) 1) (apply (partial tag-content rdr) tags))]
        (-> (fn [context-map]
              (render
