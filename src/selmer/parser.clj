@@ -77,20 +77,22 @@
   " Parses files if there isn't a memoized post-parse vector ready to go,
   renders post-parse vector with passed context-map regardless. Double-checks
   last-modified on files. Uses classpath for filename path "
-  (let [file-path (.getPath ^java.net.URL (resource-path filename))
-        {:keys [template last-modified]} (get @templates filename)
-        last-modified-file (if (in-jar? file-path)
-                             -1 ;;can't check last modified inside a jar
-                             (.lastModified (java.io.File. ^String file-path)))]
+  (if-let [resource (resource-path filename)]
+    (let [file-path (.getPath ^java.net.URL resource)
+          {:keys [template last-modified]} (get @templates filename)
+          last-modified-file (if (in-jar? file-path)
+                               -1 ;;can't check last modified inside a jar
+                               (.lastModified (java.io.File. ^String file-path)))]
 
-    (check-template-exists file-path)
+      (check-template-exists file-path)
 
-    (if (and @cache? last-modified (= last-modified last-modified-file))
-      (render-template template context-map)
-      (let [template (parse parse-file filename opts)]
-        (swap! templates assoc filename {:template template
-                                         :last-modified last-modified-file})
-        (render-template template context-map)))))
+      (if (and @cache? last-modified (= last-modified last-modified-file))
+        (render-template template context-map)
+        (let [template (parse parse-file filename opts)]
+          (swap! templates assoc filename {:template template
+                                           :last-modified last-modified-file})
+          (render-template template context-map))))
+    (throw (Exception. (str "resource-path for " filename " returned nil, typically means the file doesn't exist in your classpath.")))))
 
 ;; For a given tag, get the fn handler for the tag type,
 ;; pass it the arguments, tag-content, render-template fn,

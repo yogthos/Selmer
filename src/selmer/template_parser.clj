@@ -26,6 +26,10 @@
 (defn insert-includes
   "parse any included templates and splice them in replacing the include tags"
   [template]
+  ;; We really need to split out the "gather all parent templates recursively"
+  ;; and separate that from the buffer appending so we can gather the template
+  ;; hierarchy for smarter cache invalidation - will eliminate almost all
+  ;; existing reasons for cache-off!
   (->buf [buf]
     (with-open [rdr (reader (StringReader. template))]
     (loop [ch (read-char rdr)]
