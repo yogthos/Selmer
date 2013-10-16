@@ -5,6 +5,12 @@
        [clojure.set :only [difference]]
        [clojure.java.io :only [reader]]))
 
+(def validate? (atom true))
+
+(defn validate-on! [] (reset! validate? true))
+
+(defn validate-off! [] (reset! validate? false))
+
 (defn validate-filters [template line tag-value]
   (let [tag-filters (map
                   #(-> ^String % (.split ":") first keyword)
@@ -55,13 +61,14 @@
        tags))))
 
 (defn validate [template]
-  (let [orphan-tags (validate-tags template)]
-    (when-not (empty? orphan-tags)
-      (->> (validate-tags template)
-           (map (fn [{:keys [tag-name line]}] (str "\n" tag-name " on line " line)))
-           doall
-           (apply str "The template contains orphan tags: ")
-           exception))))
+  (when @validate?
+    (let [orphan-tags (validate-tags template)]
+      (when-not (empty? orphan-tags)
+        (->> (validate-tags template)
+             (map (fn [{:keys [tag-name line]}] (str "\n" tag-name " on line " line)))
+             doall
+             (apply str "The template contains orphan tags: ")
+             exception)))))
 
 
 (validate (.getAbsolutePath (java.io.File. "test/templates/validation-test.html")))
