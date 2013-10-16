@@ -92,7 +92,7 @@
           (swap! templates assoc filename {:template template
                                            :last-modified last-modified-file})
           (render-template template context-map))))
-    (throw (Exception. (str "resource-path for " filename " returned nil, typically means the file doesn't exist in your classpath.")))))
+    (exception "resource-path for " filename " returned nil, typically means the file doesn't exist in your classpath.")))
 
 ;; For a given tag, get the fn handler for the tag type,
 ;; pass it the arguments, tag-content, render-template fn,
@@ -101,7 +101,7 @@
 (defn expr-tag [{:keys [tag-name args] :as tag} rdr]
   (if-let [handler (tag-name @expr-tags)]
     (handler args tag-content render-template rdr)
-    (throw (Exception. (str "unrecognized tag: " tag-name " - did you forget to close a tag?")))))
+    (exception "unrecognized tag: " tag-name " - did you forget to close a tag?")))
 
 ;; Same as a vanilla data tag with a value, but composes
 ;; the filter fns. Like, {{ data-var | upper | safe }}
@@ -143,7 +143,7 @@
            end-tags end-tags]
       (cond
         (and (nil? ch) (not-empty end-tags))
-        (throw (Exception. (str "No closing tag found for " start-tag)))
+        (exception "No closing tag found for " start-tag)
         (nil? ch)
         tags
         (open-tag? ch rdr)

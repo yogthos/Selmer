@@ -83,7 +83,7 @@
 (defn compare-numeric [op value arg-position]
   (let [value (java.lang.Double/parseDouble value)
         op (condp = op ">" > "<" < "=" == ">=" >= "<=" <=
-             (throw (Exception. (str "Unrecognized operator in 'if' statement: " op))))]
+             (exception "Unrecognized operator in 'if' statement: " op))]
     (if (= :first arg-position)
       #(op (java.lang.Double/parseDouble %) value)
       #(op value (java.lang.Double/parseDouble %)))))
@@ -105,7 +105,7 @@
 (defn if-numeric-handler [[p1 p2 p3 p4 :as params] if-tags else-tags render]
   (cond
     (and p4 (not= p1 "not"))
-    (throw (Exception. (str "invalid params for if-tag: " params)))
+    (exception "invalid params for if-tag: " params)
 
     (= "not" p1)
     #(render-if-numeric render true (parse-numeric-params p2 p3 p4) % if-tags else-tags)

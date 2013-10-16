@@ -3,6 +3,9 @@
   (:import java.io.File java.io.StringReader
            java.util.regex.Pattern))
 
+(defn exception [& args]
+  (throw ^java.lang.Exception (Exception. ^String (apply str args))))
+
 (def custom-resource-path (atom nil))
 
 (defn pattern [& content]
@@ -134,4 +137,4 @@
 (defn check-template-exists [^String file-path]
   (when-not (or (in-jar? file-path)
                 (.exists (java.io.File. ^String (decode-path file-path))))
-    (throw (Exception. (str "template: \"" file-path "\" not found")))))
+    (exception "template: \"" file-path "\" not found")))

@@ -13,6 +13,7 @@ You can escape doublequotes inside doublequotes. And you can put colons
 inside doublequotes which will be ignored for the purpose of separating
 arguments."
   (:require [selmer.filters :refer [get-filter]]
+            [selmer.util :refer [exception]]
             [clojure.string :as s]))
 
 ;;; More Utils
@@ -92,7 +93,7 @@ applied filter."
     (if filter
       (fn [x]
         (apply filter x args))
-      (throw (Exception. (str "No filter defined with the name '" filter-name "'"))))))
+      (exception "No filter defined with the name '" filter-name "'"))))
 
 (defn compile-filter-body
   "Turns a string like foo|filter1:x|filter2:y into a fn that expects a
@@ -116,7 +117,7 @@ filter is \"safe\"."
           (fn [acc [filter-str filter]]
             (try (filter acc)
                  (catch Exception e
-                   (throw (Exception. (str "On filter body '" s "' and filter '" filter-str
-                                           "' this error occurred: " (.getMessage e)))))))
+                   (exception
+                     "On filter body '" s "' and filter '" filter-str "' this error occurred: " (.getMessage e)))))
           x
           (map vector filter-strs filters)))))))

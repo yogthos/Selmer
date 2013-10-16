@@ -3,7 +3,8 @@
 The first argument to the fn is always the value obtained from the context
 map. The rest of the arguments are optional and are always strings."
   (:require [clojure.string :as s]
-            [cheshire.core :as json :only [generate-string]])
+            [cheshire.core :as json :only [generate-string]]
+            [selmer.util :refer [exception]])
   (:import [org.joda.time DateTime]
            [org.joda.time.format DateTimeFormat DateTimeFormatter]
            [org.apache.commons.codec.digest DigestUtils]))
@@ -48,14 +49,14 @@ map. The rest of the arguments are optional and are always strings."
                             (instance? java.util.Map x)))
         ^String msg (if msg msg (str "Expected '" (if (nil? x) "nil" (str x)) "' to be a collection of some sort."))]
     (when-not is-seqable
-      (throw (Exception. msg)))))
+      (exception msg))))
 
 ;;; Similar to the above only with numbers
 (defn throw-when-expecting-number
   [x & [msg]]
   (let [^String msg (if msg msg (str "Expected '" (if (nil? x) "nil" (str x)) "' to be a number."))]
     (when-not (number? x)
-      (throw (Exception. msg)))))
+      (exception msg))))
 
 (defonce filters
   (atom

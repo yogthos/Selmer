@@ -5,9 +5,6 @@
        [clojure.set :only [difference]]
        [clojure.java.io :only [reader]]))
 
-(defn exception [& args]
-  (throw ^java.lang.Exception (Exception. ^String (apply str args))))
-
 (defn validate-filters [template line tag-value]
   (let [tag-filters (map
                   #(-> ^String % (.split ":") first keyword)
