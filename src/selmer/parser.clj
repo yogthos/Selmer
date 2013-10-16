@@ -42,15 +42,20 @@
                (str path "/"))]
     (reset! custom-resource-path path)))
 
+(defn set-closing-tags! [& tags]
+  (loop [[tag & tags] tags]
+    (when tag
+      (swap! selmer.tags/closing-tags assoc tag tags)
+      (recur tags))))
+
 ;; add-tag! is a hella nifty macro. Example use:
 ;; (add-tag! :joined (fn [args context-map] (clojure.string/join "," args)))
 (defmacro add-tag!
   " tag name, fn handler, and maybe tags "
   [k handler & tags]
   `(do
-     (swap! selmer.tags/closing-tags assoc ~k ~tags)
+     (set-closing-tags! ~k ~@tags)
      (swap! selmer.tags/expr-tags assoc ~k (tag-handler ~handler ~k ~@tags))))
-
 
 ;; render-template renders at runtime, accepts
 ;; post-parsing vectors of INode elements.

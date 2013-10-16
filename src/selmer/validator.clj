@@ -21,11 +21,6 @@
 (defn close-tags []
   (apply concat (vals @closing-tags)))
 
-(defn handle-closing-tags [tags tag-name]
-  (second (split-with #{tag-name} tags)))
-
-(handle-closing-tags [:else :foo :endif] :else)
-
 (defn valide-tag [template line tags {:keys [tag-name tag-value tag-type] :as tag}]
  (if (= :expr tag-type)
    (let [end-tags (get @closing-tags (-> tags last :tag-name))]
@@ -37,9 +32,8 @@
        (exception "Unrecognized tag: " (name tag-name) " on line " line " for template " template)
 
        (some #{tag-name} (close-tags))
-       (let [tags (butlast tags)]
-         (if
-           (some #{tag-name} end-tags)
+       (let [tags (vec (butlast tags))]
+         (if (some #{tag-name} end-tags)
            (if (= tag-name (last end-tags))
              tags (conj tags (assoc tag :line line)))
            (exception "Orphaned closing tag " tag-name " on line " line " for template " template)))
@@ -69,4 +63,3 @@
              doall
              (apply str "The template contains orphan tags: ")
              exception)))))
-
