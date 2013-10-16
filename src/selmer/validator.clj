@@ -28,7 +28,7 @@
    (let [end-tags (get @closing-tags (-> tags last :tag-name))]
      (cond
        (nil? tag-name)
-       (exception "nN tag name supplied for the tag on line " line " for template " template)
+       (exception "No tag name supplied for the tag on line " line " for template " template)
 
        (not-any? #{tag-name} (concat (close-tags) (keys @expr-tags)))
        (exception "Unrecognized tag: " (name tag-name) " on line " line " for template " template)
