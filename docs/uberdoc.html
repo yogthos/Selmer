@@ -3028,8 +3028,8 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>selmer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">selmer</h1><h2 class="project-version">0.4.4</h2><br /><p>Django templates for Clojure</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">criterium</td><td class="dotted"><hr /></td><td class="dep-version">0.4.1</td></tr><tr><td class="dep-name">joda-time</td><td class="dotted"><hr /></td><td class="dep-version">2.2</td></tr><tr><td class="dep-name">commons-codec</td><td class="dotted"><hr /></td><td class="dep-version">1.6</td></tr><tr><td class="dep-name">sonian/carica</td><td class="dotted"><hr /></td><td class="dep-version">1.0.3</td></tr><tr><td class="dep-name">cheshire</td><td class="dotted"><hr /></td><td class="dep-version">5.2.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#selmer.filter-parser">selmer.filter-parser</a></li><li><a href="#selmer.filters">selmer.filters</a></li><li><a href="#selmer.node">selmer.node</a></li><li><a href="#selmer.parser">selmer.parser</a></li><li><a href="#selmer.tags">selmer.tags</a></li><li><a href="#selmer.template-parser">selmer.template-parser</a></li><li><a href="#selmer.util">selmer.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.filter-parser" name="selmer.filter-parser"><h1 class="project-name">selmer.filter-parser</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Accessors are separated by dots like {{ foo.bar.0 }}
+</script><title>selmer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">selmer</h1><h2 class="project-version">0.4.6</h2><br /><p>Django templates for Clojure</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">criterium</td><td class="dotted"><hr /></td><td class="dep-version">0.4.1</td></tr><tr><td class="dep-name">joda-time</td><td class="dotted"><hr /></td><td class="dep-version">2.2</td></tr><tr><td class="dep-name">commons-codec</td><td class="dotted"><hr /></td><td class="dep-version">1.6</td></tr><tr><td class="dep-name">sonian/carica</td><td class="dotted"><hr /></td><td class="dep-version">1.0.3</td></tr><tr><td class="dep-name">cheshire</td><td class="dotted"><hr /></td><td class="dep-version">5.2.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#selmer.filter-parser">selmer.filter-parser</a></li><li><a href="#selmer.filters">selmer.filters</a></li><li><a href="#selmer.node">selmer.node</a></li><li><a href="#selmer.parser">selmer.parser</a></li><li><a href="#selmer.tags">selmer.tags</a></li><li><a href="#selmer.template-parser">selmer.template-parser</a></li><li><a href="#selmer.util">selmer.util</a></li><li><a href="#selmer.validator">selmer.validator</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.filter-parser" name="selmer.filter-parser"><h1 class="project-name">selmer.filter-parser</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Accessors are separated by dots like {{ foo.bar.0 }}
 which gets translated into (get-in context-map [:foo :bar 0]). So you
 can nest vectors and maps in your context-map.</p>
 
@@ -3044,6 +3044,7 @@ inside doublequotes which will be ignored for the purpose of separating
 arguments.</p>
 </td><td class="codes"><pre class="brush: clojure">(ns selmer.filter-parser
   (:require [selmer.filters :refer [get-filter]]
+            [selmer.util :refer [exception]]
             [clojure.string :as s]))</pre></td></tr><tr><td class="docs"><p>More Utils</p>
 </td><td class="codes"><pre class="brush: clojure">(defn escape-html*
   [^String s]
@@ -3110,7 +3111,7 @@ applied filter.</p>
     (if filter
       (fn [x]
         (apply filter x args))
-      (throw (Exception. (str &quot;No filter defined with the name '&quot; filter-name &quot;'&quot;))))))</pre></td></tr><tr><td class="docs"><p>Turns a string like foo|filter1:x|filter2:y into a fn that expects a
+      (exception &quot;No filter defined with the name '&quot; filter-name &quot;'&quot;))))</pre></td></tr><tr><td class="docs"><p>Turns a string like foo|filter1:x|filter2:y into a fn that expects a
 context-map and will apply the filters one after the other to the value
 from the map. Finally it will escape the end result unless the last
 filter is "safe".</p>
@@ -3131,15 +3132,16 @@ filter is "safe".</p>
           (fn [acc [filter-str filter]]
             (try (filter acc)
                  (catch Exception e
-                   (throw (Exception. (str &quot;On filter body '&quot; s &quot;' and filter '&quot; filter-str
-                                           &quot;' this error occurred: &quot; (.getMessage e)))))))
+                   (exception
+                     &quot;On filter body '&quot; s &quot;' and filter '&quot; filter-str &quot;' this error occurred: &quot; (.getMessage e)))))
           x
           (map vector filter-strs filters)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.filters" name="selmer.filters"><h1 class="project-name">selmer.filters</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>To create a filter use the function add-filter! which takes a name and a fn.
 The first argument to the fn is always the value obtained from the context
 map. The rest of the arguments are optional and are always strings.</p>
 </td><td class="codes"><pre class="brush: clojure">(ns selmer.filters
   (:require [clojure.string :as s]
-            [cheshire.core :as json :only [generate-string]])
+            [cheshire.core :as json :only [generate-string]]
+            [selmer.util :refer [exception]])
   (:import [org.joda.time DateTime]
            [org.joda.time.format DateTimeFormat DateTimeFormatter]
            [org.apache.commons.codec.digest DigestUtils]))</pre></td></tr><tr><td class="docs">
@@ -3181,12 +3183,12 @@ aims to prevent that.</p>
                             (instance? java.util.Map x)))
         ^String msg (if msg msg (str &quot;Expected '&quot; (if (nil? x) &quot;nil&quot; (str x)) &quot;' to be a collection of some sort.&quot;))]
     (when-not is-seqable
-      (throw (Exception. msg)))))</pre></td></tr><tr><td class="docs"><p>Similar to the above only with numbers</p>
+      (exception msg))))</pre></td></tr><tr><td class="docs"><p>Similar to the above only with numbers</p>
 </td><td class="codes"><pre class="brush: clojure">(defn throw-when-expecting-number
   [x &amp; [msg]]
   (let [^String msg (if msg msg (str &quot;Expected '&quot; (if (nil? x) &quot;nil&quot; (str x)) &quot;' to be a number.&quot;))]
     (when-not (number? x)
-      (throw (Exception. msg)))))</pre></td></tr><tr><td class="docs">
+      (exception msg))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defonce filters
   (atom
     {;;; Useful for doing crazy stuff like {{ foo|length-is:3|join:&quot;/&quot; }}
@@ -3483,27 +3485,20 @@ template. Works fine for active local development and production.</p>
                      (.endsWith path &quot;/&quot;))
                path
                (str path &quot;/&quot;))]
-    (reset! custom-resource-path path)))</pre></td></tr><tr><td class="docs"><p>expr-tags are {% if ... %}, {% ifequal ... %},
-{% for ... %}, and {% block blockname %}</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defonce expr-tags
-  (atom {:if if-handler
-         :ifequal ifequal-handler
-         :for for-handler
-         :block block-handler
-         :cycle cycle-handler
-         :now now-handler
-         :comment comment-handler
-         :firstof first-of-handler
-         :verbatim verbatim-handler
-         :with with-handler
-         :script script-handler
-         :style style-handler}))</pre></td></tr><tr><td class="docs"><p>add-tag! is a hella nifty macro. Example use:
+    (reset! custom-resource-path path)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn set-closing-tags! [&amp; tags]
+  (loop [[tag &amp; tags] tags]
+    (when tag
+      (swap! selmer.tags/closing-tags assoc tag tags)
+      (recur tags))))</pre></td></tr><tr><td class="docs"><p> tag name, fn handler, and maybe tags </p>
+
+<p>add-tag! is a hella nifty macro. Example use:
 (add-tag! :joined (fn [args context-map] (clojure.string/join "," args)))</p>
-</td><td class="codes"></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defmacro add-tag! [k handler &amp; tags]
-  &quot; tag name, fn handler, and maybe tags &quot;
-  `(swap! selmer.parser/expr-tags assoc ~k (tag-handler ~handler ~k ~@tags)))</pre></td></tr><tr><td class="docs"><p>render-template renders at runtime, accepts
+</td><td class="codes"><pre class="brush: clojure">(defmacro add-tag!
+  [k handler &amp; tags]
+  `(do
+     (set-closing-tags! ~k ~@tags)
+     (swap! selmer.tags/expr-tags assoc ~k (tag-handler ~handler ~k ~@tags))))</pre></td></tr><tr><td class="docs"><p>render-template renders at runtime, accepts
 post-parsing vectors of INode elements.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn render-template [template context-map]
@@ -3525,25 +3520,27 @@ auto-memoization of compiler output.</p>
   &quot; Parses files if there isn't a memoized post-parse vector ready to go,
   renders post-parse vector with passed context-map regardless. Double-checks
   last-modified on files. Uses classpath for filename path &quot;
-  (let [file-path (.getPath ^java.net.URL (resource-path filename))
-        {:keys [template last-modified]} (get @templates filename)
-        last-modified-file (if (in-jar? file-path)
-                             -1 ;;can't check last modified inside a jar
-                             (.lastModified (java.io.File. ^String file-path)))]
-    (check-template-exists file-path)
-    (if (and @cache? last-modified (= last-modified last-modified-file))
-      (render-template template context-map)
-      (let [template (parse parse-file filename opts)]
-        (swap! templates assoc filename {:template template
-                                         :last-modified last-modified-file})
-        (render-template template context-map)))))</pre></td></tr><tr><td class="docs"><p>For a given tag, get the fn handler for the tag type,
+  (if-let [resource (resource-path filename)]
+    (let [file-path (.getPath ^java.net.URL resource)
+          {:keys [template last-modified]} (get @templates filename)
+          last-modified-file (if (in-jar? file-path)
+                               -1 ;;can't check last modified inside a jar
+                               (.lastModified (java.io.File. ^String file-path)))]
+      (check-template-exists file-path)
+      (if (and @cache? last-modified (= last-modified last-modified-file))
+        (render-template template context-map)
+        (let [template (parse parse-file filename opts)]
+          (swap! templates assoc filename {:template template
+                                           :last-modified last-modified-file})
+          (render-template template context-map))))
+    (exception &quot;resource-path for &quot; filename &quot; returned nil, typically means the file doesn't exist in your classpath.&quot;)))</pre></td></tr><tr><td class="docs"><p>For a given tag, get the fn handler for the tag type,
 pass it the arguments, tag-content, render-template fn,
 and reader.</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn expr-tag [{:keys [tag-name args] :as tag} rdr]
   (if-let [handler (tag-name @expr-tags)]
     (handler args tag-content render-template rdr)
-    (throw (Exception. (str &quot;unrecognized tag: &quot; tag-name &quot; - did you forget to close a tag?&quot;)))))</pre></td></tr><tr><td class="docs"><p>Same as a vanilla data tag with a value, but composes
+    (exception &quot;unrecognized tag: &quot; tag-name &quot; - did you forget to close a tag?&quot;)))</pre></td></tr><tr><td class="docs"><p>Same as a vanilla data tag with a value, but composes
 the filter fns. Like, {{ data-var | upper | safe }}
 (-> {:data-var "woohoo"} upper safe) => "WOOHOO"
 Happens at compile-time.</p>
@@ -3577,7 +3574,7 @@ true or false based on character lookahead to see if it's {{ or {%</p>
            end-tags end-tags]
       (cond
         (and (nil? ch) (not-empty end-tags))
-        (throw (Exception. (str &quot;No closing tag found for &quot; start-tag)))
+        (exception &quot;No closing tag found for &quot; start-tag)
         (nil? ch)
         tags
         (open-tag? ch rdr)
@@ -3723,7 +3720,7 @@ take care of its compilation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn compare-numeric [op value arg-position]
   (let [value (java.lang.Double/parseDouble value)
         op (condp = op &quot;&gt;&quot; &gt; &quot;&lt;&quot; &lt; &quot;=&quot; == &quot;&gt;=&quot; &gt;= &quot;&lt;=&quot; &lt;=
-             (throw (Exception. (str &quot;Unrecognized operator in 'if' statement: &quot; op))))]
+             (exception &quot;Unrecognized operator in 'if' statement: &quot; op))]
     (if (= :first arg-position)
       #(op (java.lang.Double/parseDouble %) value)
       #(op value (java.lang.Double/parseDouble %)))))</pre></td></tr><tr><td class="docs">
@@ -3742,7 +3739,7 @@ take care of its compilation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn if-numeric-handler [[p1 p2 p3 p4 :as params] if-tags else-tags render]
   (cond
     (and p4 (not= p1 &quot;not&quot;))
-    (throw (Exception. (str &quot;invalid params for if-tag: &quot; params)))
+    (exception &quot;invalid params for if-tag: &quot; params)
     (= &quot;not&quot; p1)
     #(render-if-numeric render true (parse-numeric-params p2 p3 p4) % if-tags else-tags)
     :else
@@ -3835,7 +3832,32 @@ take care of its compilation.</p>
       (let [cur-i (aget i 0)
             val   (fields cur-i)]
         (aset i 0 (if (&lt; cur-i length) (inc cur-i) 0))
-        val))))</pre></td></tr><tr><td class="docs"><p>helpers for custom tag definition</p>
+        val))))</pre></td></tr><tr><td class="docs"><p>expr-tags are {% if ... %}, {% ifequal ... %},
+{% for ... %}, and {% block blockname %}</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defonce expr-tags
+  (atom {:if if-handler
+         :ifequal ifequal-handler
+         :for for-handler
+         :block block-handler
+         :cycle cycle-handler
+         :now now-handler
+         :comment comment-handler
+         :firstof first-of-handler
+         :verbatim verbatim-handler
+         :with with-handler
+         :script script-handler
+         :style style-handler
+         :extends nil
+         :include nil}))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defonce closing-tags
+ (atom {:if       [:else :endif]
+        :else     [:endif]
+        :ifequal  [:else :endifequal]
+        :block    [:endblock]
+        :for      [:endfor]
+        :comment  [:endcomment]
+        :verbatim [:endverbatim]}))</pre></td></tr><tr><td class="docs"><p>helpers for custom tag definition</p>
 </td><td class="codes"><pre class="brush: clojure">(defn render-tags [context-map tags]
   (into {}
     (for [[tag content] tags]
@@ -3858,7 +3880,8 @@ take care of its compilation.</p>
 </td><td class="codes"><pre class="brush: clojure">(ns selmer.template-parser
   (:require [clojure.java.io :refer [reader]]
             [selmer.util :refer :all]
-            [clojure.string :refer [split trim]])
+            [clojure.string :refer [split trim]]
+            [selmer.validator :as validator])
   (:import java.io.StringReader))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(declare consume-block preprocess-template)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn get-tag-params [tag-id block-str]
@@ -3873,6 +3896,10 @@ take care of its compilation.</p>
          (into {}))))</pre></td></tr><tr><td class="docs"><p>parse any included templates and splice them in replacing the include tags</p>
 </td><td class="codes"><pre class="brush: clojure">(defn insert-includes
   [template]
+  ;; We really need to split out the &quot;gather all parent templates recursively&quot;
+  ;; and separate that from the buffer appending so we can gather the template
+  ;; hierarchy for smarter cache invalidation - will eliminate almost all
+  ;; existing reasons for cache-off!
   (-&gt;buf [buf]
     (with-open [rdr (reader (StringReader. template))]
     (loop [ch (read-char rdr)]
@@ -3974,8 +4001,11 @@ take care of its compilation.</p>
     (if-let [value (get defaults tag-name)]
       (str *tag-open* *filter-open* tag-name &quot;|default:\ value &quot;\ *filter-close* *tag-close*)
       tag-str)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn get-template-path [template]
+  (.getPath ^java.net.URL (resource-path template)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn read-template [template blocks defaults]
-  (check-template-exists (.getPath ^java.net.URL (resource-path template)))
+  (validator/validate (get-template-path template))
+  (check-template-exists (get-template-path template))
   (let [buf (StringBuilder.)
         [parent blocks]
         (with-open [rdr (reader (resource-path template))]
@@ -4022,6 +4052,8 @@ take care of its compilation.</p>
   (:require [clojure.java.io :as io])
   (:import java.io.File java.io.StringReader
            java.util.regex.Pattern))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn exception [&amp; args]
+  (throw ^java.lang.Exception (Exception. ^String (apply str args))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def custom-resource-path (atom nil))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn pattern [&amp; content]
   (re-pattern (apply str content)))</pre></td></tr><tr><td class="docs">
@@ -4058,7 +4090,7 @@ take care of its compilation.</p>
                          (= *tag-close* ch2)))
         (.append buf ch1)
         (recur ch2 (read-char rdr))))
-    (let [content (-&gt;&gt; (.toString buf) 
+    (let [content (-&gt;&gt; (.toString buf)
                        (re-seq #&quot;(?:[^\s\&quot;]|\&quot;[^\&quot;]*\&quot;)+&quot;)
                        (remove empty?)
                        (map (fn [^String s] (.trim s))))]
@@ -4119,7 +4151,7 @@ take care of its compilation.</p>
       (.contains file-path &quot;jar!/&quot;))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def decode-path
   (memoize
-    (fn [file-path]      
+    (fn [file-path]
       (java.net.URLDecoder/decode file-path &quot;utf-8&quot;))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn resource-path [template]
   (if-let [path @custom-resource-path]
@@ -4130,5 +4162,73 @@ take care of its compilation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn check-template-exists [^String file-path]
   (when-not (or (in-jar? file-path)
                 (.exists (java.io.File. ^String (decode-path file-path))))
-    (throw (Exception. (str &quot;template: \ file-path &quot;\&quot; not found&quot;)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+    (exception &quot;template: \ file-path &quot;\&quot; not found&quot;)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.validator" name="selmer.validator"><h1 class="project-name">selmer.validator</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns selmer.validator
+ (:use selmer.tags
+       selmer.filters
+       selmer.util
+       [clojure.set :only [difference]]
+       [clojure.java.io :only [reader]]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def validate? (atom true))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn validate-on! [] (reset! validate? true))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn validate-off! [] (reset! validate? false))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn format-tag [{:keys [tag-name tag-value tag-type args]}]
+  (condp = tag-type
+    :expr (str *tag-open* *tag-second* &quot; &quot; (name tag-name) &quot; &quot; (apply str args) &quot; &quot; *tag-second* *tag-close*)
+    :filter (str *filter-open* *tag-second* (name tag-value) *tag-second* *filter-close*)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn validate-filters [template line {:keys [tag-value] :as tag}]
+  (let [tag-filters (map
+                  #(-&gt; ^String % (.split &quot;:&quot;) first keyword)
+                  (-&gt; tag-value name (.split &quot;\\|&quot;) rest))]
+    (if-not (empty? (difference (set tag-filters) (set (keys @filters))))
+      (exception &quot;Unrecognized filter &quot; tag-value &quot; in tag &quot; (format-tag tag) &quot; on line &quot; line &quot; for template &quot; template))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn close-tags []
+  (apply concat (vals @closing-tags)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn valide-tag [template line tags {:keys [tag-name args tag-value tag-type] :as tag}]
+ (condp = tag-type
+   :expr
+   (let [last-tag (last tags)
+         end-tags (get @closing-tags (:tag-name last-tag))]
+     (doseq [arg args] (validate-filters template line (assoc tag :tag-value arg)))
+     (cond
+       (nil? tag-name)
+       (exception &quot;No tag name supplied for the tag on line &quot; line &quot; for template &quot; template)
+       (not-any? #{tag-name} (concat (close-tags) (keys @expr-tags)))
+       (exception &quot;Unrecognized tag: &quot; (format-tag tag) &quot; on line &quot; line &quot; for template &quot; template)
+       ;; check if we have closing tag
+       ;; handle the case where it's an intermediate tag
+       ;; throw an exception if it doesn't belong to the last open tag
+       (some #{tag-name} (close-tags))
+       (let [tags (vec (butlast tags))]
+         (if (some #{tag-name} end-tags)
+           (if (= tag-name (last end-tags))
+             tags (conj tags (assoc tag :line line)))
+           (exception
+             &quot;Orphaned closing tag &quot; (format-tag tag) &quot; on line &quot; line
+             &quot;, tag &quot; (format-tag last-tag) &quot; on line &quot; (:line last-tag) &quot; was not closed &quot;
+             &quot;for template &quot; template)))
+       (get @closing-tags tag-name)
+       (conj tags (assoc tag :line line))
+       (some #{tag-name} (close-tags))
+       (exception &quot;Orphan closing tag &quot; (format-tag tag) &quot; on line &quot; line &quot; for template &quot; template)
+       :else tags))
+   :filter
+   (do (validate-filters template line tag) tags)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn validate-tags [template]
+ (with-open [rdr (reader template)]
+   (loop [tags [], ch (read-char rdr), line 1]
+     (if ch
+       (if (open-tag? ch rdr)
+         (recur (valide-tag template line tags (read-tag-info rdr)) (read-char rdr) line)
+         (recur tags (read-char rdr) (if (= \newline ch) (inc line) line)))
+       tags))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn validate [template]
+  (when @validate?
+    (let [orphan-tags (validate-tags template)]
+      (when-not (empty? orphan-tags)
+        (-&gt;&gt; (validate-tags template)
+             (map (fn [{:keys [tag-name line]}] (str &quot;\n&quot; tag-name &quot; on line &quot; line)))
+             doall
+             (apply str &quot;The template contains orphan tags: &quot;)
+             exception)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
        SyntaxHighlighter.all()</script></body></html>
