@@ -26,10 +26,12 @@
 (defn close-tags []
   (apply concat (vals @closing-tags)))
 
-(defn valide-tag [template line tags {:keys [tag-name tag-value tag-type] :as tag}]
+(defn valide-tag [template line tags {:keys [tag-name args tag-value tag-type] :as tag}]
  (condp = tag-type
    :expr
-   (let [end-tags (get @closing-tags (-> tags last :tag-name))]
+   (let [last-tag (last tags)
+         end-tags (get @closing-tags (:tag-name last-tag))]
+     (doseq [arg args] (validate-filters template line (assoc tag :tag-value arg)))
      (cond
        (nil? tag-name)
        (exception "No tag name supplied for the tag on line " line " for template " template)
@@ -45,7 +47,10 @@
          (if (some #{tag-name} end-tags)
            (if (= tag-name (last end-tags))
              tags (conj tags (assoc tag :line line)))
-           (exception "Orphaned closing tag " (format-tag tag) " on line " line " for template " template)))
+           (exception
+             "Orphaned closing tag " (format-tag tag) " on line " line
+             ", tag " (format-tag last-tag) " on line " (:line last-tag) " was not closed "
+             "for template " template)))
 
        (get @closing-tags tag-name)
        (conj tags (assoc tag :line line))
