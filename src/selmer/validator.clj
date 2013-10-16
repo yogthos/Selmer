@@ -70,5 +70,3 @@
              (apply str "The template contains orphan tags: ")
              exception)))))
 
-
-(validate (.getAbsolutePath (java.io.File. "test/templates/validation-test.html")))
