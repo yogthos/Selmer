@@ -49,7 +49,7 @@
         (.append buf ch1)
         (recur ch2 (read-char rdr))))
 
-    (let [content (->> (.toString buf) 
+    (let [content (->> (.toString buf)
                        (re-seq #"(?:[^\s\"]|\"[^\"]*\")+")
                        (remove empty?)
                        (map (fn [^String s] (.trim s))))]
@@ -121,7 +121,7 @@
 
 (def decode-path
   (memoize
-    (fn [file-path]      
+    (fn [file-path]
       (java.net.URLDecoder/decode file-path "utf-8"))))
 
 (defn resource-path [template]

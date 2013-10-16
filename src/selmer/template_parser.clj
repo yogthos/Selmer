@@ -5,7 +5,8 @@
   composed from the result of `extends` inheritance and `include` mixins. "
   (:require [clojure.java.io :refer [reader]]
             [selmer.util :refer :all]
-            [clojure.string :refer [split trim]])
+            [clojure.string :refer [split trim]]
+            [selmer.validator :as validator])
   (:import java.io.StringReader))
 
 (declare consume-block preprocess-template)
@@ -139,8 +140,12 @@
       (str *tag-open* *filter-open* tag-name "|default:\"" value "\"" *filter-close* *tag-close*)
       tag-str)))
 
+(defn get-template-path [template]
+  (.getPath ^java.net.URL (resource-path template)))
+
 (defn read-template [template blocks defaults]
-  (check-template-exists (.getPath ^java.net.URL (resource-path template)))
+  (validator/validate (get-template-path template))
+  (check-template-exists (get-template-path template))
   (let [buf (StringBuilder.)
         [parent blocks]
         (with-open [rdr (reader (resource-path template))]

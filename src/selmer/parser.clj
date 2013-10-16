@@ -42,29 +42,15 @@
                (str path "/"))]
     (reset! custom-resource-path path)))
 
-;; expr-tags are {% if ... %}, {% ifequal ... %},
-;; {% for ... %}, and {% block blockname %}
-
-(defonce expr-tags
-  (atom {:if if-handler
-         :ifequal ifequal-handler
-         :for for-handler
-         :block block-handler
-         :cycle cycle-handler
-         :now now-handler
-         :comment comment-handler
-         :firstof first-of-handler
-         :verbatim verbatim-handler
-         :with with-handler
-         :script script-handler
-         :style style-handler}))
-
 ;; add-tag! is a hella nifty macro. Example use:
 ;; (add-tag! :joined (fn [args context-map] (clojure.string/join "," args)))
-
-(defmacro add-tag! [k handler & tags]
+(defmacro add-tag!
   " tag name, fn handler, and maybe tags "
-  `(swap! selmer.parser/expr-tags assoc ~k (tag-handler ~handler ~k ~@tags)))
+  [k handler & tags]
+  `(do
+     (swap! selmer.tags/closing-tags assoc ~k ~tags)
+     (swap! selmer.tags/expr-tags assoc ~k (tag-handler ~handler ~k ~@tags))))
+
 
 ;; render-template renders at runtime, accepts
 ;; post-parsing vectors of INode elements.

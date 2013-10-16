@@ -216,6 +216,34 @@
         (aset i 0 (if (< cur-i length) (inc cur-i) 0))
         val))))
 
+;; expr-tags are {% if ... %}, {% ifequal ... %},
+;; {% for ... %}, and {% block blockname %}
+
+(defonce expr-tags
+  (atom {:if if-handler
+         :ifequal ifequal-handler
+         :for for-handler
+         :block block-handler
+         :cycle cycle-handler
+         :now now-handler
+         :comment comment-handler
+         :firstof first-of-handler
+         :verbatim verbatim-handler
+         :with with-handler
+         :script script-handler
+         :style style-handler
+         :extends nil
+         :include nil}))
+
+(defonce closing-tags
+ (atom {:if       [:else :endif]
+        :else     [:endif]
+        :ifequal  [:else :endifequal]
+        :block    [:endblock]
+        :for      [:endfor]
+        :comment  [:endcomment]
+        :verbatim [:endverbatim]}))
+
 ;;helpers for custom tag definition
 (defn render-tags [context-map tags]
   (into {}
