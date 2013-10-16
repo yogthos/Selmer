@@ -18,15 +18,15 @@
 (defn close-tags []
   (apply concat (vals @closing-tags)))
 
-(defn valide-tag [line tags {:keys [tag-name tag-value tag-type] :as tag}]
+(defn valide-tag [template line tags {:keys [tag-name tag-value tag-type] :as tag}]
  (if (= :expr tag-type)
    (let [end-tags (get @closing-tags (-> tags last :tag-name))]
      (cond
        (nil? tag-name)
-       (exception "no tag name supplied for the tag on line " line)
+       (exception "no tag name supplied for the tag on line " line " for template " template)
 
        (not-any? #{tag-name} (concat (close-tags) (keys @expr-tags)))
-       (exception "unrecognized tag: " (name tag-name) " on line " line)
+       (exception "unrecognized tag: " (name tag-name) " on line " line " for template " template)
 
        (some #{tag-name} (close-tags))
        (let [tags (butlast tags)]
@@ -37,7 +37,7 @@
        (conj tags (assoc tag :line line))
 
        (some #{tag-name} (close-tags))
-       (exception "found an orphan closing tag " tag-name " on line " line)))
+       (exception "found an orphan closing tag " tag-name " on line " line  " for template " template)))
    (do (validate-filters line tag-value) tags)))
 
 (defn validate-tags [template]
@@ -45,7 +45,7 @@
    (loop [tags [], ch (read-char rdr), line 1]
      (if ch
        (if (open-tag? ch rdr)
-         (recur (valide-tag line tags (read-tag-info rdr)) (read-char rdr) line)
+         (recur (valide-tag template line tags (read-tag-info rdr)) (read-char rdr) line)
          (recur tags (read-char rdr) (if (= \newline ch) (inc line) line)))
        tags))))
 
