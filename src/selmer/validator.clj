@@ -48,9 +48,7 @@
            (if (= tag-name (last end-tags))
              tags (conj tags (assoc tag :line line)))
            (exception
-             "Orphaned closing tag " (format-tag tag) " on line " line
-             ", tag " (format-tag last-tag) " on line " (:line last-tag) " was not closed "
-             "for template " template)))
+             "Tag " (format-tag last-tag)" was not closed on line " (:line last-tag) "for template " template)))
 
        (get @closing-tags tag-name)
        (conj tags (assoc tag :line line))
