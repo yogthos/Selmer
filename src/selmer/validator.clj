@@ -45,7 +45,7 @@
        (some #{tag-name} (close-tags))
        (let [tags (vec (butlast tags))]
          (if (some #{tag-name} end-tags)
-           (if (get @closing-tags tag-name)
+           (if (not-empty (get @closing-tags tag-name))
              (conj tags (assoc tag :line line)) tags)
            (exception
              "Tag " (format-tag last-tag)" was not closed on line " (:line last-tag) " for template " template)))
