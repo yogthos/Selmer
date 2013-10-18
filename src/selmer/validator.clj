@@ -13,7 +13,7 @@
 
 (defn format-tag [{:keys [tag-name tag-value tag-type args]}]
   (condp = tag-type
-    :expr (str *tag-open* *tag-second* " " (name tag-name) " " (apply str args) " " *tag-second* *tag-close*)
+    :expr (str *tag-open* *tag-second* " " (name tag-name) " " (if args (str (apply str args) " ")) *tag-second* *tag-close*)
     :filter (str *filter-open* *tag-second* (name tag-value) *tag-second* *filter-close*)))
 
 (defn validate-filters [template line {:keys [tag-value] :as tag}]
@@ -45,10 +45,10 @@
        (some #{tag-name} (close-tags))
        (let [tags (vec (butlast tags))]
          (if (some #{tag-name} end-tags)
-           (if (= tag-name (last end-tags))
-             tags (conj tags (assoc tag :line line)))
+           (if (get @closing-tags tag-name)
+             (conj tags (assoc tag :line line)) tags)
            (exception
-             "Tag " (format-tag last-tag)" was not closed on line " (:line last-tag) "for template " template)))
+             "Tag " (format-tag last-tag)" was not closed on line " (:line last-tag) " for template " template)))
 
        (get @closing-tags tag-name)
        (conj tags (assoc tag :line line))
@@ -74,7 +74,8 @@
     (let [orphan-tags (validate-tags template)]
       (when-not (empty? orphan-tags)
         (->> (validate-tags template)
-             (map (fn [{:keys [tag-name line]}] (str "\n" tag-name " on line " line)))
+             (map (fn [{:keys [tag-name line] :as tag}] (str (format-tag tag) " on line " line)))
+             (interpose ", ")
              doall
              (apply str "The template contains orphan tags: ")
              exception)))))

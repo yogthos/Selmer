@@ -237,7 +237,7 @@
 
 (defonce closing-tags
  (atom {:if       [:else :endif]
-        :else     [:endif]
+        :else     [:endif :endifequal]
         :ifequal  [:else :endifequal]
         :block    [:endblock]
         :for      [:endfor]

@@ -42,10 +42,13 @@
                (str path "/"))]
     (reset! custom-resource-path path)))
 
+(defn update-tag [tag-map tag tags]
+  (assoc tag-map tag (concat (get tag-map tag) tags)))
+
 (defn set-closing-tags! [& tags]
   (loop [[tag & tags] tags]
     (when tag
-      (swap! selmer.tags/closing-tags assoc tag tags)
+      (swap! selmer.tags/closing-tags update-tag tag tags)
       (recur tags))))
 
 ;; add-tag! is a hella nifty macro. Example use:
