@@ -50,7 +50,7 @@
            (exception
              "Tag " (format-tag last-tag)" was not closed on line " (:line last-tag) " for template " template)))
 
-       (get @closing-tags tag-name)
+       (not-empty (get @closing-tags tag-name))
        (conj tags (assoc tag :line line))
 
        (some #{tag-name} (close-tags))
