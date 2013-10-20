@@ -148,7 +148,7 @@
   (.getPath ^java.net.URL (resource-path template)))
 
 (defn read-template [template blocks defaults]
-  (validator/validate (get-template-path template))
+  (validator/validate (resource-path template))
   (check-template-exists (get-template-path template))
   (let [buf (StringBuilder.)
         [parent blocks]
