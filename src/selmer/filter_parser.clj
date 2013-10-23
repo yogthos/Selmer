@@ -118,6 +118,6 @@ filter is \"safe\"."
             (try (filter acc)
                  (catch Exception e
                    (exception
-                     "On filter body '" s "' and filter '" filter-str "' this error occurred: " (.getMessage e)))))
+                     "On filter body '" s "' and filter '" filter-str "' this error occurred:" (.getMessage e)))))
           x
           (map vector filter-strs filters)))))))

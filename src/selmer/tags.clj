@@ -49,7 +49,7 @@
 
 (defn render-if [render context-map condition first-block second-block]
   (render
-    (cond 
+    (cond
       (and condition first-block)
       (:content first-block)
 
@@ -124,7 +124,7 @@
         if-tags else-tags))))
 
 (defn if-handler [params tag-content render rdr]
-  (let [{if-tags :if else-tags :else} (tag-content rdr :if :else :endif)] 
+  (let [{if-tags :if else-tags :else} (tag-content rdr :if :else :endif)]
     (cond
       (some #{"any" "all"} (take 2 params))
       (let [[not? op] (if (= "not" (first params))
@@ -140,7 +140,7 @@
 (defn ifequal-handler [args tag-content render rdr]
   (let [tags (tag-content rdr :ifequal :else :endifequal)
         args (for [^String arg args]
-               (if (= \" (first arg)) 
+               (if (= \" (first arg))
                  (.substring arg 1 (dec (.length arg)))
                  (compile-filter-body arg)))]
     (fn [context-map]
@@ -156,8 +156,8 @@
     ((:date @filters) (java.util.Date.) (clojure.string/join " " args))))
 
 (defn comment-handler [args tag-content render rdr]
-  (let [content (tag-content rdr :comment :endcomment)]    
-    (fn [_] 
+  (let [content (tag-content rdr :comment :endcomment)]
+    (fn [_]
       (render (filter (partial instance? selmer.node.TextNode) content) {}))))
 
 (defn first-of-handler [args _ _ _]
@@ -248,7 +248,7 @@
 (defn render-tags [context-map tags]
   (into {}
     (for [[tag content] tags]
-      [tag 
+      [tag
        (update-in content [:content]
          (fn [^selmer.node.INode node]
            (apply str (map #(.render-node ^selmer.node.INode % context-map) node))))])))

@@ -179,7 +179,7 @@
         (loop [ch (read-char rdr)]
           (when ch
             (if (open-tag? ch rdr)
-              (do                
+              (do
                 ;; We hit a tag so we append the buffer content to the template
                 ;; and empty the buffer, then we proceed to parse the tag
                 (conj! template (TextNode. (.toString buf)))

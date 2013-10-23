@@ -3,8 +3,10 @@
   (:import java.io.File java.io.StringReader
            java.util.regex.Pattern))
 
-(defn exception [& args]
-  (throw ^java.lang.Exception (Exception. ^String (apply str args))))
+(defmacro exception [& [param & more :as params]]
+ (if (class? param)
+   `(throw (new ~param (str ~@more)))
+   `(throw (Exception. (str ~@params)))))
 
 (def custom-resource-path (atom nil))
 
@@ -76,7 +78,7 @@
 (defn read-tag-content [rdr]
   (->buf [buf]
     (let [filter? (not= *tag-second* (peek-rdr rdr))]
-      (.append buf *tag-open*)      
+      (.append buf *tag-open*)
       (loop [ch (read-char rdr)]
         (.append buf ch)
         (when (not= *tag-close* ch)
@@ -85,7 +87,7 @@
         (.append buf (read-char rdr))))))
 
 (defn open-tag? [ch rdr]
-  (and (= *tag-open* ch) 
+  (and (= *tag-open* ch)
        (let [next-ch (peek-rdr rdr)]
          (or (= *filter-open* next-ch)
              (= *tag-second* next-ch)))))
@@ -101,7 +103,7 @@
 
         (and open? (= ch \"))
         (let [value (.trim (.toString buf))]
-          (.setLength buf 0)          
+          (.setLength buf 0)
           (recur (conj items value) (read-char rdr) false))
 
         (= ch \")
@@ -114,10 +116,10 @@
 
         :else
         (do
-          (.append buf ch) 
+          (.append buf ch)
           (recur items (read-char rdr) open?))))))
 
-(def in-jar? 
+(def in-jar?
   (memoize
     (fn [^String file-path]
       (.contains file-path "jar!/"))))
@@ -129,7 +131,7 @@
 
 (defn resource-path [template]
   (if-let [path @custom-resource-path]
-    (java.net.URL. (str "file:///" path template)) 
+    (java.net.URL. (str "file:///" path template))
     (-> (Thread/currentThread)
         (.getContextClassLoader)
         (.getResource template))))

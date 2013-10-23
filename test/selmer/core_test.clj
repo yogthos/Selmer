@@ -19,8 +19,8 @@
                   (fn [args context-map content]
                     (get-in content [:foo :content]))
                   :foo :endfoo)]
-    (is 
-      (= "some bar content" 
+    (is
+      (= "some bar content"
          (render-template (parse parse-input (java.io.StringReader. "{% foo %}some {{bar}} content{% endfoo %}")
                         {:custom-tags {:foo handler}}) {:bar "bar"}))))
 
@@ -116,7 +116,7 @@
                {:foo [1 2 3]}
                {:tag-open \[
                 :tag-close \]})))
-  
+
   (is
     (= "Base template.\n\n\t\n<p></p>\n\n\n"
        (render-file "templates/child-custom.html"
@@ -151,7 +151,7 @@
 
 (deftest test-with
   (is
-    (= "5 employees" 
+    (= "5 employees"
        (render "{% with total=business.employees|count %}{{ total }} employee{{ business.employees|pluralize }}{% endwith %}"
                {:business {:employees (range 5)}})))
   (is
@@ -181,13 +181,13 @@
   (is
     (= "1234567890"
        (render-template
-         (parse parse-input (java.io.StringReader. 
-                  "{% for item in list %}{% for i in item.items %}{{i}}{% endfor %}{% endfor %}")) 
+         (parse parse-input (java.io.StringReader.
+                  "{% for item in list %}{% for i in item.items %}{{i}}{% endfor %}{% endfor %}"))
          {:list [{:items [1 2 3]} {:items [4 5 6]} {:items [7 8 9 0]}]})))
 (is (= "bob"
        (render-template
-         (parse parse-input (java.io.StringReader. 
-                  "{% for item in list.items %}{{item.name}}{% endfor %}")) 
+         (parse parse-input (java.io.StringReader.
+                  "{% for item in list.items %}{{item.name}}{% endfor %}"))
          {:list {:items [{:name "bob"}]}})))
 (is (= (render "{% for ele in foo %}<<{{ele}}>>{%endfor%}"
                  {:foo [1 2 3]})
@@ -267,7 +267,7 @@
        (render-template (parse parse-input (str path "if.html")) {:nested "x" :inner "y"})))
   (is
     (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"foo\"\n\n\n"
-       (render-template (parse parse-input (str path "if.html")) {:user-id "bob"})))  
+       (render-template (parse parse-input (str path "if.html")) {:user-id "bob"})))
   (is
     (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"bar\"\n\n\n"
        (render-template (parse parse-input (str path "if.html")) {:foo false})))
@@ -354,7 +354,7 @@
                   :bar true})
          "before bar foo & bar are true after bar")))
 
-(deftest ifequal-tag-test  
+(deftest ifequal-tag-test
   (= "\n<h1>equal!</h1>\n\n\n\n<p>not equal</p>\n"
      (render-template (parse parse-input (str path "ifequal.html")) {:foo "bar"}))
   (= "\n\n<h1>equal!</h1>\n\n\n<p>not equal</p>\n"
@@ -519,7 +519,7 @@
 
 (deftest safe-filter
   (add-filter! :foo  (fn [x] [:safe (.toUpperCase x)]))
-  (is 
+  (is
     (= "<DIV>I'M SAFE</DIV>"
        (render "{{x|foo}}" {:x "<div>I'm safe</div>"})))
   (add-filter! :bar #(.toUpperCase %))
