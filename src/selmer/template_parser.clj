@@ -7,7 +7,7 @@
             [selmer.util :refer :all]
             [clojure.string :refer [split trim]]
             [selmer.validator :as validator])
-  (:import java.io.StringReader))
+  (:import [java.io File StringReader]))
 
 (declare consume-block preprocess-template)
 
@@ -38,7 +38,7 @@
           (let [tag-str (read-tag-content rdr)]
             (.append buf 
               (if (re-matches *include-pattern* tag-str)
-                (let [params   (seq (.split ^String (get-tag-params #"[^/]include" tag-str) " "))
+                (let [params   (seq (.split ^String (get-tag-params (re-pattern (str "[^" File/separator "]include")) tag-str) " "))
                       source   (.replaceAll ^String (first params) "\"" "")
                       defaults (parse-defaults (nnext params))]
                   (preprocess-template source {} defaults))

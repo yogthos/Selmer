@@ -87,6 +87,8 @@
     (is
       (= "Base template.\n\n\t\n<p></p>\n\n\n"
          (render-file "templates/child.html" {})))
+    (is (= "base tempate hello"
+           (render-file "templates/inheritance/include-snippet.html" {})))
     (is
       (= "Base template.\n\n\t\n<p>blah</p>\n\n\n"
          (render-file "templates/child.html" {:content "blah"})))
