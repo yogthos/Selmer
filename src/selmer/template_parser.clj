@@ -38,7 +38,7 @@
           (let [tag-str (read-tag-content rdr)]
             (.append buf 
               (if (re-matches *include-pattern* tag-str)
-                (let [params   (seq (.split ^String (get-tag-params #"include" tag-str) " "))
+                (let [params   (seq (.split ^String (get-tag-params #"[^/]include" tag-str) " "))
                       source   (.replaceAll ^String (first params) "\"" "")
                       defaults (parse-defaults (nnext params))]
                   (preprocess-template source {} defaults))
