@@ -175,6 +175,15 @@
                     "<ul>")
                {})))
   (is
+    (= "1,2,a;3,4,;"
+       (render "{% for a, b, c in items %}{{a}},{{b}},{{c}};{% endfor %}" {:items [[1 2 "a" "b"] [3 4]]})))
+  (is
+    (= "1,2,a;3,4,;"
+      (render "{% for a,b, c in items %}{{a}},{{b}},{{c}};{% endfor %}" {:items [[1 2 "a" "b"] [3 4]]})))
+  (is
+    (= "[1 2 &quot;a&quot; &quot;b&quot;],,;[3 4],,;"
+      (render "{% for a in items %}{{a}},{{b}},{{c}};{% endfor %}" {:items [[1 2 "a" "b"] [3 4]]})))
+  (is
     (= "a,bc,d"
        (render "{% for x,y in items %}{{x}},{{y}}{% endfor %}" {:items [["a" "b"] ["c" "d"]]})))
   (is (= "" (render "{% for i in items %}{{i}}{% endfor %}" {})))

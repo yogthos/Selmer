@@ -18,11 +18,18 @@
       (fn [m [path value]] (assoc-in m path value))
       context-map (map vector ids value))))
 
-(defn for-handler [[^String id _ ^String items] tag-content render rdr]
+(defn aggregate-args [args]
+  (->> args
+       (map #(.split ^String % ","))
+       (apply concat)
+       (split-with (partial not= "in"))))
+
+(defn for-handler [args #_[^String id _ ^String items] tag-content render rdr]
   (let [content (tag-content rdr :for :empty :endfor)
         for-content (get-in content [:for :content])
         empty-content (get-in content [:empty :content])
-        ids (map parse-arg (clojure.string/split id #",[\space]*"))
+        [ids [_ items]] (aggregate-args args)
+        ids (map parse-arg ids)
         item-keys (parse-arg items)]
     (fn [context-map]
       (let [buf (StringBuilder.)
