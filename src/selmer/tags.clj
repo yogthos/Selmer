@@ -22,7 +22,7 @@
   (let [content (tag-content rdr :for :empty :endfor)
         for-content (get-in content [:for :content])
         empty-content (get-in content [:empty :content])
-        ids (map parse-arg (.split id ","))
+        ids (map parse-arg (clojure.string/split id #",[\space]*"))
         item-keys (parse-arg items)]
     (fn [context-map]
       (let [buf (StringBuilder.)
