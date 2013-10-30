@@ -24,7 +24,7 @@
        (apply concat)
        (split-with (partial not= "in"))))
 
-(defn for-handler [args #_[^String id _ ^String items] tag-content render rdr]
+(defn for-handler [args tag-content render rdr]
   (let [content (tag-content rdr :for :empty :endfor)
         for-content (get-in content [:for :content])
         empty-content (get-in content [:empty :content])
