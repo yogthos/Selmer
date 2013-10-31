@@ -65,9 +65,10 @@
    (loop [tags [], ch (read-char rdr), line 1]
      (if ch
        (if (open-tag? ch rdr)
-         (let [tag-info (try (read-tag-info rdr)
-                          (catch Exception ex
-                            (exception "Error parsing tag on line " line ": " (.getMessage ex))))]
+         (let [tag-info
+               (try (read-tag-info rdr)
+                 (catch Exception ex
+                   (exception "Error parsing tag on line " line ": " (.getMessage ex) " for template " template)))]
            (recur (valide-tag template line tags tag-info) (read-char rdr) line))
          (recur tags (read-char rdr) (if (= \newline ch) (inc line) line)))
        tags))))
