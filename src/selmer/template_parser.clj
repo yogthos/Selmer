@@ -23,6 +23,10 @@
          (map vec)
          (into {}))))
 
+(defn split-include-tag [^String tag-str]
+  (let [sep (if (= java.io.File/separator "\\") "\\\\" java.io.File/separator)]
+    (seq (.split ^String (get-tag-params (re-pattern (str "[^" sep "]include")) tag-str) " "))))
+
 (defn insert-includes
   "parse any included templates and splice them in replacing the include tags"
   [template]
@@ -36,9 +40,9 @@
       (when ch
         (if (= *tag-open* ch)
           (let [tag-str (read-tag-content rdr)]
-            (.append buf 
+            (.append buf
               (if (re-matches *include-pattern* tag-str)
-                (let [params   (seq (.split ^String (get-tag-params (re-pattern (str "[^" File/separator "]include")) tag-str) " "))
+                (let [params   (split-include-tag tag-str)
                       source   (.replaceAll ^String (first params) "\"" "")
                       defaults (parse-defaults (nnext params))]
                   (preprocess-template source {} defaults))
@@ -53,7 +57,7 @@
 (defn write-tag? [buf super-tag? existing-block blocks-to-close omit-close-tag?]
   (and buf
        (or super-tag?
-           (and 
+           (and
              (not existing-block)
              (> blocks-to-close (if omit-close-tag? 1 0))))))
 
@@ -66,17 +70,17 @@
           (let [tag-str        (read-tag-content rdr)
                 block?         (re-matches *block-pattern* tag-str)
                 block-name     (if block? (get-tag-params #"block" tag-str))
-                super-tag?     (re-matches *block-super-pattern* tag-str) 
+                super-tag?     (re-matches *block-super-pattern* tag-str)
                 existing-block (if block-name (get-in blocks [block-name :content]))]
             ;;check if we wish to write the closing tag for the block. If we're
             ;;injecting block.super, then we want to omit it
             (when (write-tag? buf super-tag? existing-block blocks-to-close omit-close-tag?)
               (.append buf tag-str))
             (recur
-              (long 
+              (long
                 (cond
                   existing-block
-                  (do 
+                  (do
                     (consume-block rdr)
                     (consume-block
                       (StringReader. existing-block) buf (dissoc blocks block-name))
