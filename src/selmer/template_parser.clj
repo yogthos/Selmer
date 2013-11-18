@@ -185,7 +185,8 @@
                   ;;we either replace the block with an existing one from a child
                   ;;template or read the block from this template
                   (re-matches *block-pattern* tag-str)
-                  (do (process-block rdr buf tag-str blocks)
+                  (do
+                    (process-block rdr buf tag-str blocks)
                     (recur blocks (read-char rdr) parent))
 
                   ;;if we are in the root template we'll accumulate the content
