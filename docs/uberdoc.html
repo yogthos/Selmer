@@ -3028,7 +3028,7 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>selmer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">selmer</h1><h2 class="project-version">0.5.1</h2><br /><p>Django templates for Clojure</p>
+</script><title>selmer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">selmer</h1><h2 class="project-version">0.5.2</h2><br /><p>Django templates for Clojure</p>
 </div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">criterium</td><td class="dotted"><hr /></td><td class="dep-version">0.4.1</td></tr><tr><td class="dep-name">joda-time</td><td class="dotted"><hr /></td><td class="dep-version">2.2</td></tr><tr><td class="dep-name">commons-codec</td><td class="dotted"><hr /></td><td class="dep-version">1.6</td></tr><tr><td class="dep-name">sonian/carica</td><td class="dotted"><hr /></td><td class="dep-version">1.0.3</td></tr><tr><td class="dep-name">cheshire</td><td class="dotted"><hr /></td><td class="dep-version">5.2.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#selmer.filter-parser">selmer.filter-parser</a></li><li><a href="#selmer.filters">selmer.filters</a></li><li><a href="#selmer.node">selmer.node</a></li><li><a href="#selmer.parser">selmer.parser</a></li><li><a href="#selmer.tags">selmer.tags</a></li><li><a href="#selmer.template-parser">selmer.template-parser</a></li><li><a href="#selmer.util">selmer.util</a></li><li><a href="#selmer.validator">selmer.validator</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.filter-parser" name="selmer.filter-parser"><h1 class="project-name">selmer.filter-parser</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Accessors are separated by dots like {{ foo.bar.0 }}
 which gets translated into (get-in context-map [:foo :bar 0]). So you
 can nest vectors and maps in your context-map.</p>
@@ -3122,8 +3122,7 @@ filter is "safe".</p>
                                  ;; Ignore pipes and allow escaped doublequotes inside doublequotes
                                  (re-seq #&quot;(?:[^|\&quot;]|\&quot;[^\&quot;]*\&quot;)+&quot;))
         accessor (split-filter-val val)
-        filters (-&gt;&gt; filter-strs
-                     (map filter-str-&gt;fn))]
+        filters  (map filter-str-&gt;fn filter-strs)]
     (fn [context-map]
       (let [x (get-in context-map accessor)]
         ;; Escape by default unless the last filter is 'safe'
@@ -3585,7 +3584,7 @@ true or false based on character lookahead to see if it's {{ or {%</p>
               (let [tags     (update-tags cur-tag tags content args buf)
                     end-tags (next (drop-while #(not= tag-name %) end-tags))]
                 (.setLength buf 0)
-                (recur (if (empty? end-tags) nil (read-char rdr)) tags [] open-tag end-tags))
+                (recur (when-not (empty? end-tags) (read-char rdr)) tags [] open-tag end-tags))
               (let [content (append-node content tag buf rdr)]
                 (.setLength buf 0)
                 (recur (read-char rdr) tags content cur-tag end-tags))))
@@ -3901,7 +3900,10 @@ take care of its compilation.</p>
          split-by-args
          (partition 2)
          (map vec)
-         (into {}))))</pre></td></tr><tr><td class="docs"><p>parse any included templates and splice them in replacing the include tags</p>
+         (into {}))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn split-include-tag [^String tag-str]
+  (let [sep (if (= java.io.File/separator &quot;\\&quot;) &quot;\\\\&quot; java.io.File/separator)]
+    (seq (.split ^String (get-tag-params (re-pattern (str &quot;[^&quot; sep &quot;]include&quot;)) tag-str) &quot; &quot;))))</pre></td></tr><tr><td class="docs"><p>parse any included templates and splice them in replacing the include tags</p>
 </td><td class="codes"><pre class="brush: clojure">(defn insert-includes
   [template]
   ;; We really need to split out the &quot;gather all parent templates recursively&quot;
@@ -3914,9 +3916,9 @@ take care of its compilation.</p>
       (when ch
         (if (= *tag-open* ch)
           (let [tag-str (read-tag-content rdr)]
-            (.append buf 
+            (.append buf
               (if (re-matches *include-pattern* tag-str)
-                (let [params   (seq (.split ^String (get-tag-params (re-pattern (str &quot;[^&quot; File/separator &quot;]include&quot;)) tag-str) &quot; &quot;))
+                (let [params   (split-include-tag tag-str)
                       source   (.replaceAll ^String (first params) &quot;\&quot;&quot; &quot;&quot;)
                       defaults (parse-defaults (nnext params))]
                   (preprocess-template source {} defaults))
@@ -3929,7 +3931,7 @@ take care of its compilation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn write-tag? [buf super-tag? existing-block blocks-to-close omit-close-tag?]
   (and buf
        (or super-tag?
-           (and 
+           (and
              (not existing-block)
              (&gt; blocks-to-close (if omit-close-tag? 1 0))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn consume-block [rdr &amp; [^StringBuilder buf blocks omit-close-tag?]]
@@ -3941,17 +3943,17 @@ take care of its compilation.</p>
           (let [tag-str        (read-tag-content rdr)
                 block?         (re-matches *block-pattern* tag-str)
                 block-name     (if block? (get-tag-params #&quot;block&quot; tag-str))
-                super-tag?     (re-matches *block-super-pattern* tag-str) 
+                super-tag?     (re-matches *block-super-pattern* tag-str)
                 existing-block (if block-name (get-in blocks [block-name :content]))]
             ;;check if we wish to write the closing tag for the block. If we're
             ;;injecting block.super, then we want to omit it
             (when (write-tag? buf super-tag? existing-block blocks-to-close omit-close-tag?)
               (.append buf tag-str))
             (recur
-              (long 
+              (long
                 (cond
                   existing-block
-                  (do 
+                  (do
                     (consume-block rdr)
                     (consume-block
                       (StringReader. existing-block) buf (dissoc blocks block-name))
@@ -4055,7 +4057,7 @@ take care of its compilation.</p>
                 (recur blocks (read-char rdr) parent)))))]
     (if parent (recur parent blocks defaults) (.toString buf))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn preprocess-template [template &amp; [blocks defaults]]
-  (-&gt; (read-template template blocks defaults) insert-includes))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.util" name="selmer.util"><h1 class="project-name">selmer.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+  (insert-includes (read-template template blocks defaults)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.util" name="selmer.util"><h1 class="project-name">selmer.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns selmer.util
   (:require [clojure.java.io :as io])
   (:import java.io.File java.io.StringReader
@@ -4066,14 +4068,14 @@ take care of its compilation.</p>
    `(throw (Exception. (str ~@params)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def custom-resource-path (atom nil))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn pattern [&amp; content]
-  (re-pattern (apply str content)))</pre></td></tr><tr><td class="docs">
+  (re-pattern (clojure.string/join content)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn read-char [^java.io.Reader rdr]
   (let [ch (.read rdr)]
     (if-not (== -1 ch) (char ch))))</pre></td></tr><tr><td class="docs"><p>Works best for small collections seemingly.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn assoc-in*
   [m ks v]
   (let [k (first ks)]
-    (if (= (count ks) 0)
+    (if (zero? (count ks))
       (assoc m k (assoc-in* (get m k) (next ks) v))
       (assoc m k v))))</pre></td></tr><tr><td class="docs"><p>default tag characters</p>
 </td><td class="codes"><pre class="brush: clojure">(def ^:dynamic ^Character *tag-open* \{)
@@ -4188,7 +4190,7 @@ take care of its compilation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn validate-off! [] (reset! validate? false))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn format-tag [{:keys [tag-name tag-value tag-type args]}]
   (condp = tag-type
-    :expr (str *tag-open* *tag-second* &quot; &quot; (name tag-name) &quot; &quot; (if args (str (apply str args) &quot; &quot;)) *tag-second* *tag-close*)
+    :expr (str *tag-open* *tag-second* &quot; &quot; (name tag-name) &quot; &quot; (if args (str (clojure.string/join args) &quot; &quot;)) *tag-second* *tag-close*)
     :filter (str *filter-open* *tag-second* (name tag-value) *tag-second* *filter-close*)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn validate-filters [template line {:keys [tag-value] :as tag}]
   (let [tag-filters (map
@@ -4231,9 +4233,10 @@ take care of its compilation.</p>
    (loop [tags [], ch (read-char rdr), line 1]
      (if ch
        (if (open-tag? ch rdr)
-         (let [tag-info (try (read-tag-info rdr)
-                          (catch Exception ex
-                            (exception &quot;Error parsing tag on line &quot; line &quot;: &quot; (.getMessage ex))))]
+         (let [tag-info
+               (try (read-tag-info rdr)
+                 (catch Exception ex
+                   (exception &quot;Error parsing tag on line &quot; line &quot;: &quot; (.getMessage ex) &quot; for template &quot; template)))]
            (recur (valide-tag template line tags tag-info) (read-char rdr) line))
          (recur tags (read-char rdr) (if (= \newline ch) (inc line) line)))
        tags))))</pre></td></tr><tr><td class="docs">
@@ -4245,6 +4248,6 @@ take care of its compilation.</p>
              (map (fn [{:keys [tag-name line] :as tag}] (str (format-tag tag) &quot; on line &quot; line)))
              (interpose &quot;, &quot;)
              doall
-             (apply str &quot;The template contains orphan tags: &quot;)
+             (clojure.string/join &quot;The template contains orphan tags: &quot;)
              exception)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
        SyntaxHighlighter.all()</script></body></html>
