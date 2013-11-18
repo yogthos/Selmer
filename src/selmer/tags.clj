@@ -258,7 +258,7 @@
       [tag
        (update-in content [:content]
          (fn [^selmer.node.INode node]
-           (apply str (map #(.render-node ^selmer.node.INode % context-map) node))))])))
+           (clojure.string/join (map #(.render-node ^selmer.node.INode % context-map) node))))])))
 
 (defn tag-handler [handler & tags]
   (fn [args tag-content render rdr]
