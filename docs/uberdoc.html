@@ -3871,7 +3871,7 @@ take care of its compilation.</p>
       [tag
        (update-in content [:content]
          (fn [^selmer.node.INode node]
-           (apply str (map #(.render-node ^selmer.node.INode % context-map) node))))])))</pre></td></tr><tr><td class="docs">
+           (clojure.string/join (map #(.render-node ^selmer.node.INode % context-map) node))))])))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn tag-handler [handler &amp; tags]
   (fn [args tag-content render rdr]
      (if-let [content (if (&gt; (count tags) 1) (apply (partial tag-content rdr) tags))]
@@ -4043,7 +4043,8 @@ take care of its compilation.</p>
                   ;;we either replace the block with an existing one from a child
                   ;;template or read the block from this template
                   (re-matches *block-pattern* tag-str)
-                  (do (process-block rdr buf tag-str blocks)
+                  (do
+                    (process-block rdr buf tag-str blocks)
                     (recur blocks (read-char rdr) parent))
                   ;;if we are in the root template we'll accumulate the content
                   ;;into a buffer, this will be the resulting template string
