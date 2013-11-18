@@ -13,7 +13,7 @@
 
 (defn format-tag [{:keys [tag-name tag-value tag-type args]}]
   (condp = tag-type
-    :expr (str *tag-open* *tag-second* " " (name tag-name) " " (if args (str (apply str args) " ")) *tag-second* *tag-close*)
+    :expr (str *tag-open* *tag-second* " " (name tag-name) " " (if args (str (clojure.string/join args) " ")) *tag-second* *tag-close*)
     :filter (str *filter-open* *tag-second* (name tag-value) *tag-second* *filter-close*)))
 
 (defn validate-filters [template line {:keys [tag-value] :as tag}]
@@ -81,5 +81,5 @@
              (map (fn [{:keys [tag-name line] :as tag}] (str (format-tag tag) " on line " line)))
              (interpose ", ")
              doall
-             (apply str "The template contains orphan tags: ")
+             (clojure.string/join "The template contains orphan tags: ")
              exception)))))

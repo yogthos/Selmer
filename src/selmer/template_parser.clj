@@ -202,4 +202,4 @@
     (if parent (recur parent blocks defaults) (.toString buf))))
 
 (defn preprocess-template [template & [blocks defaults]]
-  (-> (read-template template blocks defaults) insert-includes))
+  (insert-includes (read-template template blocks defaults)))

@@ -11,7 +11,7 @@
 (def custom-resource-path (atom nil))
 
 (defn pattern [& content]
-  (re-pattern (apply str content)))
+  (re-pattern (clojure.string/join content)))
 
 (defn read-char [^java.io.Reader rdr]
   (let [ch (.read rdr)]
@@ -21,7 +21,7 @@
   "Works best for small collections seemingly."
   [m ks v]
   (let [k (first ks)]
-    (if (= (count ks) 0)
+    (if (zero? (count ks))
       (assoc m k (assoc-in* (get m k) (next ks) v))
       (assoc m k v))))
 

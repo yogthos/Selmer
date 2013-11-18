@@ -160,7 +160,7 @@
               (let [tags     (update-tags cur-tag tags content args buf)
                     end-tags (next (drop-while #(not= tag-name %) end-tags))]
                 (.setLength buf 0)
-                (recur (if (empty? end-tags) nil (read-char rdr)) tags [] open-tag end-tags))
+                (recur (when-not (empty? end-tags) (read-char rdr)) tags [] open-tag end-tags))
               (let [content (append-node content tag buf rdr)]
                 (.setLength buf 0)
                 (recur (read-char rdr) tags content cur-tag end-tags))))

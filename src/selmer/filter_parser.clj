@@ -106,8 +106,7 @@ filter is \"safe\"."
                                  ;; Ignore pipes and allow escaped doublequotes inside doublequotes
                                  (re-seq #"(?:[^|\"]|\"[^\"]*\")+"))
         accessor (split-filter-val val)
-        filters (->> filter-strs
-                     (map filter-str->fn))]
+        filters  (map filter-str->fn filter-strs)]
 
     (fn [context-map]
       (let [x (get-in context-map accessor)]
