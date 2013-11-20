@@ -11,7 +11,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 #### Leiningen
 
 ```clojure
-[selmer "0.5.2"]
+[selmer "0.5.3"]
 ```
 
 ## Marginalia documentation
@@ -147,6 +147,42 @@ a map containing any of the following keys to the parser:
                   :tag-close \]})                  
 =>"{{1}}{{2}}{{3}}"                  
 ```
+
+## Error Handling
+
+Selmer will attempt to validate your templates by default, if you wish to disable validation for any reason it can be done by
+calling `(selmer.validator/validate-off!)`.
+
+Whenever an error is detected by the validator an instance of `clojure.lang.ExceptionInfo` will be thrown.
+The exception will contain the following keys:
+
+* `:type` - `:selmer-validation-error`
+* `:error` - the error message
+* `:error-template` - the error page template
+* `:template` - template file that contains the error
+* `:validation-errors` - a vector of validation errors
+
+Each error in the `:validation-errors` vector is a map containing the details specific to the error:
+
+* `:line` - the line on which the error occurred
+* `:tag` - the tag that contains the error
+
+The template under the `:error-template` key can be used to render a friendly error page:
+
+```clojure
+(defn template-error-page [handler]
+  (fn [request]
+    (try
+      (handler request)
+      (catch clojure.lang.ExceptionInfo ex
+        (let [{:keys [type error-template] :as data} (ex-data ex)]
+          (if (= :selmer-validation-error type)
+            {:status 500
+             :body   (selmer.parser/render error-template data)}
+            (throw ex)))))))
+```
+
+![](https://raw.github.com/yogthos/Selmer/master/error_page.png)
 
 ## Variables and Tags
 

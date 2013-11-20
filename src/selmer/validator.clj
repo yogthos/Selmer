@@ -75,19 +75,12 @@
        <div id='file-wrap'>
            <div id='file'>In {{template}}{% if line %} on line {{line}}{% endif %}.</div>
        </div>
-       {% if validation-errors %}
-         {% for error in validation-errors %}
-         <div id='error-content'>
-           <div id='line-number'>{{error.line}}</div>
-           <div id='line-content'>{{error.tag}}</div>
-         </div>
-         {% endfor %}
-       {% else %}
+       {% for error in validation-errors %}
        <div id='error-content'>
-           <div id='line-number'>{{line}}</div>
-           <div id='line-content'>{{tag}}</div>
+         <div id='line-number'>{{error.line}}</div>
+         <div id='line-content'>{{error.tag}}</div>
        </div>
-       {% endif %}
+       {% endfor %}
    </body>
 </html>
 ")
@@ -101,37 +94,25 @@
 (defn format-tag [{:keys [tag-name tag-value tag-type args]}]
   (condp = tag-type
     :expr (str *tag-open* *tag-second* " " (name tag-name) " " (if args (str (clojure.string/join args) " ")) *tag-second* *tag-close*)
-    :filter (str *filter-open* *tag-second* (name tag-value) *tag-second* *filter-close*)
+    :filter (str *tag-open* *filter-open* (name tag-value) *filter-close* *tag-close*)
     (str tag-name " " tag-value " " tag-type " " args)))
 
-(defn error-map [error tag line template]
-  {:type           :selmer-validation-error
-   :template       template
-   :line           line
-   :tag            tag
-   :error          error
-   :error-template error-template})
-
 (defn validation-error
-  ([error-tags template]
-   (throw
-     (ex-info
-       (->> error-tags
-            (map (fn [{:keys [tag-name line] :as tag}] (str (format-tag tag) " on line " line)))
-            (interpose ", ")
-            doall
-            (clojure.string/join "The template contains orphan tags: "))
-       {:type :selmer-validation-error
-        :error-template error-template
-        :template template
-        :validation-errors
-        (for [{:keys [tag-name line] :as tag} error-tags]
-          (error-map "Found an orphan closing tag" (format-tag tag) line template))})))
   ([error tag line template]
-   (let [tag (format-tag tag)]
-     (throw
-       (ex-info (str error (if tag (str " " tag)) " on line " line " for template " template)
-                (error-map error tag line template))))))
+   (validation-error
+     (str error (if tag (str " " (format-tag tag))) " on line " line " for template " template)
+     error line [{:tag tag :line line}] template))
+  ([long-error short-error line error-tags template]
+   (throw
+     (ex-info long-error
+              {:type           :selmer-validation-error
+               :error          short-error
+               :error-template error-template
+               :line           line
+               :template       template
+               :validation-errors
+               (for [error error-tags]
+                 (update-in error [:tag] format-tag))}))))
 
 (defn validate-filters [template line {:keys [tag-value] :as tag}]
   (let [tag-filters (map
@@ -191,5 +172,14 @@
 
 (defn validate [template]
   (when @validate?
-    (let [orphan-tags (validate-tags template)]
-      (when-not (empty? orphan-tags) (validation-error orphan-tags template)))))
+    (if-let [orphan-tags (not-empty (validate-tags template))]
+      (validation-error
+        (->> orphan-tags
+             (map (fn [{:keys [tag-name line] :as tag}] (str (format-tag tag) " on line " line)))
+             (interpose ", ")
+             doall
+             (clojure.string/join "The template contains orphan tags: "))
+        "The template contains orphan tags."
+        nil
+        orphan-tags
+        template))))
