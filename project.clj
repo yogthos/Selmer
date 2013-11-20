@@ -7,9 +7,9 @@
                  [criterium "0.4.1" :scope "test"]
                  [joda-time "2.2"]
                  [commons-codec "1.6"]
-                 [sonian/carica "1.0.3" :exclusions [[cheshire]]]
                  ;; http://en.wikipedia.org/wiki/Doublethink
                  [cheshire "5.2.0"]]
+  :repl-options {:port 10123}
   :plugins [[lein-marginalia "0.7.1"]]
   :test-selectors {:default (complement :benchmark)
                    :benchmark :benchmark

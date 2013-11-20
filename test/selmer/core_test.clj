@@ -1,10 +1,10 @@
 (ns selmer.core-test
-  (:use clojure.test
-        selmer.tags
-        selmer.filters
-        selmer.parser
-        selmer.template-parser
-        selmer.util)
+  (:require [clojure.test :refer :all]
+            [selmer.tags :refer :all]
+            [selmer.filters :refer :all]
+            [selmer.parser :refer :all]
+            [selmer.template-parser :refer :all]
+            [selmer.util :refer :all])
   (:import java.io.File))
 
 (def path (str "test/templates" File/separator))

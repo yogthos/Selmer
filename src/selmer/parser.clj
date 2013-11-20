@@ -7,8 +7,7 @@
   value injection is a runtime dispatch fn. Compile-time here
   means the first time we see a template *at runtime*, not the
   implementation's compile-time. "
-  (:require [carica.core :refer [config]]
-            [selmer.template-parser :refer [preprocess-template]]
+  (:require [selmer.template-parser :refer [preprocess-template]]
             [selmer.filters :refer [filters]]
             [selmer.filter-parser :refer [compile-filter-body]]
             [selmer.tags :refer :all]
@@ -26,8 +25,8 @@
 
 (defonce templates (atom {}))
 
-(defonce cache? (atom (not (config :dev))))
-(defonce dev (config :dev))
+;; Can be overridden by closure/argument 'cache
+(defonce cache? (atom true))
 
 (defn cache-on! []
   (reset! cache? true))
@@ -81,7 +80,9 @@
 ;; map and potentially opts. Smart (last-modified timestamp)
 ;; auto-memoization of compiler output.
 
-(defn render-file [^String filename context-map & [opts]]
+(defn render-file [^String filename context-map & [{:keys [cache]
+                                                     :or  {cache @cache?}
+                                                     :as opts}]]
   " Parses files if there isn't a memoized post-parse vector ready to go,
   renders post-parse vector with passed context-map regardless. Double-checks
   last-modified on files. Uses classpath for filename path "
@@ -91,16 +92,17 @@
           last-modified-file (if (in-jar? file-path)
                                -1 ;;can't check last modified inside a jar
                                (.lastModified (java.io.File. ^String file-path)))]
-
       (check-template-exists file-path)
 
-      (if (and @cache? last-modified (= last-modified last-modified-file))
+      (if (and cache last-modified (= last-modified last-modified-file))
         (render-template template context-map)
         (let [template (parse parse-file filename opts)]
           (swap! templates assoc filename {:template template
                                            :last-modified last-modified-file})
           (render-template template context-map))))
-    (exception "resource-path for " filename " returned nil, typically means the file doesn't exist in your classpath.")))
+
+    (exception "resource-path for "
+               filename " returned nil, typically means the file doesn't exist in your classpath.")))
 
 ;; For a given tag, get the fn handler for the tag type,
 ;; pass it the arguments, tag-content, render-template fn,
