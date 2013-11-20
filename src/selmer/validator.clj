@@ -70,7 +70,7 @@
            <h1>Template Compilation Error</h1>
        </div>
        <div id='error-wrap'>
-           <div id='error-message'>{{error}}</div>
+           <div id='error-message'>{{error}}.</div>
        </div>
        <div id='file-wrap'>
            <div id='file'>In {{template}}{% if line %} on line {{line}}{% endif %}.</div>
