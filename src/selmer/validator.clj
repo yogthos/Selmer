@@ -73,7 +73,7 @@
            <div id='error-message'>{{error}}</div>
        </div>
        <div id='file-wrap'>
-           <div id='file'>In {{file}} {% if line %}on line {{line}}{% endif %}.</div>
+           <div id='file'>In {{template}}{% if line %} on line {{line}}{% endif %}.</div>
        </div>
        {% if validation-errors %}
          {% for error in validation-errors %}
@@ -122,11 +122,11 @@
             doall
             (clojure.string/join "The template contains orphan tags: "))
        {:type :selmer-validation-error
+        :error-template error-template
+        :template template
         :validation-errors
         (for [{:keys [tag-name line] :as tag} error-tags]
-          (error-map "Found an orphan closing tag" (format-tag tag) line template))
-        :error-template
-        (decode-path (resource-path "validation-error-page.html"))})))
+          (error-map "Found an orphan closing tag" (format-tag tag) line template))})))
   ([error tag line template]
    (let [tag (format-tag tag)]
      (throw
