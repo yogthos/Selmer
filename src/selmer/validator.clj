@@ -5,6 +5,93 @@
        [clojure.set :only [difference]]
        [clojure.java.io :only [reader]]))
 
+(def error-template
+"
+<html>
+   <head>
+       <font face='arial'>
+       <style type='text/css'>
+           body {
+               margin: 0px;
+               background: #ececec;
+           }
+           #header {
+               padding-top:  5px;
+               padding-left: 25px;
+               color: white;
+               background: #a31306;
+               text-shadow: 1px 1px #333;
+               border-bottom: 1px solid #800000;
+           }
+           #error-wrap {
+               border-top: 5px solid #d36e6b;
+           }
+           #error-message {
+               color: #800000;
+               background: #f5a19f;
+               padding: 10px;
+               text-shadow: 1px 1px #FFAAAA;
+               border-top: 1px solid #f4b0ae;
+           }
+           #file-wrap {
+               border-top: 5px solid #2a2a2a;
+           }
+           #file {
+               color: white;
+               background: #333333;
+               padding: 10px;
+               padding-left: 20px;
+               text-shadow: 1px 1px #555555;
+               border-top: 1px solid #444444;
+           }
+           #line-number {
+               width=20px;
+               color: #8b8b8b;
+               background: #d6d6d6;
+               float: left;
+               padding: 5px;
+               text-shadow: 1px 1px #EEEEEE;
+               border-right: 1px solid #b6b6b6;
+           }
+           #line-content {
+               float: left;
+               padding: 5px;
+           }
+           #error-content {
+               float: left;
+               width: 100%;
+               border-top: 5px solid #cdcdcd;
+               border-bottom: 5px solid #cdcdcd;
+           }
+       </style>
+   </head>
+   <body>
+       <div id='header'>
+           <h1>Template Compilation Error</h1>
+       </div>
+       <div id='error-wrap'>
+           <div id='error-message'>{{error}}</div>
+       </div>
+       <div id='file-wrap'>
+           <div id='file'>In {{file}} {% if line %}on line {{line}}{% endif %}.</div>
+       </div>
+       {% if validation-errors %}
+         {% for error in validation-errors %}
+         <div id='error-content'>
+           <div id='line-number'>{{error.line}}</div>
+           <div id='line-content'>{{error.tag}}</div>
+         </div>
+         {% endfor %}
+       {% else %}
+       <div id='error-content'>
+           <div id='line-number'>{{line}}</div>
+           <div id='line-content'>{{tag}}</div>
+       </div>
+       {% endif %}
+   </body>
+</html>
+")
+
 (def validate? (atom true))
 
 (defn validate-on! [] (reset! validate? true))
@@ -14,14 +101,44 @@
 (defn format-tag [{:keys [tag-name tag-value tag-type args]}]
   (condp = tag-type
     :expr (str *tag-open* *tag-second* " " (name tag-name) " " (if args (str (clojure.string/join args) " ")) *tag-second* *tag-close*)
-    :filter (str *filter-open* *tag-second* (name tag-value) *tag-second* *filter-close*)))
+    :filter (str *filter-open* *tag-second* (name tag-value) *tag-second* *filter-close*)
+    (str tag-name " " tag-value " " tag-type " " args)))
+
+(defn error-map [error tag line template]
+  {:type           :selmer-validation-error
+   :template       template
+   :line           line
+   :tag            tag
+   :error          error
+   :error-template error-template})
+
+(defn validation-error
+  ([error-tags template]
+   (throw
+     (ex-info
+       (->> error-tags
+            (map (fn [{:keys [tag-name line] :as tag}] (str (format-tag tag) " on line " line)))
+            (interpose ", ")
+            doall
+            (clojure.string/join "The template contains orphan tags: "))
+       {:type :selmer-validation-error
+        :validation-errors
+        (for [{:keys [tag-name line] :as tag} error-tags]
+          (error-map "Found an orphan closing tag" (format-tag tag) line template))
+        :error-template
+        (decode-path (resource-path "validation-error-page.html"))})))
+  ([error tag line template]
+   (let [tag (format-tag tag)]
+     (throw
+       (ex-info (str error (if tag (str " " tag)) " on line " line " for template " template)
+                (error-map error tag line template))))))
 
 (defn validate-filters [template line {:keys [tag-value] :as tag}]
   (let [tag-filters (map
                   #(-> ^String % (.split ":") first keyword)
                   (-> tag-value name (.split "\\|") rest))]
     (if-not (empty? (difference (set tag-filters) (set (keys @filters))))
-      (exception "Unrecognized filter " tag-value " in tag " (format-tag tag) " on line " line " for template " template))))
+      (validation-error (str "Unrecognized filter " tag-value " found inside the tag") tag line template))))
 
 (defn close-tags []
   (apply concat (vals @closing-tags)))
@@ -34,10 +151,10 @@
      (doseq [arg args] (validate-filters template line (assoc tag :tag-value arg)))
      (cond
        (nil? tag-name)
-       (exception "No tag name supplied for the tag on line " line " for template " template)
+       (validation-error "No tag name supplied for the tag" tag line template)
 
        (not-any? #{tag-name} (concat (close-tags) (keys @expr-tags)))
-       (exception "Unrecognized tag: " (format-tag tag) " on line " line " for template " template)
+       (validation-error "Unrecognized tag found" tag line template)
 
        ;; check if we have closing tag
        ;; handle the case where it's an intermediate tag
@@ -47,14 +164,13 @@
          (if (some #{tag-name} end-tags)
            (if (not-empty (get @closing-tags tag-name))
              (conj tags (assoc tag :line line)) tags)
-           (exception
-             "Tag " (format-tag last-tag)" was not closed on line " (:line last-tag) " for template " template)))
+           (validation-error "No closing tag found for the tag" last-tag (:line last-tag) template)))
 
        (not-empty (get @closing-tags tag-name))
        (conj tags (assoc tag :line line))
 
        (some #{tag-name} (close-tags))
-       (exception "Orphan closing tag " (format-tag tag) " on line " line " for template " template)
+       (validation-error "Found an orphan closing tag" tag line template)
 
        :else tags))
    :filter
@@ -68,7 +184,7 @@
          (let [tag-info
                (try (read-tag-info rdr)
                  (catch Exception ex
-                   (exception "Error parsing tag on line " line ": " (.getMessage ex) " for template " template)))]
+                   (validation-error (str "Error parsing the tag: " (.getMessage ex)) nil line template)))]
            (recur (valide-tag template line tags tag-info) (read-char rdr) line))
          (recur tags (read-char rdr) (if (= \newline ch) (inc line) line)))
        tags))))
@@ -76,10 +192,4 @@
 (defn validate [template]
   (when @validate?
     (let [orphan-tags (validate-tags template)]
-      (when-not (empty? orphan-tags)
-        (->> (validate-tags template)
-             (map (fn [{:keys [tag-name line] :as tag}] (str (format-tag tag) " on line " line)))
-             (interpose ", ")
-             doall
-             (clojure.string/join "The template contains orphan tags: ")
-             exception)))))
+      (when-not (empty? orphan-tags) (validation-error orphan-tags template)))))
