@@ -19,19 +19,19 @@
                padding-top:  5px;
                padding-left: 25px;
                color: white;
-               background: #a31306;
-               text-shadow: 1px 1px #333;
-               border-bottom: 1px solid #800000;
+               background: #a32306;
+               text-shadow: 1px 1px #33333;
+               border-bottom: 1px solid #710000;
            }
            #error-wrap {
-               border-top: 5px solid #d36e6b;
+               border-top: 5px solid #d46e6b;
            }
            #error-message {
                color: #800000;
-               background: #f5a19f;
+               background: #f5a29f;
                padding: 10px;
-               text-shadow: 1px 1px #FFAAAA;
-               border-top: 1px solid #f4b0ae;
+               text-shadow: 1px 1px #FFBBBB;
+               border-top: 1px solid #f4b1ae;
            }
            #file-wrap {
                border-top: 5px solid #2a2a2a;
