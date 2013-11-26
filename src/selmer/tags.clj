@@ -24,16 +24,23 @@
        (apply concat)
        (split-with (partial not= "in"))))
 
+
+(defn apply-filters [item filter-names]
+  (reduce
+   (fn [value filter] ((compile-filter-body (str "value|" filter) false) {:value value}))
+   item filter-names))
+
 (defn for-handler [args tag-content render rdr]
   (let [content (tag-content rdr :for :empty :endfor)
         for-content (get-in content [:for :content])
         empty-content (get-in content [:empty :content])
         [ids [_ items]] (aggregate-args args)
         ids (map parse-arg ids)
+        [items & filter-names] (if items (.split ^String items "\\|"))
         item-keys (parse-arg items)]
     (fn [context-map]
       (let [buf (StringBuilder.)
-            items (get-in context-map item-keys)
+            items (-> (get-in context-map item-keys) (apply-filters filter-names))
             length (count items)
             parentloop (:parentloop context-map)]
         (if (and empty-content (empty? items))

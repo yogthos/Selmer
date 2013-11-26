@@ -98,25 +98,27 @@ applied filter."
 (defn compile-filter-body
   "Turns a string like foo|filter1:x|filter2:y into a fn that expects a
 context-map and will apply the filters one after the other to the value
-from the map. Finally it will escape the end result unless the last
-filter is \"safe\"."
-  [s]
-  (let [[val & filter-strs] (->> s
-                                 (s/trim)
-                                 ;; Ignore pipes and allow escaped doublequotes inside doublequotes
-                                 (re-seq #"(?:[^|\"]|\"[^\"]*\")+"))
-        accessor (split-filter-val val)
-        filters  (map filter-str->fn filter-strs)]
+from the map. It will escape the end result unless the last
+filter is \"safe\" or when it's called with escape? equal to true,
+which is the default behavior."
+  ([s] (compile-filter-body s true))
+  ([s escape?]
+   (let [[val & filter-strs] (->> s
+                                  (s/trim)
+                                  ;; Ignore pipes and allow escaped doublequotes inside doublequotes
+                                  (re-seq #"(?:[^|\"]|\"[^\"]*\")+"))
+         accessor (split-filter-val val)
+         filters (map filter-str->fn filter-strs)]
 
-    (fn [context-map]
-      (let [x (get-in context-map accessor)]
-        ;; Escape by default unless the last filter is 'safe'
-        (escape-html
-         (reduce
-          (fn [acc [filter-str filter]]
-            (try (filter acc)
-                 (catch Exception e
-                   (exception
-                     "On filter body '" s "' and filter '" filter-str "' this error occurred:" (.getMessage e)))))
-          x
-          (map vector filter-strs filters)))))))
+     (fn [context-map]
+       (let [x (reduce
+                 (fn [acc [filter-str filter]]
+                   (try (filter acc)
+                        (catch Exception e
+                          (exception
+                            "On filter body '" s "' and filter '" filter-str "' this error occurred:" (.getMessage e)))))
+                 (get-in context-map accessor)
+                 (map vector filter-strs filters))]
+         ;; Escape by default unless the last filter is 'safe'
+         (if escape? (escape-html x) x))))))
+
