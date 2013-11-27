@@ -569,7 +569,7 @@ Render the body one time for each element in the list. Each render will introduc
 
 `{% for x in some-list %}element: {{x}} first? {{forloop.first}} last? {{forloop.last}}{% endfor %}`
 
-you can also iterate over nested data structures, eg:
+you can iterate over nested data structures, eg:
 
 `{% for item in items %} <tr><td>{{item.name}}</td><td>{{item.age}}</td></tr> {% endfor %}`
 
@@ -580,6 +580,10 @@ array elements can be destructured in for loops:
 you can also specify the default content if there are no items using the `{% empty %}` tag:
 
 `(render "{% for i in foo %} {{i}} {% empty %}no elements{% endfor %}" {})` => `"no elements"`
+
+filters can be used inside the for loop:
+
+`(render "{% for x in foo.bar|sort %}{{x}}{% endfor %}" {:foo {:bar [1 4 3 5]}})` => `"1345"`
 
 #### now
 renders current time
