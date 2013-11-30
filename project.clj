@@ -14,4 +14,4 @@
   :test-selectors {:default (complement :benchmark)
                    :benchmark :benchmark
                    :all (constantly true)}
-  :global-vars {*warn-on-reflection* true})
+  :profiles {:dev {:global-vars {*warn-on-reflection* true}}})
