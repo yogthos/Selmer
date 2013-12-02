@@ -4,10 +4,9 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [criterium "0.4.1" :scope "test"]
-                 [joda-time "2.2"]
-                 [commons-codec "1.6"]
-                 ;; http://en.wikipedia.org/wiki/Doublethink
+                 [criterium "0.4.2" :scope "test"]
+                 [joda-time "2.3"]
+                 [commons-codec "1.8"]
                  [cheshire "5.2.0"]]
   :repl-options {:port 10123}
   :plugins [[lein-marginalia "0.7.1"]]
