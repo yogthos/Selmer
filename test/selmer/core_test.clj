@@ -129,6 +129,10 @@
                      :filter-close \)
                      :tag-second \#}))))
 
+(deftest tags-validation
+  (is
+    (= "5" (render-file "templates/tags-test.html" {:business {:employees (range 5)}}))))
+
 (deftest test-now
   (let [date-format "dd MM yyyy"
         formatted-date (.format (java.text.SimpleDateFormat. date-format) (java.util.Date.))]

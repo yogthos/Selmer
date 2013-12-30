@@ -256,7 +256,8 @@
         :block    [:endblock]
         :for      [:endfor]
         :comment  [:endcomment]
-        :verbatim [:endverbatim]}))
+        :verbatim [:endverbatim]
+        :with     [:endwith]}))
 
 ;;helpers for custom tag definition
 (defn render-tags [context-map tags]
