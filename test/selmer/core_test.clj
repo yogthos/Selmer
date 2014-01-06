@@ -129,6 +129,9 @@
                      :filter-close \)
                      :tag-second \#}))))
 
+(deftest no-tag
+  (is (= "{" (render-file "templates/no_tag.html" {}))))
+
 (deftest tags-validation
   (is
     (= "5" (render-file "templates/tags-test.html" {:business {:employees (range 5)}}))))
@@ -541,11 +544,11 @@
   )
 
 (deftest safe-filter
-  (add-filter! :foo  (fn [x] [:safe (.toUpperCase x)]))
+  (add-filter! :foo  (fn [^String x] [:safe (.toUpperCase x)]))
   (is
     (= "<DIV>I'M SAFE</DIV>"
        (render "{{x|foo}}" {:x "<div>I'm safe</div>"})))
-  (add-filter! :bar #(.toUpperCase %))
+  (add-filter! :bar #(.toUpperCase ^String %))
   (is
     (= "&lt;DIV&gt;I&#39;M NOT SAFE&lt;/DIV&gt;"
       (render "{{x|bar}}" {:x "<div>I'm not safe</div>"}))))

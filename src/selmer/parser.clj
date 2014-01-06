@@ -180,7 +180,7 @@
             buf      (StringBuilder.)]
         (loop [ch (read-char rdr)]
           (when ch
-            (if (open-tag? ch rdr)
+            (if (and (open-tag? ch rdr) (some #{(peek-rdr rdr)} [*tag-second* *filter-open*]))
               (do
                 ;; We hit a tag so we append the buffer content to the template
                 ;; and empty the buffer, then we proceed to parse the tag

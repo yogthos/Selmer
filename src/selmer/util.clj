@@ -82,14 +82,16 @@
 
 (defn read-tag-content [rdr]
   (->buf [buf]
-    (let [filter? (not= *tag-second* (peek-rdr rdr))]
+    (let [next-ch (peek-rdr rdr)
+          filter? (not= *tag-second* next-ch)]
       (.append buf *tag-open*)
-      (loop [ch (read-char rdr)]
-        (.append buf ch)
-        (when (not= *tag-close* ch)
-          (recur (read-char rdr))))
-      (when filter?
-        (.append buf (read-char rdr))))))
+      (when next-ch
+        (loop [ch (read-char rdr)]
+          (.append buf ch)
+          (when (not= *tag-close* ch)
+            (recur (read-char rdr))))
+        (when filter?
+          (.append buf (read-char rdr)))))))
 
 (defn open-tag? [ch rdr]
   (and (= *tag-open* ch)

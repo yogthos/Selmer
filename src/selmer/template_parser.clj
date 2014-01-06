@@ -38,7 +38,7 @@
     (with-open [rdr (reader (StringReader. template))]
     (loop [ch (read-char rdr)]
       (when ch
-        (if (= *tag-open* ch)
+        (if (and (= *tag-open* ch) (= *tag-second* (peek-rdr rdr)))
           (let [tag-str (read-tag-content rdr)]
             (.append buf
               (if (re-matches *include-pattern* tag-str)

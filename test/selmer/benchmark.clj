@@ -47,4 +47,4 @@
   (criterium/quick-bench
    (render-template (parse (java.io.StringReader. (str "{{bar" filter-chain "}}"))
                         {:custom-filters
-                         {:inc (fn [s] (inc (Integer. s)))}}) {:bar "0"})))
+                         {:inc (fn [^String s] (inc (Integer. s)))}}) {:bar "0"})))
