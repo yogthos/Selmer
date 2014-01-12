@@ -255,7 +255,8 @@
         :else     [:endif :endifequal]
         :ifequal  [:else :endifequal]
         :block    [:endblock]
-        :for      [:endfor]
+        :for      [:empty :endfor]
+        :empty    [:endfor]
         :comment  [:endcomment]
         :verbatim [:endverbatim]
         :with     [:endwith]}))
