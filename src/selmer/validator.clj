@@ -72,15 +72,17 @@
        <div id='error-wrap'>
            <div id='error-message'>{{error}}.</div>
        </div>
-       <div id='file-wrap'>
-           <div id='file'>In {{template}}{% if line %} on line {{line}}{% endif %}.</div>
-       </div>
-       {% for error in validation-errors %}
-       <div id='error-content'>
-         <div id='line-number'>{{error.line}}</div>
-         <div id='line-content'>{{error.tag}}</div>
-       </div>
-       {% endfor %}
+       {% if template %}
+         <div id='file-wrap'>
+             <div id='file'>In {{template}}{% if line %} on line {{line}}{% endif %}.</div>
+         </div>
+         {% for error in validation-errors %}
+         <div id='error-content'>
+           <div id='line-number'>{{error.line}}</div>
+           <div id='line-content'>{{error.tag}}</div>
+         </div>
+         {% endfor %}
+       {% endif %}
    </body>
 </html>
 ")
@@ -100,7 +102,10 @@
 (defn validation-error
   ([error tag line template]
    (validation-error
-     (str error (if tag (str " " (format-tag tag))) " on line " line " for template " template)
+     (str error
+          (if tag (str " " (format-tag tag)))
+          (if line (str " on line " line))
+          (if template (str " for template " template)))
      error line [{:tag tag :line line}] template))
   ([long-error short-error line error-tags template]
    (throw
@@ -158,17 +163,17 @@
    (do (validate-filters template line tag) tags)))
 
 (defn validate-tags [template]
- (with-open [rdr (reader template)]
-   (loop [tags [], ch (read-char rdr), line 1]
-     (if ch
-       (if (open-tag? ch rdr)
-         (let [tag-info
-               (try (read-tag-info rdr)
-                 (catch Exception ex
-                   (validation-error (str "Error parsing the tag: " (.getMessage ex)) nil line template)))]
-           (recur (valide-tag template line tags tag-info) (read-char rdr) line))
-         (recur tags (read-char rdr) (if (= \newline ch) (inc line) line)))
-       tags))))
+  (with-open [rdr (reader template)]
+    (loop [tags [], ch (read-char rdr), line 1]
+      (if ch
+        (if (open-tag? ch rdr)
+          (let [tag-info
+                (try (read-tag-info rdr)
+                  (catch Exception ex
+                    (validation-error (str "Error parsing the tag: " (.getMessage ex)) nil line template)))]
+            (recur (valide-tag template line tags tag-info) (read-char rdr) line))
+          (recur tags (read-char rdr) (if (= \newline ch) (inc line) line)))
+        tags))))
 
 (defn validate [template]
   (when @validate?

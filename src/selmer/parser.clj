@@ -12,6 +12,7 @@
             [selmer.filter-parser :refer [compile-filter-body]]
             [selmer.tags :refer :all]
             [selmer.util :refer :all]
+            [selmer.validator :refer [validation-error]]
             selmer.node)
   (:import [selmer.node INode TextNode FunctionNode]))
 
@@ -101,8 +102,9 @@
                                            :last-modified last-modified-file})
           (render-template template context-map))))
 
-    (exception "resource-path for "
-               filename " returned nil, typically means the file doesn't exist in your classpath.")))
+    (validation-error
+      (str "resource-path for " filename " returned nil, typically means the file doesn't exist in your classpath.")
+      nil nil nil)))
 
 ;; For a given tag, get the fn handler for the tag type,
 ;; pass it the arguments, tag-content, render-template fn,
