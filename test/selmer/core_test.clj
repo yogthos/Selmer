@@ -109,7 +109,11 @@
          (render "{% if not all foo bar baz %}hello{% endif %}" {:foo "foo"})))
     (is
       (= ""
-         (render "{% if not all foo bar %}hello{% endif %}" {:foo "foo" :bar "bar"})))))
+         (render "{% if not all foo bar %}hello{% endif %}" {:foo "foo" :bar "bar"})))
+    (is
+      (= "/page?name=foo - abc" (render-file "templates/include.html" {})))
+    (is
+      (= "/page?name=foo - xyz" (render-file "templates/include.html" {:gridid "xyz"})))))
 
 (deftest custom-tags
   (is

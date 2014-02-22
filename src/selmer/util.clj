@@ -116,7 +116,7 @@
         (= ch \")
         (recur items (read-char rdr) true)
 
-        (= ch \=)
+        (and (not open?) (= ch \=))
         (let [id (.trim (.toString buf))]
           (.setLength buf 0)
           (recur (conj items id) (read-char rdr) open?))
