@@ -12,8 +12,6 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 
 #### Leiningen
 
-!["Leiningen version"](https://clojars.org/selmer/latest-version.svg)
-
 ## Marginalia documentation
 
 [Marginalia documentation](https://rawgithub.com/yogthos/Selmer/master/docs/uberdoc.html)
