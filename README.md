@@ -13,7 +13,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 #### Leiningen
 
 ```clojure
-[selmer "0.6.1"]
+[selmer "0.6.2"]
 ```
 
 ## Marginalia documentation
@@ -61,7 +61,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [str] (#str)
 [title] (#title)
 [upper] (#upper)
-
+[urlescape] (#urlescape)
 
 ### [Jump to Tags](#tags)
 
@@ -417,6 +417,9 @@ Capitalize the words of a string
 
 #### upper
 `(render "{{shout|upper}}" {:shout "hello"})` => `"HELLO"`
+
+#### urlescape
+`(render "{{data|upper}}" {:data "clojure url"})` => `clojure+url"`
 
 ## Tags
 

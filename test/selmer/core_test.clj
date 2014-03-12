@@ -527,7 +527,10 @@
          (render "<tag>{{f}}</tag>" {:f "<foo bar=\"baz\">\\>"})))
   ;; Escapes the same chars as django's escape
   (is (= "&amp;&quot;&#39;&lt;&gt;"
-         (render "{{f}}" {:f "&\"'<>"}))))
+         (render "{{f}}" {:f "&\"'<>"})))
+  ;; Escapes content that is supposed to be URL encoded
+  (is (= "clojure+url"
+         (render "{{f|urlescape}}" {:f "clojure url"}))))
 
 ;; Safe only works at the end.
 ;; Don't think it should work anywhere else :-) - cbp (agreed, - cma)

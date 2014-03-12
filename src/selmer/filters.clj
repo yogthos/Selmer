@@ -277,6 +277,9 @@ map. The rest of the arguments are optional and are always strings."
      :safe
      (fn [s] [:safe s])
 
+     :urlescape
+     (fn [s] (java.net.URLEncoder/encode s))
+
      :lower
      (fn [s] (s/lower-case (str s)))
 
