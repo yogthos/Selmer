@@ -419,7 +419,7 @@ Capitalize the words of a string
 `(render "{{shout|upper}}" {:shout "hello"})` => `"HELLO"`
 
 #### urlescape
-`(render "{{data|upper}}" {:data "clojure url"})` => `clojure+url"`
+`(render "{{data|upper}}" {:data "clojure url"})` => `"clojure+url"`
 
 ## Tags
 
