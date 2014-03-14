@@ -7,7 +7,8 @@ map. The rest of the arguments are optional and are always strings."
             [selmer.util :refer [exception]])
   (:import [org.joda.time DateTime]
            [org.joda.time.format DateTimeFormat DateTimeFormatter]
-           [org.apache.commons.codec.digest DigestUtils]))
+           [org.apache.commons.codec.digest DigestUtils]
+           [java.text NumberFormat]))
 
 (def valid-date-formats
   {"shortDate"       (DateTimeFormat/shortDate)
@@ -23,6 +24,9 @@ map. The rest of the arguments are optional and are always strings."
    "fullTime"        (DateTimeFormat/fullTime)
    "fullDateTime"    (DateTimeFormat/fullDateTime)
    })
+
+(def currency-format
+  (NumberFormat/getCurrencyInstance))
 
 (defn ^DateTime fix-date
   [d]
@@ -98,6 +102,17 @@ map. The rest of the arguments are optional and are always strings."
            (apply str (repeat l \space))
            s
            (apply str (repeat r \space)))))
+
+     :currency-format
+     (fn [n]
+       (throw-when-expecting-number n)
+       (let [n (double n)]
+         (.format ^NumberFormat currency-format n)))
+
+     :number-format
+     (fn [n fmt]
+       (throw-when-expecting-number n)
+       (format fmt n))
 
      ;;; Format a date, expects an instance of DateTime (Joda Time) or Date.
      ;;; The format can be a key from valid-date-formats or a manually defined format
