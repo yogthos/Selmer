@@ -66,7 +66,7 @@
 (defn render-template [template context-map]
   " vector of ^selmer.node.INodes and a context map."
   (let [buf (StringBuilder.)]
-    (doseq [^selmer.node.INode element template]
+    (doseq [element template]
         (if-let [value (.render-node element context-map)]
           (.append buf value)))
     (.toString buf)))
