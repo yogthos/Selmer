@@ -152,20 +152,24 @@
   (.getPath ^java.net.URL (resource-path template)))
 
 (defn read-template [template blocks defaults]
-  (validator/validate (resource-path template))
-  (check-template-exists (get-template-path template))
-  (let [buf (StringBuilder.)
-        [parent blocks]
-        (with-open [rdr (reader (resource-path template))]
-          (loop [blocks (or blocks {})
-                 ch     (read-char rdr)
-                 parent nil]
-            (cond
-              (nil? ch) [parent blocks]
+  (let [path (resource-path template)]
+    (when-not path (throw (ex-info
+                           (str "Path to template does not exist: " template)
+                           {:template template})))
+    (validator/validate path)
+    (check-template-exists (get-template-path template))
+    (let [buf (StringBuilder.)
+          [parent blocks]
+          (with-open [rdr (reader path)]
+            (loop [blocks (or blocks {})
+                   ch     (read-char rdr)
+                   parent nil]
+              (cond
+               (nil? ch) [parent blocks]
 
-              (open-tag? ch rdr)
-              (let [tag-str (read-tag-content rdr)]
-                (cond
+               (open-tag? ch rdr)
+               (let [tag-str (read-tag-content rdr)]
+                 (cond
                   (and defaults
                        (re-matches *filter-pattern* tag-str))
                   (do (.append buf (set-default-value tag-str defaults))
@@ -196,11 +200,11 @@
                     (.append buf tag-str)
                     (recur blocks (read-char rdr) parent))))
 
-              :else
-              (do
-                (if (nil? parent) (.append buf ch))
-                (recur blocks (read-char rdr) parent)))))]
-    (if parent (recur parent blocks defaults) (.toString buf))))
+               :else
+               (do
+                 (if (nil? parent) (.append buf ch))
+                 (recur blocks (read-char rdr) parent)))))]
+      (if parent (recur parent blocks defaults) (.toString buf)))))
 
 (defn preprocess-template [template & [blocks defaults]]
   (insert-includes (read-template template blocks defaults)))
