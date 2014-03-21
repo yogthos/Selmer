@@ -15,12 +15,12 @@
 
 (deftype FunctionNode [handler]
   INode
-  (render-node ^String [this context-map]
+  (render-node [this context-map]
     (handler context-map)))
 
 ;; Implements dumb text content injection at runtime.
 
 (deftype TextNode [text]
   INode
-  (render-node ^String [this context-map]
+  (render-node [this context-map]
     text))

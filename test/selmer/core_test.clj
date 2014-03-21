@@ -160,7 +160,9 @@
 
 (deftest test-verbatim
   (is (= "{{if dying}}Still alive.{{/if}}"
-         (render "{% verbatim %}{{if dying}}Still alive.{{/if}}{% endverbatim %}" {}))))
+         (render "{% verbatim %}{{if dying}}Still alive.{{/if}}{% endverbatim %}" {})))
+  (is (= "\n<p class=\"name\">{%=file.name%}</p>\n\n"
+         (render-file "templates/verbatim.html" {}))))
 
 (deftest test-with
   (is
