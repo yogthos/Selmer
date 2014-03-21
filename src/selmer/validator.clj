@@ -162,16 +162,30 @@
    :filter
    (do (validate-filters template line tag) tags)))
 
+(defn skip-verbatim-tags [tag-info rdr line template]
+  (if (= :verbatim (:tag-name tag-info))
+    (loop [ch (read-char rdr)]
+      (if ch
+        (if-not (and 
+                 (open-tag? ch rdr)
+                 (= :endverbatim (:tag-name (read-tag-info rdr))))          
+          (recur (read-char rdr)))))    
+    tag-info))
+
+(defn read-tag [rdr line template]
+  (try
+    (-> (read-tag-info rdr) (skip-verbatim-tags rdr line template))
+    (catch Exception ex
+      (validation-error (str "Error parsing the tag: " (.getMessage ex)) nil line template))))
+
 (defn validate-tags [template]
   (with-open [rdr (reader template)]
     (loop [tags [], ch (read-char rdr), line 1]
       (if ch
         (if (open-tag? ch rdr)
-          (let [tag-info
-                (try (read-tag-info rdr)
-                  (catch Exception ex
-                    (validation-error (str "Error parsing the tag: " (.getMessage ex)) nil line template)))]
-            (recur (valide-tag template line tags tag-info) (read-char rdr) line))
+          (if-let [tag-info (read-tag rdr line template)]            
+            (recur (valide-tag template line tags tag-info) (read-char rdr) line)
+            (recur tags (read-char rdr) line))
           (recur tags (read-char rdr) (if (= \newline ch) (inc line) line)))
         tags))))
 
