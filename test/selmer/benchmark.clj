@@ -1,6 +1,7 @@
 (ns selmer.benchmark
   (:require [clojure.test :refer :all]
             [selmer.parser :refer :all]
+            [selmer.filters :as filters]
             [selmer.util :refer :all]
             [criterium.core :as criterium])
   (:import java.io.StringReader))
@@ -44,7 +45,6 @@
 
 (deftest ^:benchmark bench-filter-hot-potato []
   (println "BENCH: bench-filter-hot-potato")
+  (filters/add-filter! :inc (fn [^String s] (str (inc (Integer/parseInt s)))))
   (criterium/quick-bench
-   (render-template (parse (java.io.StringReader. (str "{{bar" filter-chain "}}"))
-                        {:custom-filters
-                         {:inc (fn [^String s] (inc (Integer. s)))}}) {:bar "0"})))
+    (render (str "{{bar" filter-chain "}}") {:bar "0"})))
