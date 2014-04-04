@@ -182,9 +182,9 @@ map. The rest of the arguments are optional and are always strings."
            (throw (IllegalArgumentException. (str "'" hash "' is not a valid hash algorithm."))))))
 
      :join
-     (fn [coll sep]
+     (fn [coll & [sep]]
        (throw-when-expecting-seqable coll)
-       (s/join sep coll))
+       (if sep (s/join sep coll) (s/join coll)))
 
      :json
      (fn [x] (json/generate-string x))
