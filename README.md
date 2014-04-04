@@ -328,7 +328,7 @@ available hashes: `md5`, `sha`, `sha256`, `sha384`, `sha512`
 
 
 #### join
-`(render "{{sequence|join}}" {:sequence [1 2 3 4]})` => `"1234"`
+`(render "{{sequence|join:\", \"}}" {:sequence [1 2 3 4]})` => `"1234"`
 
 #### json
 by default content will be escaped
