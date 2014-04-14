@@ -1,5 +1,6 @@
 (ns selmer.core-test
   (:require [clojure.test :refer :all]
+            [cheshire.core :refer :all]
             [selmer.tags :refer :all]
             [selmer.filters :refer :all]
             [selmer.parser :refer :all]
@@ -510,14 +511,19 @@
   (is (= "y" (render "{{f|pluralize:y:ies}}" {:f 1})))
   (is (= "ies" (render "{{f|pluralize:y:ies}}" {:f 3}))))
 
+(defn unescape [s]
+  (-> (.replaceAll "&quot;" "\"")))
+
 ;; to-json is simply json here
 (deftest filter-to-json
   (is (= "1" (render "{{f|json}}" {:f 1})))
   (is (= "[1]" (render "{{f|json}}" {:f [1]})))
-  (is (= "{&quot;dan&quot;:&quot;awesome&quot;,&quot;foo&quot;:27}"
-         (render "{{f|json}}" {:f {:foo 27 :dan "awesome"}})))
-  (is (= "{\"dan\":\"awesome\",\"foo\":27}"
-         (render "{{f|json|safe}}" {:f {:foo 27 :dan "awesome"}})))
+  (is (= {"dan" "awesome", "foo" 27}
+         (-> (render "{{f|json}}" {:f {:foo 27 :dan "awesome"}})
+             (.replaceAll "&quot;" "\"")
+             parse-string)))
+  (is (= {"dan" "awesome", "foo" 27}
+         (parse-string (render "{{f|json|safe}}" {:f {:foo 27 :dan "awesome"}}))))
   ;; safe only works at the end
   #_(is (= "{\"foo\":27,\"dan\":\"awesome\"}"
          (render "{{f|safe|json}}" {:f {:foo 27 :dan "awesome"}})))
