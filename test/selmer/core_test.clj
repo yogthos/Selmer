@@ -511,9 +511,6 @@
   (is (= "y" (render "{{f|pluralize:y:ies}}" {:f 1})))
   (is (= "ies" (render "{{f|pluralize:y:ies}}" {:f 3}))))
 
-(defn unescape [s]
-  (-> (.replaceAll "&quot;" "\"")))
-
 ;; to-json is simply json here
 (deftest filter-to-json
   (is (= "1" (render "{{f|json}}" {:f 1})))
