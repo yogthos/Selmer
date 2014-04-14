@@ -514,9 +514,9 @@
 (deftest filter-to-json
   (is (= "1" (render "{{f|json}}" {:f 1})))
   (is (= "[1]" (render "{{f|json}}" {:f [1]})))
-  (is (= "{&quot;foo&quot;:27,&quot;dan&quot;:&quot;awesome&quot;}"
+  (is (= "{&quot;dan&quot;:&quot;awesome&quot;,&quot;foo&quot;:27}"
          (render "{{f|json}}" {:f {:foo 27 :dan "awesome"}})))
-  (is (= "{\"foo\":27,\"dan\":\"awesome\"}"
+  (is (= "{\"dan\":\"awesome\",\"foo\":27}"
          (render "{{f|json|safe}}" {:f {:foo 27 :dan "awesome"}})))
   ;; safe only works at the end
   #_(is (= "{\"foo\":27,\"dan\":\"awesome\"}"
