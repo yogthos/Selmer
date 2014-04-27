@@ -24,8 +24,8 @@
          (into {}))))
 
 (defn split-include-tag [^String tag-str]
-  (let [sep (if (= java.io.File/separator "\\") "\\\\" java.io.File/separator)]
-    (seq (.split ^String (get-tag-params (re-pattern (str "[^" sep "]include")) tag-str) " "))))
+  (seq (.split ^String (get-tag-params #"[^/]include" (.replace tag-str "\\" "/")) " ")))
+
 
 (defn insert-includes
   "parse any included templates and splice them in replacing the include tags"
