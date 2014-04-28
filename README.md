@@ -13,7 +13,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 #### Leiningen
 
 ```clojure
-[selmer "0.6.5"]
+[selmer "0.6.6"]
 ```
 
 ## Marginalia documentation
