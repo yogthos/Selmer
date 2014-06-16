@@ -1,7 +1,7 @@
 (ns selmer.middleware
   (:require [selmer.parser :as parser]))
 
-(defn template-error-page
+(defn wrap-error-page
   "development middleware for rendering a friendly error page when a parsing error occurs"
   [handler dev?]
   (if dev?
