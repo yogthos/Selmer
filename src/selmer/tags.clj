@@ -1,6 +1,6 @@
 (ns selmer.tags
   (:require selmer.node
-            [selmer.filter-parser :refer [compile-filter-body fix-accessor]]
+            [selmer.filter-parser :refer [safe-filter compile-filter-body fix-accessor]]
             [selmer.filters :refer [filters]]
             [selmer.util :refer :all])
   (:import [selmer.node INode TextNode FunctionNode]))
@@ -231,35 +231,42 @@
         (aset i 0 (if (< cur-i length) (inc cur-i) 0))
         val))))
 
+(defn safe-handler [args tag-content render rdr]
+  (let [content (get-in (tag-content rdr :safe :endsafe) [:safe :content])]
+    (fn [context-map]
+      (render content (assoc context-map safe-filter true)))))
+
 ;; expr-tags are {% if ... %}, {% ifequal ... %},
 ;; {% for ... %}, and {% block blockname %}
 
 (defonce expr-tags
-  (atom {:if if-handler
-         :ifequal ifequal-handler
-         :for for-handler
-         :block block-handler
-         :cycle cycle-handler
-         :now now-handler
-         :comment comment-handler
-         :firstof first-of-handler
-         :verbatim verbatim-handler
-         :with with-handler
-         :script script-handler
-         :style style-handler
-         :extends nil
-         :include nil}))
+         (atom {:if if-handler
+                :ifequal ifequal-handler
+                :for for-handler
+                :block block-handler
+                :cycle cycle-handler
+                :now now-handler
+                :comment comment-handler
+                :firstof first-of-handler
+                :verbatim verbatim-handler
+                :with with-handler
+                :script script-handler
+                :style style-handler
+                :safe safe-handler
+                :extends nil
+                :include nil}))
 
 (defonce closing-tags
- (atom {:if       [:else :endif]
-        :else     [:endif :endifequal]
-        :ifequal  [:else :endifequal]
-        :block    [:endblock]
-        :for      [:empty :endfor]
-        :empty    [:endfor]
-        :comment  [:endcomment]
-        :verbatim [:endverbatim]
-        :with     [:endwith]}))
+         (atom {:if       [:else :endif]
+                :else     [:endif :endifequal]
+                :ifequal  [:else :endifequal]
+                :block    [:endblock]
+                :for      [:empty :endfor]
+                :empty    [:endfor]
+                :comment  [:endcomment]
+                :safe     [:endsafe]
+                :verbatim [:endverbatim]
+                :with     [:endwith]}))
 
 ;;helpers for custom tag definition
 (defn render-tags [context-map tags]

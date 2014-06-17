@@ -95,12 +95,14 @@ applied filter."
         (apply filter x args))
       (exception "No filter defined with the name '" filter-name "'"))))
 
+(def safe-filter ::selmer-safe-filter)
+
 (defn compile-filter-body
   "Turns a string like foo|filter1:x|filter2:y into a fn that expects a
-context-map and will apply the filters one after the other to the value
-from the map. It will escape the end result unless the last
-filter is \"safe\" or when it's called with escape? equal to true,
-which is the default behavior."
+ context-map and will apply the filters one after the other to the value
+ from the map. It will escape the end result unless the last
+ filter is \"safe\" or when it's called with escape? equal to true,
+ which is the default behavior."
   ([s] (compile-filter-body s true))
   ([s escape?]
    (let [[val & filter-strs] (->> s
@@ -119,6 +121,9 @@ which is the default behavior."
                             "On filter body '" s "' and filter '" filter-str "' this error occurred:" (.getMessage e)))))
                  (get-in context-map accessor)
                  (map vector filter-strs filters))]
-         ;; Escape by default unless the last filter is 'safe'
-         (if escape? (escape-html x) x))))))
+         ;; Escape by default unless the last filter is 'safe' or safe-filter is set in the context-map
+         (cond
+           (safe-filter context-map) x
+           escape? (escape-html x)
+           :else x))))))
 

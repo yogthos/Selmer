@@ -417,6 +417,13 @@
                  {:foo false})
          "no foo")))
 
+(deftest safe-tag
+  (is (= (render "{% safe %} {% if bar %}{% for i in y %} {{foo|upper}} {% endfor %}{%endif%} {% endsafe %}"
+                 {:bar true :foo "<foo>" :y [1 2]})
+         "  <FOO>  <FOO>  "))
+  (is (= (render-file "templates/safe.html" {:bar true :unsafe "<script>window.location.replace('http://not.so.safe');</script>"})
+         "<script>window.location.replace('http://not.so.safe');</script>")))
+
 (deftest filter-tag-test
   (is
     (= "ok"
