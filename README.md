@@ -169,20 +169,20 @@ Each error in the `:validation-errors` vector is a map containing the details sp
 * `:line` - the line on which the error occurred
 * `:tag` - the tag that contains the error
 
-The template under the `:error-template` key can be used to render a friendly error page:
+The template under the `:error-template` key can be used to render a friendly error page.
+Selmer provides a middleware wrapper for this purpose:
 
 ```clojure
-(defn template-error-page [handler]
-  (fn [request]
-    (try
-      (handler request)
-      (catch clojure.lang.ExceptionInfo ex
-        (let [{:keys [type error-template] :as data} (ex-data ex)]
-          (if (= :selmer-validation-error type)
-            {:status 500
-             :body   (selmer.parser/render error-template data)}
-            (throw ex)))))))
+(ns myapp.handler
+  (:require [selmer.middleware :refer [wrap-error-page]]
+            [environ.core :refer [env]]))
+
+...
+
+(wrap-error-page handler (:dev env))
 ```
+
+The middleware will render a page like the one below whenever any parsing errors are encountered.
 
 ![](https://raw.github.com/yogthos/Selmer/master/error_page.png)
 
