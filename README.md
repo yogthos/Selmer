@@ -180,7 +180,7 @@ Selmer provides a middleware wrapper for this purpose:
 
 ...
 
-(wrap-error-page handler (:dev env))
+(wrap-error-page handler (env :dev))
 ```
 
 The middleware will render a page like the one below whenever any parsing errors are encountered.
