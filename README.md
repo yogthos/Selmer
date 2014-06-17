@@ -619,6 +619,10 @@ renders the first occurance of supplied keys that doesn't resolve to false:
 
 `(render "{% firstof var1 var2 var3 %}" {:var2 "x" :var3 "not me"})` => `"x"`
 
+#### safe
+safe tag will prevent escaping of any content inside it
+`(render "{% safe %}{{foo|upper}}{% endsafe %}" {:foo "<foo>"})` => `<FOO>`
+
 #### script
 
 The script tag will generate an HTML script tag and prepend the value of the `servlet-context` key
