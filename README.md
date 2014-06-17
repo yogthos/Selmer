@@ -77,6 +77,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [firstof] (#firstof)
 [for] (#for)
 [now] (#now)
+[safe] (#safe-tag)
 [script] (#script)
 [style] (#style)
 [verbatim] (#verbatim)
@@ -619,7 +620,7 @@ renders the first occurance of supplied keys that doesn't resolve to false:
 
 `(render "{% firstof var1 var2 var3 %}" {:var2 "x" :var3 "not me"})` => `"x"`
 
-#### safe
+#### safe-tag
 safe tag will prevent escaping of any content inside it:
 
 `(render "{% safe %}{{foo|upper}}{% endsafe %}" {:foo "<foo>"})` => `<FOO>`
