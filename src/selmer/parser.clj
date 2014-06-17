@@ -186,7 +186,8 @@
               (do
                 ;; We hit a tag so we append the buffer content to the template
                 ;; and empty the buffer, then we proceed to parse the tag
-                (conj! template (TextNode. (.toString buf)))
+                (if-let [text (not-empty (.toString buf))]
+                  (conj! template (TextNode. text)))
                 (.setLength buf 0)
                 (conj! template (FunctionNode. (parse-tag (read-tag-info rdr) rdr)))
                 (recur (read-char rdr)))
