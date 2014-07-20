@@ -129,7 +129,7 @@
 (def in-jar?
   (memoize
     (fn [^String file-path]
-      (.contains file-path "jar!/"))))
+      (.contains file-path "!/"))))
 
 (def decode-path
   (memoize
