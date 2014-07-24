@@ -9,8 +9,16 @@
                  [commons-codec "1.9"]
                  [cheshire "5.3.1"]]
   :repl-options {:port 10123}
-  :plugins [[lein-marginalia "0.7.1"]]
+  :plugins [[lein-marginalia "0.7.1"]
+            [lein-midje "3.0.0"]
+            [midje-readme "1.0.0"]]
+
+  :midje-readme {:require "[selmer.parser :refer :all] [selmer.filters :refer :all] [environ.core :refer [env]] [selmer.middleware :refer [wrap-error-page]]"}
+
   :test-selectors {:default (complement :benchmark)
                    :benchmark :benchmark
                    :all (constantly true)}
-  :profiles {:dev {:global-vars {*warn-on-reflection* true}}})
+  :profiles {:dev {:global-vars {*warn-on-reflection* true}
+                   :dependencies [[midje "1.5.0"]
+                                  [environ "0.5.0"]
+                                  [midje-readme "1.0.0"]]}})
