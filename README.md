@@ -118,12 +118,18 @@ the file that's being rendered for changes to take effect.
 
 Alternatively you can turn caching on and off using `(selmer.parser/cache-on!)` and
  `(selmer.parser/cache-off!)` respectively.
- 
-By default the templates are located relative to the `ClassLoader` URL. If you'd like to set a custom location for the 
+
+By default the templates are located relative to the `ClassLoader` URL. If you'd like to set a custom location for the
 templates, you can use `selmer.parser/set-resource-path!` to do that:
 
 ```clojure
 (selmer.parser/set-resource-path! "/var/html/templates/")
+```
+
+And to reset it back to the default:
+
+```clojure
+(selmer.parser/set-resource-path! nil)
 ```
 
 The application will then look for templates at this location. This can be useful if you're deploying the application
@@ -145,8 +151,8 @@ a map containing any of the following keys to the parser:
 (render "[% for ele in foo %]{{[{ele}]}}[%endfor%]"
                  {:foo [1 2 3]}
                  {:tag-open \[
-                  :tag-close \]})                  
-=>"{{1}}{{2}}{{3}}"                  
+                  :tag-close \]})
+=>"{{1}}{{2}}{{3}}"
 ```
 
 ## Error Handling
@@ -178,7 +184,7 @@ Selmer provides a middleware wrapper for this purpose:
 
 ...
 
-#(if (env :dev) (wrap-error-page %) %))
+#(if (env :dev) (wrap-error-page %) %)
 ```
 
 The middleware will render a page like the one below whenever any parsing errors are encountered.
@@ -498,7 +504,7 @@ Will cycle through the supplied values.
 (render "{% for i in items %}<li class={% cycle \"blue\" \"white\" %}>{{i}}</li>{% endfor %}"
         {:items (range 5)})
 ```
-=> 
+=>
 ```
 "<li class=\"blue\">0</li><li class=\"white\">1</li><li class=\"blue\">2</li><li class=\"white\">3</li><li class=\"blue\">4</li>"
 ```
