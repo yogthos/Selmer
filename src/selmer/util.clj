@@ -126,6 +126,11 @@
           (.append buf ch)
           (recur items (read-char rdr) open?))))))
 
+(defn get-resource [resource]
+  (-> (Thread/currentThread)
+      (.getContextClassLoader)
+      (.getResource resource)))
+
 (def in-jar?
   (memoize
     (fn [^String file-path]
@@ -139,9 +144,7 @@
 (defn resource-path [template]
   (if-let [path @custom-resource-path]
     (java.net.URL. (str "file:///" path template))
-    (-> (Thread/currentThread)
-        (.getContextClassLoader)
-        (.getResource template))))
+    (get-resource template)))
 
 (defn check-template-exists [^String file-path]
   (when-not (or (in-jar? file-path)
