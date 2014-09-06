@@ -88,20 +88,18 @@
   renders post-parse vector with passed context-map regardless. Double-checks
   last-modified on files. Uses classpath for filename path "
   (if-let [resource (resource-path filename)]
-    (let [file-path (.getPath ^java.net.URL resource)
-          {:keys [template last-modified]} (get @templates filename)
-          last-modified-file (if (in-jar? file-path)
-                               -1 ;;can't check last modified inside a jar
-                               (.lastModified (java.io.File. ^String file-path)))]
-      (check-template-exists file-path)
-
-      (if (and cache last-modified (= last-modified last-modified-file))
+    (let [{:keys [template last-modified]} (get @templates filename)
+          ;;for some resources, such as ones inside a jar, it's
+          ;;not possible to check the last modified timestamp
+          last-modified-time (if (or (nil? last-modified) (pos? last-modified))
+                               (resource-last-modified resource) -1)]
+      (check-template-exists resource)
+      (if (and cache last-modified (= last-modified last-modified-time))
         (render-template template context-map)
         (let [template (parse parse-file filename opts)]
           (swap! templates assoc filename {:template template
-                                           :last-modified last-modified-file})
+                                           :last-modified last-modified-time})
           (render-template template context-map))))
-
     (validation-error
       (str "resource-path for " filename " returned nil, typically means the file doesn't exist in your classpath.")
       nil nil nil)))

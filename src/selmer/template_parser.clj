@@ -149,13 +149,14 @@
       tag-str)))
 
 (defn get-template-path [template]
-  (.getPath ^java.net.URL (resource-path template)))
+  (resource-path template))
 
 (defn read-template [template blocks defaults]
   (let [path (resource-path template)]
-    (when-not path (throw (ex-info
-                           (str "Path to template does not exist: " template)
-                           {:template template})))
+    (when-not path
+      (validator/validation-error
+        (str "resource-path for " template " returned nil, typically means the file doesn't exist in your classpath.")
+        nil nil nil))
     (validator/validate path)
     (check-template-exists (get-template-path template))
     (let [buf (StringBuilder.)

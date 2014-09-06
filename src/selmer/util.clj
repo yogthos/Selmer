@@ -131,11 +131,6 @@
       (.getContextClassLoader)
       (.getResource resource)))
 
-(def in-jar?
-  (memoize
-    (fn [^String file-path]
-      (.contains file-path "!/"))))
-
 (def decode-path
   (memoize
     (fn [file-path]
@@ -146,7 +141,12 @@
     (java.net.URL. (str "file:///" path template))
     (get-resource template)))
 
-(defn check-template-exists [^String file-path]
-  (when-not (or (in-jar? file-path)
-                (.exists (java.io.File. ^String (decode-path file-path))))
-    (exception "template: \"" file-path "\" not found")))
+(defn resource-last-modified [^java.net.URL resource]
+  (let [path (.getPath resource)]
+    (try
+      (.lastModified (java.io.File. ^String path))
+      (catch NullPointerException _ -1))))
+
+(defn check-template-exists [^java.net.URL resource]
+  (when-not resource
+    (exception "template: \"" (.getPath ^java.net.URL resource) "\" not found")))

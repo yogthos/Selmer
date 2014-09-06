@@ -112,6 +112,7 @@
 
 (defn validate [template]
   (when @validate?
+    (check-template-exists template)
     (if-let [orphan-tags (not-empty (validate-tags template))]
       (validation-error
         (->> orphan-tags
