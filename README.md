@@ -119,7 +119,7 @@ the file that's being rendered for changes to take effect.
 Alternatively you can turn caching on and off using `(selmer.parser/cache-on!)` and
  `(selmer.parser/cache-off!)` respectively.
  
- ### Resource Path
+### Resource Path
 
 By default the templates are located relative to the `ClassLoader` URL. If you'd like to set a custom location for the
 templates, you can use `selmer.parser/set-resource-path!` to do that:
