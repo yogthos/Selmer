@@ -138,7 +138,7 @@
 
 (defn resource-path [template]
   (if-let [path @custom-resource-path]
-    (java.net.URL. (str "file:///" path template))
+    (java.net.URL. (str path template))
     (get-resource template)))
 
 (defn resource-last-modified [^java.net.URL resource]

@@ -35,12 +35,35 @@
 (defn cache-off! []
   (reset! cache? false))
 
-(defn set-resource-path! [^String path]
-  (let [path (if (or (nil? path)
-                     (.endsWith path "/"))
-               path
-               (str path "/"))]
-    (reset! custom-resource-path path)))
+(defn- append-slash
+  "append '/' to the given string unless it already ends with a slash"
+  [^String s]
+  (if (or (nil? s)
+          (.endsWith s "/"))
+    s
+    (str s "/")))
+
+(defn- make-resource-path
+  [path]
+  (cond
+    (nil? path)
+      nil
+    (instance? java.net.URL path)
+      (append-slash (str path))
+    :else
+      (append-slash
+       (try
+         (str (java.net.URL. path))
+         (catch java.net.MalformedURLException err
+           (str "file:///" path))))))
+
+(defn set-resource-path!
+  "set custom location, where templates are being searched for. path
+  may be a java.net.URL instance or a string. If it's a string, we
+  first try to convert it to a java.net.URL instance and if it doesn't
+  work it's interpreted as a path in the local filesystem."
+  [path]
+  (reset! custom-resource-path (make-resource-path path)))
 
 (defn update-tag [tag-map tag tags]
   (assoc tag-map tag (concat (get tag-map tag) tags)))
