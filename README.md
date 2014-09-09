@@ -109,7 +109,7 @@ To render a file we can call `render-file` instead:
 (render-file "home.html" {:name "Yogthos"})
 ```
 
-### \*\*Important\*\*
+#### \*\*Important\*\*
 
 When rendering files Selmer will cache the compiled template. A recompile will be triggered if the last
 modified timestamp of the file changes. Note that changes in files referenced by the template **will not**
