@@ -126,7 +126,15 @@ templates, you can use `selmer.parser/set-resource-path!` to do that:
 (selmer.parser/set-resource-path! "/var/html/templates/")
 ```
 
-And to reset it back to the default:
+It's also possible to set the sesource path in a location relative to the resource path:
+
+```clojure
+(set-resource-path! (clojure.java.io/resource "META-INF/foo/templates"))
+```
+
+This allows the templates to be refrerenced using `include` and `extends` tags without having to specify the full path.
+
+To reset the resource path back to the default simply pass it a `nil`:
 
 ```clojure
 (selmer.parser/set-resource-path! nil)
