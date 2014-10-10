@@ -37,20 +37,20 @@
   ;; hierarchy for smarter cache invalidation - will eliminate almost all
   ;; existing reasons for cache-off!
   (->buf [buf]
-    (with-open [rdr (reader (StringReader. template))]
-    (loop [ch (read-char rdr)]
-      (when ch
-        (if (and (= *tag-open* ch) (= *tag-second* (peek-rdr rdr)))
-          (let [tag-str (read-tag-content rdr)]
-            (.append buf
-              (if (re-matches *include-pattern* tag-str)
-                (let [params   (split-include-tag tag-str)
-                      source   (.replaceAll ^String (first params) "\"" "")
-                      defaults (parse-defaults (nnext params))]
-                  (preprocess-template source {} defaults))
-              tag-str)))
-          (.append buf ch))
-        (recur (read-char rdr)))))))
+         (with-open [rdr (reader (StringReader. template))]
+           (loop [ch (read-char rdr)]
+             (when ch
+               (if (and (= *tag-open* ch) (= *tag-second* (peek-rdr rdr)))
+                 (let [tag-str (read-tag-content rdr)]
+                   (.append buf
+                            (if (re-matches *include-pattern* tag-str)
+                              (let [params   (split-include-tag tag-str)
+                                    source   (.replaceAll ^String (first params) "\"" "")
+                                    defaults (parse-defaults (nnext params))]
+                                (preprocess-template source {} defaults))
+                              tag-str)))
+                 (.append buf ch))
+               (recur (read-char rdr)))))))
 
 (defn get-parent [tag-str]
   (let [template (get-tag-params #"extends" tag-str)]
@@ -135,9 +135,9 @@
   (let [block-name (get-tag-params #"block" block-tag)]
     (if-let [child-content (get-in blocks [block-name :content])]
       (.append ^StringBuilder buf
-        (rewrite-super
-          child-content
-          (->buf [buf] (consume-block rdr buf blocks true))))
+               (rewrite-super
+                 child-content
+                 (->buf [buf] (consume-block rdr buf blocks true))))
       (do
         (.append ^StringBuilder buf block-tag)
         (consume-block rdr buf blocks)))))
@@ -200,50 +200,50 @@
                    ch     (read-char rdr)
                    parent nil]
               (cond
-               (nil? ch) [parent blocks]
+                (nil? ch) [parent blocks]
 
-               (open-tag? ch rdr)
-               (let [tag-str (read-tag-content rdr)]
-                 (cond
-                  (and defaults
-                       (re-matches *filter-pattern* tag-str))
-                  (do (.append buf (add-defaults-to-variable-tag tag-str defaults))
+                (open-tag? ch rdr)
+                (let [tag-str (read-tag-content rdr)]
+                  (cond
+                    (and defaults
+                         (re-matches *filter-pattern* tag-str))
+                    (do (.append buf (add-defaults-to-variable-tag tag-str defaults))
+                        (recur blocks (read-char rdr) parent))
+
+                    (and defaults
+                         (re-matches *tag-pattern* tag-str))
+                    (do (.append buf (add-defaults-to-expression-tag tag-str defaults))
+                        (recur blocks (read-char rdr) parent))
+
+                    ;;if the template extends another it's not the root
+                    ;;this template is allowed to only contain blocks
+                    (re-matches *extends-pattern* tag-str)
+                    (recur blocks (read-char rdr) (get-parent tag-str))
+
+                    ;;if we have a parent then we simply want to add the
+                    ;;block to the block map if it hasn't been added already
+                    (and parent (re-matches *block-pattern* tag-str))
+                    (recur (read-block rdr tag-str blocks) (read-char rdr) parent)
+
+                    ;;if the template has blocks, but no parent it's the root
+                    ;;we either replace the block with an existing one from a child
+                    ;;template or read the block from this template
+                    (re-matches *block-pattern* tag-str)
+                    (do
+                      (process-block rdr buf tag-str blocks)
                       (recur blocks (read-char rdr) parent))
 
-                  (and defaults
-                       (re-matches *tag-pattern* tag-str))
-                  (do (.append buf (add-defaults-to-expression-tag tag-str defaults))
-                      (recur blocks (read-char rdr) parent))
+                    ;;if we are in the root template we'll accumulate the content
+                    ;;into a buffer, this will be the resulting template string
+                    (nil? parent)
+                    (do
+                      (.append buf tag-str)
+                      (recur blocks (read-char rdr) parent))))
 
-                  ;;if the template extends another it's not the root
-                  ;;this template is allowed to only contain blocks
-                  (re-matches *extends-pattern* tag-str)
-                  (recur blocks (read-char rdr) (get-parent tag-str))
-
-                  ;;if we have a parent then we simply want to add the
-                  ;;block to the block map if it hasn't been added already
-                  (and parent (re-matches *block-pattern* tag-str))
-                  (recur (read-block rdr tag-str blocks) (read-char rdr) parent)
-
-                  ;;if the template has blocks, but no parent it's the root
-                  ;;we either replace the block with an existing one from a child
-                  ;;template or read the block from this template
-                  (re-matches *block-pattern* tag-str)
-                  (do
-                    (process-block rdr buf tag-str blocks)
-                    (recur blocks (read-char rdr) parent))
-
-                  ;;if we are in the root template we'll accumulate the content
-                  ;;into a buffer, this will be the resulting template string
-                  (nil? parent)
-                  (do
-                    (.append buf tag-str)
-                    (recur blocks (read-char rdr) parent))))
-
-               :else
-               (do
-                 (if (nil? parent) (.append buf ch))
-                 (recur blocks (read-char rdr) parent)))))]
+                :else
+                (do
+                  (if (nil? parent) (.append buf ch))
+                  (recur blocks (read-char rdr) parent)))))]
       (if parent (recur parent blocks defaults) (.toString buf)))))
 
 (defn preprocess-template [template & [blocks defaults]]
