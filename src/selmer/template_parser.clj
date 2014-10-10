@@ -159,8 +159,9 @@
 
 (defn to-expression-string [tag-name args]
   (let [tag-name' (name tag-name)
-        args' (clojure.string/join \space args)]
-    (wrap-in-expression-tag (str tag-name' \space args'))))
+        args' (clojure.string/join \space args)
+        joined (if (seq args) (str tag-name' \space args') tag-name')]
+    (wrap-in-expression-tag joined)))
 
 (defn add-default [identifier default]
   (str identifier "|default:" \" default \"))
