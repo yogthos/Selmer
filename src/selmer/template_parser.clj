@@ -148,6 +148,32 @@
       (str *tag-open* *filter-open* tag-name "|default:\"" value "\"" *filter-close* *tag-close*)
       tag-str)))
 
+(defn add-default [identifier default]
+  (str identifier "|default:" \" default \"))
+
+(defn trim-ends [string n-left n-right]
+  (.substring ^String string n-left (- (.length ^String string) n-right)))
+
+(defn string->reader [string]
+  (reader (StringReader. string)))
+
+(defn wrap-in-expression-tag [string]
+  (str *tag-open* *tag-second* \space string \space *tag-second* *tag-close*))
+
+(defn to-expression-string [tag-name args]
+  (let [tag-name' (name tag-name)
+        args' (clojure.string/join \space args)]
+    (wrap-in-expression-tag (str tag-name' \space args'))))
+
+(defn add-defaults-to-tag [tag-str defaults]
+  (let [try-add-default #(if-let [default (get defaults %)]
+                           (add-default % default)
+                           %)
+        tag-str' (trim-ends tag-str 1 2)
+        {:keys [tag-name args]} (read-tag-info (string->reader tag-str'))
+        args' (map try-add-default args)]
+    (to-expression-string tag-name args')))
+
 (defn get-template-path [template]
   (resource-path template))
 
@@ -174,6 +200,11 @@
                   (and defaults
                        (re-matches *filter-pattern* tag-str))
                   (do (.append buf (set-default-value tag-str defaults))
+                      (recur blocks (read-char rdr) parent))
+
+                  (and defaults
+                       (re-matches *tag-pattern* tag-str))
+                  (do (.append buf (add-defaults-to-tag tag-str defaults))
                       (recur blocks (read-char rdr) parent))
 
                   ;;if the template extends another it's not the root
