@@ -143,10 +143,10 @@
         (consume-block rdr buf blocks)))))
 
 (defn wrap-in-expression-tag [string]
-  (str *tag-open* *tag-second* \space string \space *tag-second* *tag-close*))
+  (str *tag-open* *tag-second* string *tag-second* *tag-close*))
 
 (defn wrap-in-variable-tag [string]
-  (str *tag-open* *filter-open* \space string \space *filter-close* *tag-close*))
+  (str *tag-open* *filter-open* string *filter-close* *tag-close*))
 
 (defn trim-regex [string & regexes]
   (reduce #(clojure.string/replace %1 %2 "") string regexes))
