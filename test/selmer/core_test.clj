@@ -59,6 +59,9 @@
      *filter-open-pattern* (pattern "\\" *tag-open* "\\" *filter-open* "\\s*")
      *filter-close-pattern* (pattern "\\s*\\" *filter-close* "\\" *tag-close*)
      *filter-pattern* (pattern "\\" *tag-open* "\\" *filter-open* "\\s*.*\\s*\\" *filter-close* "\\" *tag-close*)
+     *tag-pattern*  (pattern "\\" *tag-open* "\\" *tag-second* "\\s*.*\\s*\\" *tag-second* "\\" *tag-close*)
+     *tag-open-pattern*  (pattern "\\" *tag-open* "\\" *tag-second* "\\s*")
+     *tag-close-pattern* (pattern "\\s*\\" *tag-second* "\\" *tag-close*)
      *include-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*include.*")
      *extends-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*extends.*")
      *block-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*block.*")
@@ -68,7 +71,7 @@
       (= "<html>\n<body>{% block header %}\nB header\n\n<h1>child-a header</h1>\n<<\noriginal header\n>>\n\n{% endblock %}\n\n<div>{% block content %}\nSome content\n{% endblock %}</div>\n\n{% block footer %}\n<p>footer</p>\n{% endblock %}</body>\n</html>"
          (preprocess-template "templates/inheritance/child-b.html")))
     (is
-      (= "{{greeting|default:\"Hello!\"}} {{name|default:\"JaneDoe\"}}"
+      (= "{%ifequal greeting|default:\"Hello!\" name|default:\"JaneDoe\"%} {{greeting|default:\"Hello!\"}} {{name|default:\"JaneDoe\"}} {%endifequal%}"
          (preprocess-template "templates/inheritance/parent.html")))
     (is
       (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n            Hello \n         World\n{% endblock %}\n    </body>\n</html>"
