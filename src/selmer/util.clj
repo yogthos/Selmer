@@ -37,6 +37,7 @@
 (def ^:dynamic ^Pattern   *filter-open-pattern* nil)
 (def ^:dynamic ^Pattern   *filter-close-pattern* nil)
 (def ^:dynamic ^Pattern   *filter-pattern* nil)
+(def ^:dynamic ^Pattern   *tag-pattern* nil)
 (def ^:dynamic ^Pattern   *include-pattern* nil)
 (def ^:dynamic ^Pattern   *extends-pattern* nil)
 (def ^:dynamic ^Pattern   *block-pattern* nil)

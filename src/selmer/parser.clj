@@ -250,6 +250,7 @@
             *filter-open-pattern*  (pattern "\\" tag-open "\\" filter-open "\\s*")
             *filter-close-pattern* (pattern "\\s*\\" filter-close "\\" tag-close)
             *filter-pattern*       (pattern "\\" tag-open "\\" filter-open "\\s*.*\\s*\\" filter-close "\\" tag-close)
+            *tag-pattern*          (pattern "\\" tag-open "\\" tag-second "\\s*.*\\s*\\" tag-second "\\" tag-close)
             *include-pattern*      (pattern "\\" tag-open "\\" tag-second "\\s*include.*")
             *extends-pattern*      (pattern "\\" tag-open "\\" tag-second "\\s*extends.*")
             *block-pattern*        (pattern "\\" tag-open "\\" tag-second "\\s*block.*")
