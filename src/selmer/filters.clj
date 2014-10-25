@@ -138,9 +138,7 @@ map. The rest of the arguments are optional and are always strings."
      :default-if-empty
      (fn [coll default]
        (throw-when-expecting-seqable coll)
-       (if (empty? coll)
-         default
-         coll))
+       (or (not-empty coll) default))
 
      ;;; With no decimal places it rounds to 1 decimal place
      :double-format
