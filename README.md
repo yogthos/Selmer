@@ -307,7 +307,7 @@ Uses `java.text.NumberFormat/getCurrencyInstance` for formatting the currency va
 #### date
 Valid predefined date, time formats: `shortDate` `shortTime` `shortDateTime` `mediumDate` `mediumTime` `mediumDateTime` `longDate` `longTime` `longDateTime` `fullDate` `fullTime` `fullDateTime`
 
-`(render "{{creation-time|date:\"yyyy-MM-dd_HH:mm:ss\"}}" {:created-at (java.util.Date.)})` => `"2013-07-28_20:51:48"`
+`(render "{{creation-time|date:\"yyyy-MM-dd_HH:mm:ss\"}}" {:creation-time (java.util.Date.)})` => `"2013-07-28_20:51:48"`
 
 `(render "{{today|date:shortDate}}" {:today (java.util.Date.)})` => `"8/3/13"`
 
