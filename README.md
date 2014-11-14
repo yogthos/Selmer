@@ -802,13 +802,14 @@ results in:
 </html>
 ```
 
-It's also possible to specify default values for the included templates:
+It's also possible to specify default values for the included templates using
+`with`:
 
 `base.html`
 
 ```xml
 <html>
-{% include "content.html" content="some content"%}
+{% include "content.html" with content="some content" %}
 </html>
 ```
 
@@ -823,6 +824,16 @@ results in:
 ```xml
 <html>
 <body>{{content|default:"some content"}}</body>
+</html>
+```
+
+You may also specify more than one value:
+
+`base.html`
+
+```xml
+<html>
+{% include "content.html" with content="some content" url="/path/to/page" %}
 </html>
 ```
 [**Back To Top ⇧**](#selmer)
