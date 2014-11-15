@@ -10,6 +10,8 @@
 
 (def path (str "test/templates" File/separator))
 
+(defn fix-line-sep [s] (clojure.string/replace s "\n" (System/lineSeparator)))
+
 (deftest dev-error-handling
   (is (= "No filter defined with the name 'woot'"
          (try (render "{{blah|safe|woot" {:blah "woot"})
@@ -68,33 +70,33 @@
      *block-super-pattern* (pattern "\\" *tag-open* "\\" *filter-open* "\\s*block.super\\s*\\" *filter-close* "\\" *tag-close*)
      *endblock-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*endblock.*")]
     (is
-      (= "<html>\n<body>{% block header %}\nB header\n\n<h1>child-a header</h1>\n<<\noriginal header\n>>\n\n{% endblock %}\n\n<div>{% block content %}\nSome content\n{% endblock %}</div>\n\n{% block footer %}\n<p>footer</p>\n{% endblock %}</body>\n</html>"
+      (= (fix-line-sep "<html>\n<body>{% block header %}\nB header\n\n<h1>child-a header</h1>\n<<\noriginal header\n>>\n\n{% endblock %}\n\n<div>{% block content %}\nSome content\n{% endblock %}</div>\n\n{% block footer %}\n<p>footer</p>\n{% endblock %}</body>\n</html>")
          (preprocess-template "templates/inheritance/child-b.html")))
     (is
       (= "{%ifequal greeting|default:\"Hello!\" name|default:\"JaneDoe\"%} {{greeting|default:\"Hello!\"}} {{name|default:\"JaneDoe\"}} {%endifequal%}"
          (preprocess-template "templates/inheritance/parent.html")))
     (is
-      (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n            Hello \n         World\n{% endblock %}\n    </body>\n</html>"
+      (= (fix-line-sep "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n            Hello \n         World\n{% endblock %}\n    </body>\n</html>")
          (preprocess-template "templates/inheritance/super-b.html")))
     (is
-      (= "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n\n            Hello \n         World\nCruel World\n{% endblock %}\n    </body>\n</html>"
+      (= (fix-line-sep "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n\n            Hello \n         World\nCruel World\n{% endblock %}\n    </body>\n</html>")
          (preprocess-template "templates/inheritance/super-c.html")))
     (is
-      (= "start a\n{% block a %}{% endblock %}\nstop a\n\n{% block content %}{% endblock %}\n\nHello, {{name}}!\n"
+      (= (fix-line-sep "start a\n{% block a %}{% endblock %}\nstop a\n\n{% block content %}{% endblock %}\n\nHello, {{name}}!\n")
          (preprocess-template "templates/inheritance/inherit-a.html")))
     (is
-      (= "start a\n{% block a %}\nstart b\n{% block b %}{% endblock %}\nstop b\n{% endblock %}\nstop a\n\n{% block content %}content{% endblock %}\n\nHello, {{name}}!\n"
+      (= (fix-line-sep "start a\n{% block a %}\nstart b\n{% block b %}{% endblock %}\nstop b\n{% endblock %}\nstop a\n\n{% block content %}content{% endblock %}\n\nHello, {{name}}!\n")
          (preprocess-template "templates/inheritance/inherit-b.html")))
     (is
-      (= "start a\n{% block a %}\nstart b\n{% block b %}\nstart c\nstop c\n{% endblock %}\nstop b\n{% endblock %}\nstop a\n\n{% block content %}content{% endblock %}\n\nHello, {{name}}!\n"
+      (= (fix-line-sep "start a\n{% block a %}\nstart b\n{% block b %}\nstart c\nstop c\n{% endblock %}\nstop b\n{% endblock %}\nstop a\n\n{% block content %}content{% endblock %}\n\nHello, {{name}}!\n")
          (preprocess-template "templates/inheritance/inherit-c.html")))
     (is
-      (= "Base template.\n\n\t\n<p></p>\n\n\n"
+      (= (fix-line-sep "Base template.\n\n\t\n<p></p>\n\n\n")
          (render-file "templates/child.html" {})))
     (is (= "base tempate hello"
            (render-file "templates/inheritance/include-snippet.html" {})))
     (is
-      (= "Base template.\n\n\t\n<p>blah</p>\n\n\n"
+      (= (fix-line-sep "Base template.\n\n\t\n<p>blah</p>\n\n\n")
          (render-file "templates/child.html" {:content "blah"})))
     (is
       (= "hello"
@@ -128,7 +130,7 @@
                 :tag-close \]})))
 
   (is
-    (= "Base template.\n\n\t\n<p></p>\n\n\n"
+    (= (fix-line-sep "Base template.\n\n\t\n<p></p>\n\n\n")
        (render-file "templates/child-custom.html"
                     {}
                     {:tag-open \[
@@ -165,7 +167,7 @@
 (deftest test-verbatim
   (is (= "{{if dying}}Still alive.{{/if}}"
          (render "{% verbatim %}{{if dying}}Still alive.{{/if}}{% endverbatim %}" {})))
-  (is (= "\n<p class=\"name\">{%=file.name%}</p>\n\n"
+  (is (= (fix-line-sep "\n<p class=\"name\">{%=file.name%}</p>\n\n")
          (render-file "templates/verbatim.html" {}))))
 
 (deftest test-with
@@ -299,19 +301,19 @@
 
 (deftest if-tag-test
   (is
-    (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"bar\"\n\n\n\n\t\n\tinner\n\t\n"
+    (= (fix-line-sep "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"bar\"\n\n\n\n\t\n\tinner\n\t\n")
        (render-template (parse parse-input (str path "if.html")) {:nested "x" :inner "y"})))
   (is
-    (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"foo\"\n\n\n"
+    (= (fix-line-sep "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"foo\"\n\n\n")
        (render-template (parse parse-input (str path "if.html")) {:user-id "bob"})))
   (is
-    (= "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"bar\"\n\n\n"
+    (= (fix-line-sep "\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"bar\"\n\n\n")
        (render-template (parse parse-input (str path "if.html")) {:foo false})))
   (is
-    (= "\n<h1>FOO!</h1>\n\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"bar\"\n\n\n"
+    (= (fix-line-sep "\n<h1>FOO!</h1>\n\n\n\n\n<h1>NOT BAR!</h1>\n\n\n\n\"bar\"\n\n\n")
        (render-template (parse parse-input (str path "if.html")) {:foo true})))
   (is
-    (= "\n<h1>FOO!</h1>\n\n\n\n\n<h1>BAR!</h1>\n\n\n\n\"bar\"\n\n\n"
+    (= (fix-line-sep "\n<h1>FOO!</h1>\n\n\n\n\n<h1>BAR!</h1>\n\n\n\n\"bar\"\n\n\n")
        (render-template (parse parse-input (str path "if.html")) {:foo true :bar "test"})))
   (is
     (= ""
@@ -574,7 +576,7 @@
 (deftest custom-resource-path-setting-url
   (set-resource-path! (clojure.java.io/resource "templates/inheritance"))
   (is (string? @custom-resource-path))
-  (is (= "Hello, World!\n"  (render-file "foo.html" {:name "World"})))
+  (is (= (fix-line-sep "Hello, World!\n")  (render-file "foo.html" {:name "World"})))
   (set-resource-path! nil))
 
 (deftest safe-filter
