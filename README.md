@@ -118,7 +118,7 @@ the file that's being rendered for changes to take effect.
 
 Alternatively you can turn caching on and off using `(selmer.parser/cache-on!)` and
  `(selmer.parser/cache-off!)` respectively.
- 
+
 ### Resource Path
 
 By default the templates are located relative to the `ClassLoader` URL. If you'd like to set a custom location for the
@@ -446,7 +446,7 @@ Capitalize the words of a string
 `(render "{{shout|upper}}" {:shout "hello"})` => `"HELLO"`
 
 #### urlescape
-`(render "{{data|upper}}" {:data "clojure url"})` => `"clojure+url"`
+`(render "{{data|urlescape}}" {:data "clojure url"})` => `"clojure+url"`
 
 ## Tags
 
@@ -841,7 +841,3 @@ You may also specify more than one value:
 ## License
 
 Distributed under the Eclipse Public License, the same as Clojure.
-
-
-
-
