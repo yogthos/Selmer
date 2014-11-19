@@ -304,6 +304,10 @@ Can be used inside a block to insert the content from the parent block in its pl
 
 Uses `java.text.NumberFormat/getCurrencyInstance` for formatting the currency value.
 
+An ISO 639 2-letter language code can be added as a locale.
+
+`"{{amount|currency-format:de}}" {:amount 123})` => `"€ 123,00"`
+
 #### date
 Valid predefined date, time formats: `shortDate` `shortTime` `shortDateTime` `mediumDate` `mediumTime` `mediumDateTime` `longDate` `longTime` `longDateTime` `fullDate` `fullTime` `fullDateTime`
 
@@ -389,6 +393,10 @@ Displays text with line numbers.
 
 #### number-format
 `(render "{{amount|number-format:%.3f}}" {:amount 123.04455})` => `"123.045"`
+
+An ISO 639 2-letter language code can be added as a locale.
+
+`(render "{{amount|number-format:%.3f:de}}" {:amount 123.04455})` => `"123,045"`
 
 #### pluralize
 Returns the correct (English) pluralization based on the variable. This works with many words, but certainly not all (eg. foot/feet, mouse/mice, etc.)

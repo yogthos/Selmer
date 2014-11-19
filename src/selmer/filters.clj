@@ -25,9 +25,6 @@ map. The rest of the arguments are optional and are always strings."
    "fullDateTime"    (DateTimeFormat/fullDateTime)
    })
 
-(def currency-format
-  (NumberFormat/getCurrencyInstance))
-
 (defn ^DateTime fix-date
   [d]
   (cond (instance? DateTime d) d
@@ -104,15 +101,18 @@ map. The rest of the arguments are optional and are always strings."
            (apply str (repeat r \space)))))
 
      :currency-format
-     (fn [n]
+     (fn [n & [locale]]
        (throw-when-expecting-number n)
-       (let [n (double n)]
+       (let [n (double n)
+             locale (java.util.Locale. (or locale "en"))
+             currency-format (java.text.NumberFormat/getCurrencyInstance locale)]
          (.format ^NumberFormat currency-format n)))
 
      :number-format
-     (fn [n fmt]
+     (fn [n fmt & [locale]]
        (throw-when-expecting-number n)
-       (format fmt n))
+       (let [locale (java.util.Locale. (or locale "en"))]
+         (String/format locale fmt (into-array Object [n]))))
 
      ;;; Formats a date with english locale, expects an instance of DateTime (Joda Time) or Date.
      ;;; The format can be a key from valid-date-formats or a manually defined format
@@ -124,9 +124,9 @@ map. The rest of the arguments are optional and are always strings."
      :date
      (fn [d fmt & [locale]]
        (let [fixed-date (fix-date d)
-             locale (or locale "en")
+             locale (java.util.Locale. (or locale "en"))
              ^DateTimeFormatter fmt (.withLocale (or (valid-date-formats fmt)
-                                                  (DateTimeFormat/forPattern fmt)) (java.util.Locale. locale))]
+                                                  (DateTimeFormat/forPattern fmt)) locale)]
          (.print fmt fixed-date)))
 
      ;;; Default if x is falsey
