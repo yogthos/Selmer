@@ -459,7 +459,13 @@
 (deftest filter-no-value
   (is (= "" (render "{{f|upper}}" {}))))
 
-
+(deftest filter-currency-format
+  (let [amount 123.45
+        curr (java.text.NumberFormat/getCurrencyInstance (java.util.Locale. "en"))
+        curr-de (java.text.NumberFormat/getCurrencyInstance (java.util.Locale. "de"))]
+    (is (= (.format curr amount)
+           (render "{{f|currency-format}}" {:f amount})))
+    (is (= (.format curr-de amount) (render "{{f|currency-format:de}}" {:f amount})))))
 
 (deftest filter-date
   (let [date (java.util.Date.)
