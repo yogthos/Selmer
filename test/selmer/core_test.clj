@@ -462,9 +462,12 @@
 
 
 (deftest filter-date
-  (let [date (java.util.Date.)]
+  (let [date (java.util.Date.)
+        firstofmarch (java.util.Date. 2014 2 1)]
     (is (= (.format (java.text.SimpleDateFormat. "yyyy-MM-dd HH:mm:ss") date)
-           (render "{{f|date:\"yyyy-MM-dd HH:mm:ss\"}}" {:f date})))))
+           (render "{{f|date:\"yyyy-MM-dd HH:mm:ss\"}}" {:f date})))
+    (is (= (.format (java.text.SimpleDateFormat. "MMMM" (java.util.Locale. "fr")) firstofmarch)
+           (render "{{f|date:\"MMMM\":fr}}" {:f firstofmarch})))))
 
 (deftest filter-hash-md5
   (is (= "acbd18db4cc2f85cedef654fccc4a4d8"
