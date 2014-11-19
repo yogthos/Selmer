@@ -114,17 +114,19 @@ map. The rest of the arguments are optional and are always strings."
        (throw-when-expecting-number n)
        (format fmt n))
 
-     ;;; Format a date, expects an instance of DateTime (Joda Time) or Date.
+     ;;; Formats a date with english locale, expects an instance of DateTime (Joda Time) or Date.
      ;;; The format can be a key from valid-date-formats or a manually defined format
      ;;; Look in
      ;;; http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
      ;;; for formatting help.
      ;;; You can also format time with this.
+     ;;; An optional locale for formatting can be given as second parameter
      :date
-     (fn [d fmt]
+     (fn [d fmt & [locale]]
        (let [fixed-date (fix-date d)
-             ^DateTimeFormatter fmt (or (valid-date-formats fmt)
-                                        (DateTimeFormat/forPattern fmt))]
+             locale (or locale "en")
+             ^DateTimeFormatter fmt (.withLocale (or (valid-date-formats fmt)
+                                                  (DateTimeFormat/forPattern fmt)) (java.util.Locale. locale))]
          (.print fmt fixed-date)))
 
      ;;; Default if x is falsey
