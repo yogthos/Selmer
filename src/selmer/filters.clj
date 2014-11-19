@@ -124,9 +124,9 @@ map. The rest of the arguments are optional and are always strings."
      :date
      (fn [d fmt & [locale]]
        (let [fixed-date (fix-date d)
-             locale (or locale "en")
+             locale (java.util.Locale. (or locale "en"))
              ^DateTimeFormatter fmt (.withLocale (or (valid-date-formats fmt)
-                                                  (DateTimeFormat/forPattern fmt)) (java.util.Locale. locale))]
+                                                  (DateTimeFormat/forPattern fmt)) locale)]
          (.print fmt fixed-date)))
 
      ;;; Default if x is falsey
