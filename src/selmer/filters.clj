@@ -109,9 +109,10 @@ map. The rest of the arguments are optional and are always strings."
          (.format ^NumberFormat currency-format n)))
 
      :number-format
-     (fn [n fmt]
+     (fn [n fmt & [locale]]
        (throw-when-expecting-number n)
-       (format fmt n))
+       (let [locale (java.util.Locale. (or locale "en"))]
+         (String/format locale fmt (into-array Object [n]))))
 
      ;;; Formats a date with english locale, expects an instance of DateTime (Joda Time) or Date.
      ;;; The format can be a key from valid-date-formats or a manually defined format

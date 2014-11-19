@@ -394,6 +394,10 @@ Displays text with line numbers.
 #### number-format
 `(render "{{amount|number-format:%.3f}}" {:amount 123.04455})` => `"123.045"`
 
+An ISO 639 2-letter language code can be added as a locale.
+
+`(render "{{amount|number-format:%.3f:de}}" {:amount 123.04455})` => `"123,045"`
+
 #### pluralize
 Returns the correct (English) pluralization based on the variable. This works with many words, but certainly not all (eg. foot/feet, mouse/mice, etc.)
 

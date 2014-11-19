@@ -467,6 +467,16 @@
            (render "{{f|currency-format}}" {:f amount})))
     (is (= (.format curr-de amount) (render "{{f|currency-format:de}}" {:f amount})))))
 
+(deftest filter-number-format
+  (let [number 123.04455
+        numberformat "%.3f"
+        locale (java.util.Locale. "en")
+        locale-de (java.util.Locale. "de")]
+    (is (= (String/format locale numberformat (into-array Object [number]))
+           (render (str "{{f|number-format:" numberformat "}}") {:f number})))
+    (is (= (String/format locale-de numberformat (into-array Object [number]))
+           (render (str "{{f|number-format:" numberformat ":de}}") {:f number})))))
+
 (deftest filter-date
   (let [date (java.util.Date.)
         firstofmarch (java.util.Date. 2014 2 1)]
