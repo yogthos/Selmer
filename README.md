@@ -313,6 +313,10 @@ Valid predefined date, time formats: `shortDate` `shortTime` `shortDateTime` `me
 
 `(render "{{now|date:shortDateTime}}" {:now (java.util.Date.)})` => `"8/3/13 2:08 PM"`
 
+An ISO 639 2-letter language code can be added as a locale.
+
+`(render "{{now|date:\"MMMM\":fr}}" {:now (java.util.Date.)})` => `"mars"`
+
 #### default
 `(render "{{name|default:"I <3 ponies"}}" {:name "bitemyapp"})` => `"bitemyapp"`
 `(render "{{name|default:"I <3 ponies"}}" {:name nil})` => `"I <3 ponies"`
