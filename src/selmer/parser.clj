@@ -197,29 +197,30 @@
 ;; Compile-time parsing of tags. Accumulates a transient vector
 ;; before returning the persistent vector of INodes (TextNode, FunctionNode)
 
+(defn add-text-node [template buf rdr]
+  (let [template (if-let [text (not-empty (.toString buf))]
+                   (conj! template (TextNode. text))
+                   template)]
+    (.setLength buf 0)
+    (conj! template (FunctionNode. (parse-tag (read-tag-info rdr) rdr)))))
+
 (defn parse* [input]
   (with-open [rdr (clojure.java.io/reader input)]
-      (let [template (transient [])
-            buf      (StringBuilder.)]
-        (loop [ch (read-char rdr)]
-          (when ch
+      (let [buf      (StringBuilder.)]
+        (loop [template (transient [])
+               ch (read-char rdr)]
+          (if ch
             (if (and (open-tag? ch rdr) (some #{(peek-rdr rdr)} [*tag-second* *filter-open*]))
-              (do
-                ;; We hit a tag so we append the buffer content to the template
-                ;; and empty the buffer, then we proceed to parse the tag
-                (if-let [text (not-empty (.toString buf))]
-                  (conj! template (TextNode. text)))
-                (.setLength buf 0)
-                (conj! template (FunctionNode. (parse-tag (read-tag-info rdr) rdr)))
-                (recur (read-char rdr)))
+              ;; We hit a tag so we append the buffer content to the template
+              ;; and empty the buffer, then we proceed to parse the tag
+              (recur (add-text-node template buf rdr) (read-char rdr))
               (do
                 ;; Default case, here we append the character and
                 ;; read the next char
                 (.append buf ch)
-                (recur (read-char rdr))))))
-        ;; Add the leftover content of the buffer and return the template
-        (conj! template (TextNode. (.toString buf)))
-        (persistent! template))))
+                (recur template (read-char rdr))))
+            ;; Add the leftover content of the buffer and return the template
+            (->> buf (.toString) (TextNode.) (conj! template) persistent!))))))
 
 ;; Primary compile-time parse routine. Work we don't want happening after
 ;; first template render. Vector output from parse* gets memoized by render-file.
