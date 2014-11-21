@@ -197,7 +197,7 @@
 ;; Compile-time parsing of tags. Accumulates a transient vector
 ;; before returning the persistent vector of INodes (TextNode, FunctionNode)
 
-(defn add-text-node [template buf rdr]
+(defn add-node [template buf rdr]
   (let [template (if-let [text (not-empty (.toString buf))]
                    (conj! template (TextNode. text))
                    template)]
@@ -213,7 +213,7 @@
             (if (and (open-tag? ch rdr) (some #{(peek-rdr rdr)} [*tag-second* *filter-open*]))
               ;; We hit a tag so we append the buffer content to the template
               ;; and empty the buffer, then we proceed to parse the tag
-              (recur (add-text-node template buf rdr) (read-char rdr))
+              (recur (add-node template buf rdr) (read-char rdr))
               (do
                 ;; Default case, here we append the character and
                 ;; read the next char
