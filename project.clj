@@ -6,7 +6,7 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [criterium "0.4.3" :scope "test"]
                  [joda-time "2.4"]
-                 [commons-codec "1.9"]
+                 [commons-codec "1.10"]
                  [cheshire "5.3.1"]]
   :repl-options {:port 10123}
   :plugins [[lein-marginalia "0.7.1"]
