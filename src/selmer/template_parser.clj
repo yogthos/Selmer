@@ -14,9 +14,10 @@
 (defn get-tag-params [tag-id block-str]
   (-> block-str (split tag-id) second (split *tag-second-pattern*) first trim))
 
-(defn parse-defaults [defaults]
-  (when defaults
+(defn parse-defaults [defaults]  
+  (when defaults    
     (->> defaults
+         (interpose " ")
          (apply str)
          split-by-args
          (partition 2)
