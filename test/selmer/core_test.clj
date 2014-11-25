@@ -73,7 +73,7 @@
       (= (fix-line-sep "<html>\n<body>{% block header %}\nB header\n\n<h1>child-a header</h1>\n<<\noriginal header\n>>\n\n{% endblock %}\n\n<div>{% block content %}\nSome content\n{% endblock %}</div>\n\n{% block footer %}\n<p>footer</p>\n{% endblock %}</body>\n</html>")
          (preprocess-template "templates/inheritance/child-b.html")))
     (is
-      (= "{%ifequal greeting|default:\"Hello!\" name|default:\"JaneDoe\"%} {{greeting|default:\"Hello!\"}} {{name|default:\"JaneDoe\"}} {%endifequal%}"
+      (= "{%ifequal greeting|default:\"Hello!\" name|default:\"Jane Doe\"%} {{greeting|default:\"Hello!\"}} {{name|default:\"JaneDoe\"}} {%endifequal%}"
          (preprocess-template "templates/inheritance/parent.html")))
     (is
       (= (fix-line-sep "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n            Hello \n         World\n{% endblock %}\n    </body>\n</html>")
