@@ -11,5 +11,6 @@
         (let [{:keys [type error-template] :as data} (ex-data ex)]
           (if (= :selmer-validation-error type)
             {:status 500
+             :headers {"Content-Type" "text/html; charset=utf-8"}
              :body (parser/render error-template data)}
             (throw ex)))))))
