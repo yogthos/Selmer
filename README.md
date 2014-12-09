@@ -375,7 +375,7 @@ if you wish to render it unescaped use the `safe` filter:
 `(render "{{sequence|length-is:4}}" {:sequence [1 2 3 4]})` => `true`
 
 #### linebreaks
-Single newlines become `<br />`, double newlines mean new paragraph. Contenet will
+Single newlines become `<br />`, double newlines mean new paragraph. Content will
 be escaped by default.
 
 `(render "{{foo|linebreaks|safe}}" {:foo "\nbar\nbaz"})` => `"<p><br />bar<br />baz</p>"`
