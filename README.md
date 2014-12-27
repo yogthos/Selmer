@@ -35,6 +35,8 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [default] (#default)
 [default-if-empty] (#default-if-empty)
 [double-format] (#double-format)
+[empty?] (#empty)
+[not-empty] (#not-empty)
 [first] (#first)
 [get-digit] (#get-digit)
 [hash] (#hash)
@@ -337,6 +339,12 @@ An ISO 639 2-letter language code can be added as a locale.
 #### double-format
 `(render "{{tis-a-number|double-format:2}}" {:tis-a-number 10.00001})` => `10.00`
 `(render "{{tis-a-number|double-format}}" {:tis-a-number 10.00001})` => `10.0`
+
+#### empty?
+`(render "{% if xs|empty? %}foo{% endif %}" {:xs []})` => `"foo"`
+
+#### not-empty
+`(render "{% if xs|not-empty %}foo{% endif %}" {:xs [1 2]})` => `"foo"`
 
 #### first
 `(render "{{seq-of-some-sort|first}}" {:seq-of-some-sort [:dog :cat :bird :bird :bird :is :the :word]})` => `:dog`

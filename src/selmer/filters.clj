@@ -186,6 +186,12 @@ map. The rest of the arguments are optional and are always strings."
        (throw-when-expecting-seqable coll)
        (if sep (s/join sep coll) (s/join coll)))
 
+     :empty?
+     empty?
+
+     :not-empty
+     not-empty
+
      :json
      (fn [x] (json/generate-string x))
 

@@ -511,6 +511,12 @@
   (is (= "0" (render "{{f|count}}" {:f []})))
   (is (= "0" (render "{{f|count}}" {}))))
 
+(deftest emptiness
+  (is (= "true" (render "{{xs|empty?" {:xs []})))
+  (is (= "foo" (render "{% if xs|empty? %}foo{% endif %}" {:xs []})))
+  (is (= "" (render "{% if xs|not-empty %}foo{% endif %}" {:xs []})))
+  (is (= "foo" (render "{% if xs|not-empty %}foo{% endif %}" {:xs [1 2]}))))
+
 ;; switched commas + doublequotes for colons
 ;; TODO - maybe remain consistent with django's only 1 argument allowed.
 ;; I like being able to accept multiple arguments.
