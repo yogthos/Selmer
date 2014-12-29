@@ -320,9 +320,9 @@
        (render "{% if x > 2 %}bigger{% endif %}" {:v 3})))
   (is
     (= "ok"
-       (render "{% if x = 2.0 %}ok{% endif %}" {:x 2})))
-  (= "ok"
-       (render "{% if x|length = 5 %}ok{% endif %}" {:x (range 5)}))
+       (render "{% if x = 2.0 %}ok{% endif %}" {:x 2}))
+    (= "ok"
+       (render "{% if x|length = 5 %}ok{% endif %}" {:x (range 5)})))
   (is
     (= "bigger"
        (render "{% if v > 2 %}bigger{% endif %}" {:v 3})))
@@ -498,7 +498,6 @@
 (deftest filter-hash-invalid-hash
   (is (thrown? Exception (render "{{f|hash:\"foo\"}}" {:f "foo"}))))
 
-
 (deftest filter-join
   (is (= "1, 2, 3, 4"
          (render "{{sequence|join:\", \"}}" {:sequence [1 2 3 4]})))
@@ -613,3 +612,30 @@
   (is
     (= "&lt;DIV&gt;I&#39;M NOT SAFE&lt;/DIV&gt;"
       (render "{{x|bar}}" {:x "<div>I'm not safe</div>"}))))
+
+(deftest linebreaks-test
+  (testing "single newlines become <br />, double newlines become <p>"
+    (is (= "<p><br />bar<br />baz</p>"
+           (render "{{foo|linebreaks|safe}}" {:foo "\nbar\nbaz"})))))
+
+(deftest linebreaks-br-test
+  (testing "works like linebreaks, but no <p> tags"
+    (is (= "<br />bar<br />baz"
+           (render "{{foo|linebreaks-br|safe}}" {:foo "\nbar\nbaz"})))))
+
+(deftest linenumbers-test
+  (testing "displays text with line numbers"
+    (is (= "1. foo\n2. bar\n3. baz"
+           (render "{{foo|linenumbers}}" {:foo "foo\nbar\nbaz"})))))
+
+(deftest lower-test
+  (testing "converts words to lower case"
+    (is (= "foobar" (render "{{foo|lower}}" {:foo "FOOBaR"})))
+    (is (= "foobar" (render "{{foo|lower}}" {:foo "foobar"})))))
+
+(deftest number-format-test
+  (testing "formats the number with default locale"
+    (is (= "123.045" (render "{{amount|number-format:%.3f}}" {:amount 123.04455})))
+    (is (= "123.045" (render "{{amount|number-format:%.3f}}" {:amount 123.045}))))
+  (testing "formats the number with specified locale"
+    (is (= "123,045" (render "{{amount|number-format:%.3f:de}}" {:amount 123.04455})))))
