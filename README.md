@@ -390,11 +390,11 @@ be escaped by default.
 
 #### linebreaks-br
 like `linebreaks` but doesn't insert `<p>` tags.
-`(render "{{foo|linebreaks-br|safe}}" {:foo "\nbar\nbaz"})` => `"bar<br />baz"`
+`(render "{{foo|linebreaks-br|safe}}" {:foo "\nbar\nbaz"})` => `"<br />bar<br />baz"`
 
 #### linenumbers
 Displays text with line numbers.
-`(render "{{foo|linenumbers" {:foo "foo\n\bar\nbaz"})` => `"1. foo\n2. \bar\n3. baz"`
+`(render "{{foo|linenumbers}}" {:foo "foo\n\bar\nbaz"})` => `"1. foo\n2. bar\n3. baz"`
 
 #### lower
 `(render "{{foo|lower}}" {:foo "FOOBaR"})` => `"foobar"`
