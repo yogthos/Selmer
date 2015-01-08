@@ -462,10 +462,12 @@
 (deftest filter-currency-format
   (let [amount 123.45
         curr (java.text.NumberFormat/getCurrencyInstance (java.util.Locale. "en" "US"))
-        curr-de (java.text.NumberFormat/getCurrencyInstance (java.util.Locale. "de"))]
+        curr-de (java.text.NumberFormat/getCurrencyInstance (java.util.Locale. "de"))
+        curr-de-DE (java.text.NumberFormat/getCurrencyInstance (java.util.Locale. "de" "DE"))]
     (is (= (.format curr amount)
            (render "{{f|currency-format}}" {:f amount})))
-    (is (= (.format curr-de amount) (render "{{f|currency-format:de}}" {:f amount})))))
+    (is (= (.format curr-de amount) (render "{{f|currency-format:de}}" {:f amount})))
+    (is (= (.format curr-de-DE amount) (render "{{f|currency-format:de:DE}}" {:f amount})))))
 
 (deftest filter-number-format
   (let [number 123.04455

@@ -305,10 +305,15 @@ Can be used inside a block to insert the content from the parent block in its pl
 `"{{amount|currency-format}}" {:amount 123})` => `"$123.00"`
 
 Uses `java.text.NumberFormat/getCurrencyInstance` for formatting the currency value.
+The formatter defaults to the `"en"`, `"US"` locale.
 
 An ISO 639 2-letter language code can be added as a locale.
 
 `"{{amount|currency-format:de}}" {:amount 123})` => `"€ 123,00"`
+
+Additionally, the locale can be followed by the country code.
+
+`"{{amount|currency-format:de:DE}}" {:amount 123})` => `"€ 123,00"`
 
 #### date
 Valid predefined date, time formats: `shortDate` `shortTime` `shortDateTime` `mediumDate` `mediumTime` `mediumDateTime` `longDate` `longTime` `longDateTime` `fullDate` `fullTime` `fullDateTime`
