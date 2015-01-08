@@ -23,4 +23,4 @@
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
                    :dependencies [[midje "1.6.3"]
                                   [environ "1.0.0"]
-                                  [midje-readme "1.0.4"]]}})
+                                  [midje-readme "1.0.5"]]}})
