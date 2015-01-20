@@ -134,11 +134,6 @@
       (.getContextClassLoader)
       (.getResource resource)))
 
-(def decode-path
-  (memoize
-    (fn [file-path]
-      (java.net.URLDecoder/decode file-path "utf-8"))))
-
 (defn resource-path [template]
   (if-let [path @custom-resource-path]
     (java.net.URL. (str path template))
