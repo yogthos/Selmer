@@ -47,8 +47,13 @@
 (def ^:dynamic ^Pattern   *endblock-pattern* nil)
 
 (defn check-tag-args [args]
-  (if (even? (count (filter #{\"} args)))
-    args (exception "malformed tag arguments in " args)))
+  (cond
+    (or (.contains args "= ") (.contains args " =")) 
+    (exception "there shouldn't be spaces near `=` in param assign statement: " args)
+
+    (odd? (count (filter #{\"} args)))
+    (exception "malformed tag arguments in " args)
+    :else args))
 
 (defn read-tag-info [rdr]
   (let [buf (StringBuilder.)
