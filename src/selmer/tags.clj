@@ -205,9 +205,6 @@
   (for [[id value] (partition 2 args)]
     [(keyword id) (compile-filter-body value false)]))
 
-(defn parse-with [^String arg]
-  (let [[id value] (.split arg "=")]
-    [(keyword id) (compile-filter-body value false)]))
 (defn with-handler [args tag-content render rdr]
   (let [content (get-in (tag-content rdr :with :endwith) [:with :content])
         args (->> args
@@ -220,6 +217,7 @@
                 (fn [context-map [k v]]
                   (assoc context-map k (v context-map)))
                 context-map args)))))
+
 
 (defn script-handler [[^String uri] _ _ _]
   (fn [{:keys [servlet-context]}]
