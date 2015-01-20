@@ -176,9 +176,9 @@
        (render "{% with total=business.employees|count %}{{ total }} employee{{ business.employees|pluralize }}{% endwith %}"
                {:business {:employees (range 5)}})))
   (is
-    (= "5 employees"
-       (render "{% with total = business.employees|count %}{{ total }} employee{{ business.employees|pluralize }}{% endwith %}"
-               {:business {:employees (range 5)}})))
+    (= "total:5 employees"
+       (render "{% with label=label total = business.employees|count %}{{label}}{{ total }} employee{{ business.employees|pluralize }}{% endwith %}"
+               {:label "total:" :business {:employees (range 5)}})))
   (is
     (= "foocorp"
        (render "{% with name=business.name %}{{name}}{% endwith %}"
