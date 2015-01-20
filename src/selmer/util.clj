@@ -46,6 +46,11 @@
 (def ^:dynamic ^Pattern   *block-super-pattern* nil)
 (def ^:dynamic ^Pattern   *endblock-pattern* nil)
 
+(def match-unquoted " *(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")
+
+(defn split-unquoted [^String s ^String x]
+  (clojure.string/split s (re-pattern (str " *" x match-unquoted))))
+
 (defn check-tag-args [args]
   (if (even? (count (filter #{\"} args)))
     args (exception "malformed tag arguments in " args)))
@@ -60,7 +65,6 @@
                          (= *tag-close* ch2)))
         (.append buf ch1)
         (recur ch2 (read-char rdr))))
-
     (let [content (->> (.toString buf)
                        (check-tag-args)
                        (re-seq #"(?:[^\s\"]|\"[^\"]*\")+")

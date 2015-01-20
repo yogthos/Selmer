@@ -199,13 +199,21 @@
   (let [content (read-verbatim rdr)]
     (fn [context-map] content)))
 
+(defn compile-args [args]
+  (when-not (even? (count args))
+    (exception "invalid arguments passed to 'with' tag: " args))
+  (for [[id value] (partition 2 args)]
+    [(keyword id) (compile-filter-body value false)]))
+
 (defn parse-with [^String arg]
   (let [[id value] (.split arg "=")]
     [(keyword id) (compile-filter-body value false)]))
-
 (defn with-handler [args tag-content render rdr]
   (let [content (get-in (tag-content rdr :with :endwith) [:with :content])
-        args (map parse-with args)]
+        args (->> args
+                  (mapcat #(.split % "="))
+                  (remove #{"="})
+                  (compile-args))]
     (fn [context-map]
       (render content
               (reduce
