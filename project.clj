@@ -5,7 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [criterium "0.4.3" :scope "test"]
-                 [joda-time "2.6"]
+                 [joda-time "2.7"]
                  [commons-codec "1.10"]
                  [cheshire "5.4.0"]]
   :aot [selmer.node]
@@ -23,4 +23,4 @@
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
                    :dependencies [[midje "1.6.3"]
                                   [environ "1.0.0"]
-                                  [midje-readme "1.0.4"]]}})
+                                  [midje-readme "1.0.5"]]}})
