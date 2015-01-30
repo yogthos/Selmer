@@ -13,7 +13,7 @@
   :repl-options {:port 10123}
   :plugins [[lein-marginalia "0.7.1"]
             [lein-midje "3.0.0"]
-            [midje-readme "1.0.4"]]
+            [midje-readme "1.0.7"]]
 
   :midje-readme {:require "[selmer.parser :refer :all] [selmer.filters :refer :all] [environ.core :refer [env]] [selmer.middleware :refer [wrap-error-page]]"}
 
@@ -23,4 +23,4 @@
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
                    :dependencies [[midje "1.6.3"]
                                   [environ "1.0.0"]
-                                  [midje-readme "1.0.5"]]}})
+                                  [midje-readme "1.0.7"]]}})
