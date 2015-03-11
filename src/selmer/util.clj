@@ -8,7 +8,14 @@
    `(throw (new ~param (str ~@more)))
    `(throw (Exception. (str ~@params)))))
 
-(def custom-resource-path (atom nil))
+(def *custom-resource-path* nil)
+
+(defn set-custom-resource-path!
+  [path]
+  (alter-var-root #'*custom-resource-path*
+                  (constantly path)
+                  (when (thread-bound? #'*custom-resource-path*)
+                    (set! *custom-resource-path* path))))
 
 (defn pattern [& content]
   (re-pattern (clojure.string/join content)))
@@ -139,7 +146,7 @@
       (.getResource resource)))
 
 (defn resource-path [template]
-  (if-let [path @custom-resource-path]
+  (if-let [path *custom-resource-path*]
     (java.net.URL. (str path template))
     (get-resource template)))
 

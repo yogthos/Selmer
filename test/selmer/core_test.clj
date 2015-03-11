@@ -596,16 +596,16 @@
          (render "{{f|upper|safe}}" {:f "<foo>"}))))
 
 (deftest custom-resource-path-setting
-  (is nil? @custom-resource-path)
+  (is nil? *custom-resource-path*)
   (is (= "file:////some/path/" (set-resource-path! "/some/path")))
   (is (= "file:////any/other/path/" (set-resource-path! "/any/other/path/")))
   (is (= "file:////any/other/path/" (set-resource-path! "file:////any/other/path/")))
   (set-resource-path! nil)
-  (is nil? @custom-resource-path))
+  (is nil? *custom-resource-path*))
 
 (deftest custom-resource-path-setting-url
   (set-resource-path! (clojure.java.io/resource "templates/inheritance"))
-  (is (string? @custom-resource-path))
+  (is (string? *custom-resource-path*))
   (is (= (fix-line-sep "Hello, World!\n")  (render-file "foo.html" {:name "World"})))
   (set-resource-path! nil))
 

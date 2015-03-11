@@ -63,7 +63,7 @@
   first try to convert it to a java.net.URL instance and if it doesn't
   work it's interpreted as a path in the local filesystem."
   [path]
-  (reset! custom-resource-path (make-resource-path path)))
+  (set-custom-resource-path! (make-resource-path path)))
 
 (defn update-tag [tag-map tag tags]
   (assoc tag-map tag (concat (get tag-map tag) tags)))
