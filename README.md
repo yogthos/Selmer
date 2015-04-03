@@ -866,4 +866,6 @@ You may also specify more than one value:
 
 ## License
 
+Copyright © 2015 Dmitri Sotnikov
+
 Distributed under the Eclipse Public License, the same as Clojure.
