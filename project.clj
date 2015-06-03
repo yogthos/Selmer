@@ -5,9 +5,9 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [criterium "0.4.3" :scope "test"]
-                 [joda-time "2.7"]
+                 [joda-time "2.8"]
                  [commons-codec "1.10"]
-                 [cheshire "5.4.0"]]
+                 [cheshire "5.5.0"]]
   :aot [selmer.node]
   :javac-options ["-target" "1.6"]
   :repl-options {:port 10123}
