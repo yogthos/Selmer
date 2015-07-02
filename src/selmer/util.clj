@@ -8,7 +8,7 @@
    `(throw (new ~param (str ~@more)))
    `(throw (Exception. (str ~@params)))))
 
-(def *custom-resource-path* nil)
+(def ^:dynamic *custom-resource-path* nil)
 
 (defn set-custom-resource-path!
   [path]
