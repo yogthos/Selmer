@@ -553,7 +553,7 @@ the blocks from child templates.
 * Note: child templates can **only** contain blocks. Any tags or text outside the blocks will be
 ignored!
 
-For example, say we have a base template called `base.html` and a child template `child.thml`:
+For example, say we have a base template called `base.html` and a child template `child.html`:
 
 ```xml
 <html>
@@ -865,5 +865,7 @@ You may also specify more than one value:
 [**Back To Top ⇧**](#selmer)
 
 ## License
+
+Copyright © 2015 Dmitri Sotnikov
 
 Distributed under the Eclipse Public License, the same as Clojure.
