@@ -5,7 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [criterium "0.4.3" :scope "test"]
-                 [joda-time "2.8"]
+                 [joda-time "2.8.1"]
                  [commons-codec "1.10"]
                  [cheshire "5.5.0"]]
   :aot [selmer.node]
