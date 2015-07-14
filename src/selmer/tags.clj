@@ -151,21 +151,26 @@
       :else
       (if-numeric-handler params if-tags else-tags render))))
 
-(defn ifequal-handler
-  ([args tag-content render rdr]
-   (ifequal-handler args tag-content render rdr =))
-  ([args tag-content render rdr comparator]
-   (let [{:keys [ifequal else]} (tag-content rdr :ifequal :else :endifequal)
-         args (for [^String arg args]
-                (if (= \" (first arg))
-                  (.substring arg 1 (dec (.length arg)))
-                  (compile-filter-body arg)))]
-     (fn [context-map]
-       (let [condition (apply comparator (map #(if (fn? %) (% context-map) %) args))]
-         (render-if render context-map condition ifequal else))))))
+(defn compare-tag [args comparator render success failure]
+  (fn [context-map]
+    (let [condition (apply comparator (map #(if (fn? %) (% context-map) %) args))]
+      (render-if render context-map condition success failure))))
+
+(defn parse-eq-args [args]
+  (for [^String arg args]
+    (if (= \" (first arg))
+      (.substring arg 1 (dec (.length arg)))
+      (compile-filter-body arg))))
+
+(defn ifequal-handler [args tag-content render rdr]
+  (let [{:keys [ifequal else]} (tag-content rdr :ifequal :else :endifequal)
+        args (parse-eq-args args)]
+    (compare-tag args = render ifequal else)))
 
 (defn ifunequal-handler [args tag-content render rdr]
-  (ifequal-handler args tag-content render rdr not=))
+  (let [{:keys [ifunequal else]} (tag-content rdr :ifunequal :else :endifunequal)
+        args (parse-eq-args args)]
+    (compare-tag args not= render ifunequal else)))
 
 (defn block-handler [args tag-content render rdr]
   (let [content (get-in (tag-content rdr :block :endblock) [:block :content])]

@@ -427,11 +427,11 @@
          "no foo")))
 
 (deftest ifunequal-tag-test
-  (is (= (render "{% ifunequal foo \"bar\" %}yez{% endifequal %}" {:foo "foo"})
+  (is (= (render "{% ifunequal foo \"bar\" %}yez{% endifunequal %}" {:foo "foo"})
          "yez"))
-  (is (= (render "{% ifunequal foo \"foo\" %}yez{% endifequal %}" {:foo "foo"})
+  (is (= (render "{% ifunequal foo \"foo\" %}yez{% endifunequal %}" {:foo "foo"})
          ""))
-  (is (= (render "{% ifunequal foo|upper \"foo\" %}yez{% endifequal %}" {:foo "foo"})
+  (is (= (render "{% ifunequal foo|upper \"foo\" %}yez{% endifunequal %}" {:foo "foo"})
          "yez")))
 
 (deftest safe-tag
