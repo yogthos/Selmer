@@ -21,6 +21,6 @@
                    :benchmark :benchmark
                    :all (constantly true)}
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
-                   :dependencies [[midje "1.6.3"]
+                   :dependencies [[midje "1.7.0"]
                                   [environ "1.0.0"]
-                                  [midje-readme "1.0.7"]]}})
+                                  [midje-readme "1.0.8"]]}})
