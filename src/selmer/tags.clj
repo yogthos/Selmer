@@ -27,8 +27,8 @@
 
 (defn apply-filters [item filter-names]
   (reduce
-   (fn [value filter] ((compile-filter-body (str "value|" filter) false) {:value value}))
-   item filter-names))
+    (fn [value filter] ((compile-filter-body (str "value|" filter) false) {:value value}))
+    item filter-names))
 
 (defn for-handler [args tag-content render rdr]
   (let [content (tag-content rdr :for :empty :endfor)
@@ -47,18 +47,18 @@
           (.append buf (render empty-content context-map))
           (doseq [[counter value] (map-indexed vector items)]
             (let [loop-info
-                  {:length length
-                   :counter0 counter
-                   :counter (inc counter)
-                   :revcounter (- length (inc counter))
+                  {:length      length
+                   :counter0    counter
+                   :counter     (inc counter)
+                   :revcounter  (- length (inc counter))
                    :revcounter0 (- length counter)
-                   :first (= counter 0)
-                   :last (= counter (dec length))}]
+                   :first       (= counter 0)
+                   :last        (= counter (dec length))}]
               (->> (assoc (create-value-mappings context-map ids value)
-                          :forloop loop-info
-                          :parentloop loop-info)
-                (render for-content)
-                (.append buf)))))
+                     :forloop loop-info
+                     :parentloop loop-info)
+                   (render for-content)
+                   (.append buf)))))
         (.toString buf)))))
 
 (defn render-if [render context-map condition first-block second-block]
@@ -78,10 +78,10 @@
 
 (defn if-result [value]
   (condp = value
-    nil     false
-    ""      false
+    nil false
+    "" false
     "false" false
-    false   false
+    false false
     true))
 
 (defn if-default-handler [[condition1 condition2] if-tags else-tags render]
@@ -97,7 +97,7 @@
 (defn compare-numeric [op value arg-position]
   (let [value (java.lang.Double/parseDouble value)
         op (condp = op ">" > "<" < "=" == ">=" >= "<=" <=
-             (exception "Unrecognized operator in 'if' statement: " op))]
+                       (exception "Unrecognized operator in 'if' statement: " op))]
     (if (= :first arg-position)
       #(op (java.lang.Double/parseDouble %) value)
       #(op value (java.lang.Double/parseDouble %)))))
@@ -144,22 +144,28 @@
       (let [[not? op] (if (= "not" (first params))
                         [true (second params)]
                         [false (first params)])
-            params    (if not? (drop 2 params) (rest params))]
+            params (if not? (drop 2 params) (rest params))]
         (render-if-any-all not? (if (= "any" op) some every?) params if-tags else-tags render))
       (< (count params) 3)
       (if-default-handler params if-tags else-tags render)
       :else
       (if-numeric-handler params if-tags else-tags render))))
 
-(defn ifequal-handler [args tag-content render rdr]
-  (let [tags (tag-content rdr :ifequal :else :endifequal)
-        args (for [^String arg args]
-               (if (= \" (first arg))
-                 (.substring arg 1 (dec (.length arg)))
-                 (compile-filter-body arg)))]
-    (fn [context-map]
-      (let [condition (apply = (map #(if (fn? %) (% context-map) %) args))]
-        (render-if render context-map condition (:ifequal  tags) (:else tags))))))
+(defn ifequal-handler
+  ([args tag-content render rdr]
+   (ifequal-handler args tag-content render rdr =))
+  ([args tag-content render rdr comparator]
+   (let [{:keys [ifequal else]} (tag-content rdr :ifequal :else :endifequal)
+         args (for [^String arg args]
+                (if (= \" (first arg))
+                  (.substring arg 1 (dec (.length arg)))
+                  (compile-filter-body arg)))]
+     (fn [context-map]
+       (let [condition (apply comparator (map #(if (fn? %) (% context-map) %) args))]
+         (render-if render context-map condition ifequal else))))))
+
+(defn ifunequal-handler [args tag-content render rdr]
+  (ifequal-handler args tag-content render rdr not=))
 
 (defn block-handler [args tag-content render rdr]
   (let [content (get-in (tag-content rdr :block :endblock) [:block :content])]
@@ -182,18 +188,18 @@
 
 (defn read-verbatim [rdr]
   (->buf [buf]
-    (loop [ch (read-char rdr)]
-      (when ch
-        (cond
-          (open-tag? ch rdr)
-          (let [tag (read-tag-content rdr)]
-            (if-not (re-matches #"\{\%\s*endverbatim\s*\%\}" tag)
-              (do (.append buf tag)
-                (recur (read-char rdr)))))
-          :else
-          (do
-            (.append buf ch)
-            (recur (read-char rdr))))))))
+         (loop [ch (read-char rdr)]
+           (when ch
+             (cond
+               (open-tag? ch rdr)
+               (let [tag (read-tag-content rdr)]
+                 (if-not (re-matches #"\{\%\s*endverbatim\s*\%\}" tag)
+                   (do (.append buf tag)
+                       (recur (read-char rdr)))))
+               :else
+               (do
+                 (.append buf ch)
+                 (recur (read-char rdr))))))))
 
 (defn verbatim-handler [args _ render rdr]
   (let [content (read-verbatim rdr)]
@@ -230,10 +236,10 @@
 (defn cycle-handler [args _ _ _]
   (let [fields (vec args)
         length (dec (count fields))
-       i       (int-array [0])]
+        i (int-array [0])]
     (fn [_]
       (let [cur-i (aget i 0)
-            val   (fields cur-i)]
+            val (fields cur-i)]
         (aset i 0 (if (< cur-i length) (inc cur-i) 0))
         val))))
 
@@ -246,49 +252,51 @@
 ;; {% for ... %}, and {% block blockname %}
 
 (defonce expr-tags
-         (atom {:if if-handler
-                :ifequal ifequal-handler
-                :for for-handler
-                :block block-handler
-                :cycle cycle-handler
-                :now now-handler
-                :comment comment-handler
-                :firstof first-of-handler
-                :verbatim verbatim-handler
-                :with with-handler
-                :script script-handler
-                :style style-handler
-                :safe safe-handler
-                :extends nil
-                :include nil}))
+         (atom {:if        if-handler
+                :ifequal   ifequal-handler
+                :ifunequal ifunequal-handler
+                :for       for-handler
+                :block     block-handler
+                :cycle     cycle-handler
+                :now       now-handler
+                :comment   comment-handler
+                :firstof   first-of-handler
+                :verbatim  verbatim-handler
+                :with      with-handler
+                :script    script-handler
+                :style     style-handler
+                :safe      safe-handler
+                :extends   nil
+                :include   nil}))
 
 (defonce closing-tags
-         (atom {:if       [:else :endif]
-                :else     [:endif :endifequal]
-                :ifequal  [:else :endifequal]
-                :block    [:endblock]
-                :for      [:empty :endfor]
-                :empty    [:endfor]
-                :comment  [:endcomment]
-                :safe     [:endsafe]
-                :verbatim [:endverbatim]
-                :with     [:endwith]}))
+         (atom {:if        [:else :endif]
+                :else      [:endif :endifequal :endifunequal]
+                :ifequal   [:else :endifequal]
+                :ifunequal [:else :endifunequal]
+                :block     [:endblock]
+                :for       [:empty :endfor]
+                :empty     [:endfor]
+                :comment   [:endcomment]
+                :safe      [:endsafe]
+                :verbatim  [:endverbatim]
+                :with      [:endwith]}))
 
 ;;helpers for custom tag definition
 (defn render-tags [context-map tags]
   (into {}
-    (for [[tag content] tags]
-      [tag
-       (update-in content [:content]
-         (fn [^selmer.node.INode node]
-           (clojure.string/join (map #(.render-node ^selmer.node.INode % context-map) node))))])))
+        (for [[tag content] tags]
+          [tag
+           (update-in content [:content]
+                      (fn [^selmer.node.INode node]
+                        (clojure.string/join (map #(.render-node ^selmer.node.INode % context-map) node))))])))
 
 (defn tag-handler [handler & tags]
   (fn [args tag-content render rdr]
-     (if-let [content (if (> (count tags) 1) (apply (partial tag-content rdr) tags))]
-       (-> (fn [context-map]
-             (render
-               [(->> content (render-tags context-map) (handler args context-map) (TextNode.))]
-               context-map)))
-       (fn [context-map]
-         (render [(TextNode. (handler args context-map))] context-map)))))
+    (if-let [content (if (> (count tags) 1) (apply (partial tag-content rdr) tags))]
+      (-> (fn [context-map]
+            (render
+              [(->> content (render-tags context-map) (handler args context-map) (TextNode.))]
+              context-map)))
+      (fn [context-map]
+        (render [(TextNode. (handler args context-map))] context-map)))))

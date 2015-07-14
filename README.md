@@ -73,6 +73,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [cycle] (#cycle)
 [if] (#if)
 [ifequal] (#ifequal)
+[ifunequal] (#ifunequal)
 [include] (#include)
 [extends] (#extends)
 [firstof] (#firstof)
@@ -613,6 +614,11 @@ Only render the body if the two args are equal (according to clojure.core/=).
 `{% ifequal foo bar %}yes!{% else %}no!{% endifequal %}`
 
 `{% ifequal foo "this also works" %}yes!{% endifequal %}`
+
+#### ifunequal
+Only render the body if the two args are unequal (according to clojure.core/=).
+
+`{% ifunequal foo bar %}yes!{% endifequal %}`
 
 **for/endfor** *block*
 
