@@ -71,7 +71,7 @@ map. The rest of the arguments are optional and are always strings."
             ;;; If it fails concatenate them as strings
             :add
             (fn [x y & rest]
-              (let [args (conj rest y x)]
+              (let [args (conj rest y (str x))]
                 (try (apply +
                             (map #(Long/valueOf ^String %) args))
                      (catch NumberFormatException _

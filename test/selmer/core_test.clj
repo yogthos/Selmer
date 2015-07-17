@@ -518,6 +518,11 @@
   (is (= "1234"
          (render "{{sequence|join}}" {:sequence [1 2 3 4]}))))
 
+(deftest filter-add
+  (is (= "11" (render "{{add_me|add:2:3:4}}" {:add_me 2})))
+  (is (= "hello" (render "{{h|add:e:l:l:o}}" {:h "h"})))
+  (is (= "0" (render "{{paginate.page|add:-1}}" {:paginate {:page 1}}))))
+
 (deftest filter-count
   (is (= "3" (render "{{f|count}}" {:f "foo"})))
   (is (= "4" (render "{{f|count}}" {:f [1 2 3 4]})))
