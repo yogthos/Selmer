@@ -12,7 +12,7 @@
 
 (def big-for-context {:users (repeat 100 user)})
 
-(def large-content (apply str (repeat 2500 "bitemyapp > * ")))
+(def large-content (apply str (repeat 2500 "yogthos > * ")))
 
 (def filter-chain (apply str (repeat 100 "|inc")))
 

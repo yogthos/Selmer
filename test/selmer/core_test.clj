@@ -658,3 +658,10 @@
     (is (= "123.045" (render "{{amount|number-format:%.3f}}" {:amount 123.045}))))
   (testing "formats the number with specified locale"
     (is (= "123,045" (render "{{amount|number-format:%.3f:de}}" {:amount 123.04455})))))
+
+(deftest default-if-empty-test
+  (testing "default when empty behavior"
+    (is (= "yogthos" (render "{{name|default-if-empty:\"I <3 ponies\"}}" {:name "yogthos"})))
+    (is (= "I &lt;3 ponies" (render "{{name|default-if-empty:\"I <3 ponies\"}}" {:name nil})))
+    (is (= "I &lt;3 ponies" (render "{{name|default-if-empty:\"I <3 ponies\"}}" {:name []})))
+    (is (= "I &lt;3 ponies" (render "{{name|default-if-empty:\"I <3 ponies\"}}" {})))))

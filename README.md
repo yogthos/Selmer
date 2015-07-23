@@ -292,7 +292,7 @@ Can be used inside a block to insert the content from the parent block in its pl
 `(render "{{name|capitalize}}" {:name "russian tea is best tea"})` => `"Russian tea is best tea"`
 
 #### center
-`(render "{{name|center:20}}" {:name "bitemyapp"})` => `"      bitemyapp     "`
+`(render "{{name|center:20}}" {:name "yogthos"})` => `"      yogthos     "`
 
 #### count
 `(render "{{name|count}}" {:name "Yogthos"})` => `"7"`
@@ -331,14 +331,14 @@ An ISO 639 2-letter language code can be added as a locale.
 `(render "{{now|date:\"MMMM\":fr}}" {:now (java.util.Date.)})` => `"mars"`
 
 #### default
-`(render "{{name|default:"I <3 ponies"}}" {:name "bitemyapp"})` => `"bitemyapp"`
+`(render "{{name|default:"I <3 ponies"}}" {:name "yogthos"})` => `"yogthos"`
 `(render "{{name|default:"I <3 ponies"}}" {:name nil})` => `"I <3 ponies"`
 `(render "{{name|default:"I <3 ponies"}}" {:name []})` => `"[]"`
 
 `(render "{{name|default:"I <3 ponies"}}" {})` => `"I <3 ponies"`
 
 #### default-if-empty
-`(render "{{name|default-if-empty:"I <3 ponies"}}" {:name "bitemyapp"})` => `"bitemyapp"`
+`(render "{{name|default-if-empty:"I <3 ponies"}}" {:name "yogthos"})` => `"yogthos"`
 `(render "{{name|default-if-empty:"I <3 ponies"}}" {:name nil})` => `"I <3 ponies"`
 `(render "{{name|default-if-empty:"I <3 ponies"}}" {:name []})` => `"I <3 ponies"`
 `(render "{{name|default-if-empty:"I <3 ponies"}}" {})` => `"I <3 ponies"`

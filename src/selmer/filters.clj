@@ -143,8 +143,13 @@ map. The rest of the arguments are optional and are always strings."
             ;;; Default if coll is empty
             :default-if-empty
             (fn [coll default]
-              (throw-when-expecting-seqable coll)
-              (or (not-empty coll) default))
+              (try
+                (cond
+                  (nil? coll) default
+                  (empty? coll) default
+                  :else coll)
+                (catch Exception _
+                  (throw-when-expecting-seqable coll))))
 
             ;;; With no decimal places it rounds to 1 decimal place
             :double-format
