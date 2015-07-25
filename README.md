@@ -1,10 +1,7 @@
 Selmer
 ======
 
-
 [![Continuous Integration status](https://secure.travis-ci.org/yogthos/Selmer.png)](http://travis-ci.org/yogthos/Selmer)
-
-[![Dependency Status](https://www.versioneye.com/user/projects/52f24117ec137579040002b2/badge.png)](https://www.versioneye.com/user/projects/52f24117ec137579040002b2)
 
 A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) inspired template system for Clojure.
 
