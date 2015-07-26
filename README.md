@@ -648,6 +648,11 @@ filters can be used inside the for loop:
 
 `(render "{% for x in foo.bar|sort %}{{x}}{% endfor %}" {:foo {:bar [1 4 3 5]}})` => `"1345"`
 
+
+#### sum
+Sums multiple variables together
+`(render "{% sum foo bar baz %}" {:foo 3 :bar 2 :baz 1})` => `"6"`
+
 #### now
 renders current time
 
