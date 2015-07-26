@@ -3028,8 +3028,8 @@ net.brehaut.ClojureTools = (function (SH) {
     build_tree: build_tree
   };
 })(SyntaxHighlighter);
-</script><title>selmer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">selmer</h1><h2 class="project-version">0.7.5</h2><br /><p>Django templates for Clojure</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.6.0</td></tr><tr><td class="dep-name">criterium</td><td class="dotted"><hr /></td><td class="dep-version">0.4.3</td></tr><tr><td class="dep-name">joda-time</td><td class="dotted"><hr /></td><td class="dep-version">2.4</td></tr><tr><td class="dep-name">commons-codec</td><td class="dotted"><hr /></td><td class="dep-version">1.10</td></tr><tr><td class="dep-name">cheshire</td><td class="dotted"><hr /></td><td class="dep-version">5.3.1</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#selmer.filter-parser">selmer.filter-parser</a></li><li><a href="#selmer.filters">selmer.filters</a></li><li><a href="#selmer.middleware">selmer.middleware</a></li><li><a href="#selmer.node">selmer.node</a></li><li><a href="#selmer.parser">selmer.parser</a></li><li><a href="#selmer.tags">selmer.tags</a></li><li><a href="#selmer.template-parser">selmer.template-parser</a></li><li><a href="#selmer.util">selmer.util</a></li><li><a href="#selmer.validator">selmer.validator</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.filter-parser" name="selmer.filter-parser"><h1 class="project-name">selmer.filter-parser</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Accessors are separated by dots like {{ foo.bar.0 }}
+</script><title>selmer -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">selmer</h1><h2 class="project-version">0.8.7</h2><br /><p>Django templates for Clojure</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.6.0</td></tr><tr><td class="dep-name">criterium</td><td class="dotted"><hr /></td><td class="dep-version">0.4.3</td></tr><tr><td class="dep-name">joda-time</td><td class="dotted"><hr /></td><td class="dep-version">2.8.1</td></tr><tr><td class="dep-name">commons-codec</td><td class="dotted"><hr /></td><td class="dep-version">1.10</td></tr><tr><td class="dep-name">cheshire</td><td class="dotted"><hr /></td><td class="dep-version">5.5.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#selmer.filter-parser">selmer.filter-parser</a></li><li><a href="#selmer.filters">selmer.filters</a></li><li><a href="#selmer.middleware">selmer.middleware</a></li><li><a href="#selmer.node">selmer.node</a></li><li><a href="#selmer.parser">selmer.parser</a></li><li><a href="#selmer.tags">selmer.tags</a></li><li><a href="#selmer.template-parser">selmer.template-parser</a></li><li><a href="#selmer.util">selmer.util</a></li><li><a href="#selmer.validator">selmer.validator</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.filter-parser" name="selmer.filter-parser"><h1 class="project-name">selmer.filter-parser</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Accessors are separated by dots like {{ foo.bar.0 }}
 which gets translated into (get-in context-map [:foo :bar 0]). So you
 can nest vectors and maps in your context-map.</p>
 
@@ -3146,23 +3146,24 @@ map. The rest of the arguments are optional and are always strings.</p>
   (:require [clojure.string :as s]
             [cheshire.core :as json :only [generate-string]]
             [selmer.util :refer [exception]])
-  (:import [org.joda.time DateTime]
+  (:import java.util.Locale
+           org.joda.time.DateTime
+           java.text.NumberFormat
            [org.joda.time.format DateTimeFormat DateTimeFormatter]
-           [org.apache.commons.codec.digest DigestUtils]
-           [java.text NumberFormat]))</pre></td></tr><tr><td class="docs">
+           [org.apache.commons.codec.digest DigestUtils]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def valid-date-formats
-  {&quot;shortDate&quot;       (DateTimeFormat/shortDate)
-   &quot;shortTime&quot;       (DateTimeFormat/shortTime)
-   &quot;shortDateTime&quot;   (DateTimeFormat/shortDateTime)
-   &quot;mediumDate&quot;      (DateTimeFormat/mediumDate)
-   &quot;mediumTime&quot;      (DateTimeFormat/mediumTime)
-   &quot;mediumDateTime&quot;  (DateTimeFormat/mediumDateTime)
-   &quot;longDate&quot;        (DateTimeFormat/longDate)
-   &quot;longTime&quot;        (DateTimeFormat/longTime)
-   &quot;longDateTime&quot;    (DateTimeFormat/longDateTime)
-   &quot;fullDate&quot;        (DateTimeFormat/fullDate)
-   &quot;fullTime&quot;        (DateTimeFormat/fullTime)
-   &quot;fullDateTime&quot;    (DateTimeFormat/fullDateTime)
+  {&quot;shortDate&quot;      (DateTimeFormat/shortDate)
+   &quot;shortTime&quot;      (DateTimeFormat/shortTime)
+   &quot;shortDateTime&quot;  (DateTimeFormat/shortDateTime)
+   &quot;mediumDate&quot;     (DateTimeFormat/mediumDate)
+   &quot;mediumTime&quot;     (DateTimeFormat/mediumTime)
+   &quot;mediumDateTime&quot; (DateTimeFormat/mediumDateTime)
+   &quot;longDate&quot;       (DateTimeFormat/longDate)
+   &quot;longTime&quot;       (DateTimeFormat/longTime)
+   &quot;longDateTime&quot;   (DateTimeFormat/longDateTime)
+   &quot;fullDate&quot;       (DateTimeFormat/fullDate)
+   &quot;fullTime&quot;       (DateTimeFormat/fullTime)
+   &quot;fullDateTime&quot;   (DateTimeFormat/fullDateTime)
    })</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ^DateTime fix-date
   [d]
@@ -3195,254 +3196,266 @@ aims to prevent that.</p>
     (when-not (number? x)
       (exception msg))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defonce filters
-  (atom
-    {;;; Useful for doing crazy stuff like {{ foo|length-is:3|join:&quot;/&quot; }}
-     ;;; Without blowing up I guess
-     :str
-     str
-     ;;; Try to add the arguments as numbers
-     ;;; If it fails concatenate them as strings
-     :add
-     (fn [x y &amp; rest]
-       (let [args (conj rest y x)]
-         (try (apply +
-                     (map #(Long/valueOf ^String %) args))
-           (catch NumberFormatException _
-             (apply str args)))))
-     ;;; Add backslashes to quotes
-     :addslashes
-     (fn [s]
-       (-&gt;&gt; s
-            (str)
-            (mapcat (fn [c]
-                      (if (or (= \&quot; c) (= \' c))
-                        [\\ c]
-                        [c])))
-            (apply str)))
-     ;;; Center a string given a width
-     :center
-     (fn [s w]
-       (let [s (str s)
-             w (Long/valueOf (s/trim w))
-             c (count s)
-             l (Math/ceil (/ (- w c) 2))
-             r (Math/floor (/ (- w c) 2))]
-         (str
-           (apply str (repeat l \space))
-           s
-           (apply str (repeat r \space)))))
-     :currency-format
-     (fn [n &amp; [locale]]
-       (throw-when-expecting-number n)
-       (let [n (double n)
-             locale (java.util.Locale. (or locale &quot;en&quot;))
-             currency-format (java.text.NumberFormat/getCurrencyInstance locale)]
-         (.format ^NumberFormat currency-format n)))
-     :number-format
-     (fn [n fmt &amp; [locale]]
-       (throw-when-expecting-number n)
-       (let [locale (java.util.Locale. (or locale &quot;en&quot;))]
-         (String/format locale fmt (into-array Object [n]))))
-     ;;; Formats a date with english locale, expects an instance of DateTime (Joda Time) or Date.
-     ;;; The format can be a key from valid-date-formats or a manually defined format
-     ;;; Look in
-     ;;; http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
-     ;;; for formatting help.
-     ;;; You can also format time with this.
-     ;;; An optional locale for formatting can be given as second parameter
-     :date
-     (fn [d fmt &amp; [locale]]
-       (let [fixed-date (fix-date d)
-             locale (java.util.Locale. (or locale &quot;en&quot;))
-             ^DateTimeFormatter fmt (.withLocale (or (valid-date-formats fmt)
-                                                  (DateTimeFormat/forPattern fmt)) locale)]
-         (.print fmt fixed-date)))
-     ;;; Default if x is falsey
-     :default
-     (fn [x default]
-       (if x
-         x
-         default))
-     ;;; Default if coll is empty
-     :default-if-empty
-     (fn [coll default]
-       (throw-when-expecting-seqable coll)
-       (or (not-empty coll) default))
-     ;;; With no decimal places it rounds to 1 decimal place
-     :double-format
-     (fn [n &amp; [decimal-places]]
-       (throw-when-expecting-number n)
-       (let [n (double n)]
-         (format (str &quot;%.&quot; (if decimal-places decimal-places &quot;1&quot;) &quot;f&quot;)
-                 n)))
-     :first
-     (fn [coll]
-       (throw-when-expecting-seqable coll)
-       (first coll))
-     ;;; Get the ith digit of a number
-     ;;; 1 is the rightmost digit
-     ;;; Returns the number if the index is out of bounds
-     :get-digit
-     (fn [n i]
-       (let [nv (vec (str n))
-             i (Long/valueOf ^String i)
-             i (- (count nv) i)]
-         (if (or (&lt; i 0) (&gt;= i (count nv)))
-           n
-           (let [d (nv i)]
-             (if (= \. d)
-               (nv (dec i))
-               d)))))
-     :hash
-     (fn [s hash]
-       (let [s (str s)]
-         (case hash
-           &quot;md5&quot; (DigestUtils/md5Hex s)
-           &quot;sha&quot; (DigestUtils/shaHex s)
-           &quot;sha256&quot; (DigestUtils/sha256Hex s)
-           &quot;sha384&quot; (DigestUtils/sha384Hex s)
-           &quot;sha512&quot; (DigestUtils/sha512Hex s)
-           (throw (IllegalArgumentException. (str &quot;'&quot; hash &quot;' is not a valid hash algorithm.&quot;))))))
-     :join
-     (fn [coll &amp; [sep]]
-       (throw-when-expecting-seqable coll)
-       (if sep (s/join sep coll) (s/join coll)))
-     :json
-     (fn [x] (json/generate-string x))
-     :last
-     (fn [coll]
-       (throw-when-expecting-seqable coll)
-       (if (vector? coll)
-         (coll (dec (count coll)))
-         (last coll)))
-     ;;; Exception to the rule: nil counts to 0
-     :length
-     (fn [coll]
-       (if (nil? coll)
-         0
-         (do
-           (throw-when-expecting-seqable coll)
-           (count coll))))
-     ;;; Exception to the rule: nil counts to 0
-     :count
-     (fn [coll]
-       (if (nil? coll)
-         0
-         (do
-           (throw-when-expecting-seqable coll)
-           (count coll))))
-     ;;; Return true when the count of the coll matches the argument
-     :length-is
-     (fn [coll n]
-       (when-not (nil? coll)
-         (throw-when-expecting-seqable coll))
-       (let [n (Long/valueOf ^String n)]
-         (= n (count coll))))
-     :count-is
-     (fn [coll n]
-       (when-not (nil? coll)
-         (throw-when-expecting-seqable coll))
-       (let [n (Long/valueOf ^String n)]
-         (= n (count coll))))
-     ;;; Single newlines become &lt;br /&gt;, double newlines mean new paragraph
-     :linebreaks
-     (fn [s]
-       (let [s (str s)
-             br (s/replace s #&quot;\n&quot; &quot;&lt;br /&gt;&quot;)
-             p (s/replace br #&quot;&lt;br /&gt;&lt;br /&gt;&quot; &quot;&lt;/p&gt;&lt;p&gt;&quot;)
-             c (s/replace p #&quot;&lt;p&gt;$&quot; )]
-         (if (re-seq #&quot;&lt;/p&gt;$&quot; c)
-           (str &quot;&lt;p&gt;&quot; c)
-           (str &quot;&lt;p&gt;&quot; c &quot;&lt;/p&gt;&quot;))))
-     :linebreaks-br
-     (fn [s]
-       (let [s (str s)]
-         (s/replace s #&quot;\n&quot; &quot;&lt;br /&gt;&quot;)))
-     ;;; Display text with line numbers
-     :linenumbers
-     (fn [s]
-       (let [s (str s)]
-         (-&gt;&gt; (s/split s #&quot;\n&quot;)
-              (map-indexed
-               (fn [i line]
-                 (str (inc i) &quot;. &quot; line)))
-              (s/join &quot;\n&quot;))))
-     :rand-nth
-     (fn [coll]
-       (throw-when-expecting-seqable coll)
-       (rand-nth coll))
-     ;;; Turns the to-remove string into a set of chars
-     ;;; That are removed from the context string
-     :remove
-     (fn [s to-remove]
-       (let [s (str s)
-             to-remove (set to-remove)]
-         (apply str (remove to-remove s))))
-     ;;; Use like the following:
-     ;;; You have {{ num-cherries }} cherr{{ num-cherries|pluralize:y:ies }}
-     ;;; You have {{ num-walruses }} walrus{{ num-walruses|pluralize:es }}
-     ;;; You have {{ num-messages }} message{{ num-messages|pluralize }}
-     :pluralize
-     (fn [n-or-coll &amp; opts]
-       (let [n (if (number? n-or-coll) n-or-coll
-                   (do (throw-when-expecting-seqable n-or-coll)
-                       (count n-or-coll)))
-             plural (case (count opts)
-                      0 &quot;s&quot;
-                      1 (first opts)
-                      2 (second opts))
-             singular (case (count opts)
-                        (list 0 1) 
-                        2 (first opts))]
-         (if (== 1 n)
-           singular
-           plural)))
-     ;;; Do not escape html
-     :safe
-     (fn [s] [:safe s])
-     :urlescape
-     (fn [s] (java.net.URLEncoder/encode s))
-     :lower
-     (fn [s] (s/lower-case (str s)))
-     :upper
-     (fn [s] (s/upper-case (str s)))
-     :capitalize
-     (fn [s] (s/capitalize (str s)))
-     ;; Capitalize every word
-     :title
-     (fn [s] (-&gt;&gt; (s/split (str s) #&quot; &quot;)
-                 (map s/capitalize)
-                 (s/join &quot; &quot;)))
-     :sort
-     (fn [coll]
-       (throw-when-expecting-seqable coll)
-       (sort coll))
-     ;;; Sort by a keyword
-     :sort-by
-     (fn [coll k]
-       (throw-when-expecting-seqable coll)
-       (sort-by (keyword k) coll))
-     :sort-by-reversed
-     (fn [coll k]
-       (throw-when-expecting-seqable coll)
-       (sort-by (keyword k) (comp - compare) coll))
-     :sort-reversed
-     (fn [coll]
-       (throw-when-expecting-seqable coll)
-       (sort (comp - compare) coll))
-     ;;; Remove tags
-     ;;; Use like {{ value|remove-tags:b:span }}
-     :remove-tags
-     (fn [s &amp; tags]
-       (if-not tags
-         s
-         (let [s (str s)
-               tags (str &quot;(&quot; (s/join &quot;|&quot; tags) &quot;)&quot;)
-               opening (re-pattern (str &quot;(?i)&lt;&quot; tags &quot;(/?&gt;|(\\s+[^&gt;]*&gt;))&quot;))
-               closing (re-pattern (str &quot;(?i)&lt;/&quot; tags &quot;&gt;&quot;))]
-           (-&gt; s
-               (s/replace opening )
-               (s/replace closing )))))}))</pre></td></tr><tr><td class="docs">
+         (atom
+           {;;; Useful for doing crazy stuff like {{ foo|length-is:3|join:&quot;/&quot; }}
+            ;;; Without blowing up I guess
+            :str
+            str
+            ;;; Try to add the arguments as numbers
+            ;;; If it fails concatenate them as strings
+            :add
+            (fn [x y &amp; rest]
+              (let [args (conj rest y (str x))]
+                (try (apply +
+                            (map #(Long/valueOf ^String %) args))
+                     (catch NumberFormatException _
+                       (apply str args)))))
+            ;;; Add backslashes to quotes
+            :addslashes
+            (fn [s]
+              (-&gt;&gt; s
+                   (str)
+                   (mapcat (fn [c]
+                             (if (or (= \&quot; c) (= \' c))
+                               [\\ c]
+                               [c])))
+                   (apply str)))
+            ;;; Center a string given a width
+            :center
+            (fn [s w]
+              (let [s (str s)
+                    w (Long/valueOf (s/trim w))
+                    c (count s)
+                    l (Math/ceil (/ (- w c) 2))
+                    r (Math/floor (/ (- w c) 2))]
+                (str
+                  (apply str (repeat l \space))
+                  s
+                  (apply str (repeat r \space)))))
+            :currency-format
+            (fn [n &amp; [locale country]]
+              (throw-when-expecting-number n)
+              (let [n (double n)
+                    locale (cond
+                             (and locale country) (Locale. locale country)
+                             locale (Locale. locale)
+                             :else (Locale. &quot;en&quot; &quot;US&quot;))
+                    currency-format (java.text.NumberFormat/getCurrencyInstance locale)]
+                (.format ^NumberFormat currency-format n)))
+            :number-format
+            (fn [n fmt &amp; [locale]]
+              (throw-when-expecting-number n)
+              (let [locale (java.util.Locale. (or locale &quot;en&quot;))]
+                (String/format locale fmt (into-array Object [n]))))
+            ;;; Formats a date with english locale, expects an instance of DateTime (Joda Time) or Date.
+            ;;; The format can be a key from valid-date-formats or a manually defined format
+            ;;; Look in
+            ;;; http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
+            ;;; for formatting help.
+            ;;; You can also format time with this.
+            ;;; An optional locale for formatting can be given as second parameter
+            :date
+            (fn [d fmt &amp; [locale]]
+              (let [fixed-date (fix-date d)
+                    locale (java.util.Locale. (or locale &quot;en&quot;))
+                    ^DateTimeFormatter fmt (.withLocale (or (valid-date-formats fmt)
+                                                            (DateTimeFormat/forPattern fmt)) locale)]
+                (.print fmt fixed-date)))
+            ;;; Default if x is falsey
+            :default
+            (fn [x default]
+              (if x
+                x
+                default))
+            ;;; Default if coll is empty
+            :default-if-empty
+            (fn [coll default]
+              (try
+                (cond
+                  (nil? coll) default
+                  (empty? coll) default
+                  :else coll)
+                (catch Exception _
+                  (throw-when-expecting-seqable coll))))
+            ;;; With no decimal places it rounds to 1 decimal place
+            :double-format
+            (fn [n &amp; [decimal-places]]
+              (throw-when-expecting-number n)
+              (let [n (double n)]
+                (format (str &quot;%.&quot; (if decimal-places decimal-places &quot;1&quot;) &quot;f&quot;)
+                        n)))
+            :first
+            (fn [coll]
+              (throw-when-expecting-seqable coll)
+              (first coll))
+            ;;; Get the ith digit of a number
+            ;;; 1 is the rightmost digit
+            ;;; Returns the number if the index is out of bounds
+            :get-digit
+            (fn [n i]
+              (let [nv (vec (str n))
+                    i (Long/valueOf ^String i)
+                    i (- (count nv) i)]
+                (if (or (&lt; i 0) (&gt;= i (count nv)))
+                  n
+                  (let [d (nv i)]
+                    (if (= \. d)
+                      (nv (dec i))
+                      d)))))
+            :hash
+            (fn [s hash]
+              (let [s (str s)]
+                (case hash
+                  &quot;md5&quot; (DigestUtils/md5Hex s)
+                  &quot;sha&quot; (DigestUtils/shaHex s)
+                  &quot;sha256&quot; (DigestUtils/sha256Hex s)
+                  &quot;sha384&quot; (DigestUtils/sha384Hex s)
+                  &quot;sha512&quot; (DigestUtils/sha512Hex s)
+                  (throw (IllegalArgumentException. (str &quot;'&quot; hash &quot;' is not a valid hash algorithm.&quot;))))))
+            :join
+            (fn [coll &amp; [sep]]
+              (throw-when-expecting-seqable coll)
+              (if sep (s/join sep coll) (s/join coll)))
+            :empty?
+            empty?
+            :not-empty
+            not-empty
+            :json
+            (fn [x] (json/generate-string x))
+            :last
+            (fn [coll]
+              (throw-when-expecting-seqable coll)
+              (if (vector? coll)
+                (coll (dec (count coll)))
+                (last coll)))
+            ;;; Exception to the rule: nil counts to 0
+            :length
+            (fn [coll]
+              (if (nil? coll)
+                0
+                (do
+                  (throw-when-expecting-seqable coll)
+                  (count coll))))
+            ;;; Exception to the rule: nil counts to 0
+            :count
+            (fn [coll]
+              (if (nil? coll)
+                0
+                (do
+                  (throw-when-expecting-seqable coll)
+                  (count coll))))
+            ;;; Return true when the count of the coll matches the argument
+            :length-is
+            (fn [coll n]
+              (when-not (nil? coll)
+                (throw-when-expecting-seqable coll))
+              (let [n (Long/valueOf ^String n)]
+                (= n (count coll))))
+            :count-is
+            (fn [coll n]
+              (when-not (nil? coll)
+                (throw-when-expecting-seqable coll))
+              (let [n (Long/valueOf ^String n)]
+                (= n (count coll))))
+            ;;; Single newlines become &lt;br /&gt;, double newlines mean new paragraph
+            :linebreaks
+            (fn [s]
+              (let [s (str s)
+                    br (s/replace s #&quot;\n&quot; &quot;&lt;br /&gt;&quot;)
+                    p (s/replace br #&quot;&lt;br /&gt;&lt;br /&gt;&quot; &quot;&lt;/p&gt;&lt;p&gt;&quot;)
+                    c (s/replace p #&quot;&lt;p&gt;$&quot; )]
+                (if (re-seq #&quot;&lt;/p&gt;$&quot; c)
+                  (str &quot;&lt;p&gt;&quot; c)
+                  (str &quot;&lt;p&gt;&quot; c &quot;&lt;/p&gt;&quot;))))
+            :linebreaks-br
+            (fn [s]
+              (let [s (str s)]
+                (s/replace s #&quot;\n&quot; &quot;&lt;br /&gt;&quot;)))
+            ;;; Display text with line numbers
+            :linenumbers
+            (fn [s]
+              (let [s (str s)]
+                (-&gt;&gt; (s/split s #&quot;\n&quot;)
+                     (map-indexed
+                       (fn [i line]
+                         (str (inc i) &quot;. &quot; line)))
+                     (s/join &quot;\n&quot;))))
+            :rand-nth
+            (fn [coll]
+              (throw-when-expecting-seqable coll)
+              (rand-nth coll))
+            ;;; Turns the to-remove string into a set of chars
+            ;;; That are removed from the context string
+            :remove
+            (fn [s to-remove]
+              (let [s (str s)
+                    to-remove (set to-remove)]
+                (apply str (remove to-remove s))))
+            ;;; Use like the following:
+            ;;; You have {{ num-cherries }} cherr{{ num-cherries|pluralize:y:ies }}
+            ;;; You have {{ num-walruses }} walrus{{ num-walruses|pluralize:es }}
+            ;;; You have {{ num-messages }} message{{ num-messages|pluralize }}
+            :pluralize
+            (fn [n-or-coll &amp; opts]
+              (let [n (if (number? n-or-coll) n-or-coll
+                                              (do (throw-when-expecting-seqable n-or-coll)
+                                                  (count n-or-coll)))
+                    plural (case (count opts)
+                             0 &quot;s&quot;
+                             1 (first opts)
+                             2 (second opts))
+                    singular (case (count opts)
+                               (list 0 1) 
+                               2 (first opts))]
+                (if (== 1 n)
+                  singular
+                  plural)))
+            ;;; Do not escape html
+            :safe
+            (fn [s] [:safe s])
+            :urlescape
+            (fn [s] (java.net.URLEncoder/encode s))
+            :lower
+            (fn [s] (s/lower-case (str s)))
+            :upper
+            (fn [s] (s/upper-case (str s)))
+            :capitalize
+            (fn [s] (s/capitalize (str s)))
+            ;; Capitalize every word
+            :title
+            (fn [s] (-&gt;&gt; (s/split (str s) #&quot; &quot;)
+                         (map s/capitalize)
+                         (s/join &quot; &quot;)))
+            :sort
+            (fn [coll]
+              (throw-when-expecting-seqable coll)
+              (sort coll))
+            ;;; Sort by a keyword
+            :sort-by
+            (fn [coll k]
+              (throw-when-expecting-seqable coll)
+              (sort-by (keyword k) coll))
+            :sort-by-reversed
+            (fn [coll k]
+              (throw-when-expecting-seqable coll)
+              (sort-by (keyword k) (comp - compare) coll))
+            :sort-reversed
+            (fn [coll]
+              (throw-when-expecting-seqable coll)
+              (sort (comp - compare) coll))
+            ;;; Remove tags
+            ;;; Use like {{ value|remove-tags:b:span }}
+            :remove-tags
+            (fn [s &amp; tags]
+              (if-not tags
+                s
+                (let [s (str s)
+                      tags (str &quot;(&quot; (s/join &quot;|&quot; tags) &quot;)&quot;)
+                      opening (re-pattern (str &quot;(?i)&lt;&quot; tags &quot;(/?&gt;|(\\s+[^&gt;]*&gt;))&quot;))
+                      closing (re-pattern (str &quot;(?i)&lt;/&quot; tags &quot;&gt;&quot;))]
+                  (-&gt; s
+                      (s/replace opening )
+                      (s/replace closing )))))}))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn get-filter
   [name]
   (get @filters (keyword name)))</pre></td></tr><tr><td class="docs">
@@ -3463,6 +3476,7 @@ aims to prevent that.</p>
         (let [{:keys [type error-template] :as data} (ex-data ex)]
           (if (= :selmer-validation-error type)
             {:status 500
+             :headers {&quot;Content-Type&quot; &quot;text/html; charset=utf-8&quot;}
              :body (parser/render error-template data)}
             (throw ex)))))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.node" name="selmer.node"><h1 class="project-name">selmer.node</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p> Node protocol for the objects that get accum'd in the post-parse vector.
   Same vector that will be processed by the runtime context-aware renderer.
@@ -3535,7 +3549,7 @@ template. Works fine for active local development and production.</p>
   work it's interpreted as a path in the local filesystem.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn set-resource-path!
   [path]
-  (reset! custom-resource-path (make-resource-path path)))</pre></td></tr><tr><td class="docs">
+  (set-custom-resource-path! (make-resource-path path)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn update-tag [tag-map tag tags]
   (assoc tag-map tag (concat (get tag-map tag) tags)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn set-closing-tags! [&amp; tags]
@@ -3708,7 +3722,7 @@ first template render. Vector output from parse* gets memoized by render-file.</
     (parse-fn input params)))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.tags" name="selmer.tags"><h1 class="project-name">selmer.tags</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns selmer.tags
   (:require selmer.node
-            [selmer.filter-parser :refer [safe-filter compile-filter-body fix-accessor]]
+            [selmer.filter-parser :refer [split-filter-val safe-filter compile-filter-body fix-accessor]]
             [selmer.filters :refer [filters]]
             [selmer.util :refer :all])
   (:import [selmer.node INode TextNode FunctionNode]))</pre></td></tr><tr><td class="docs"><p>A tag can modify the context map for its body
@@ -3729,8 +3743,8 @@ take care of its compilation.</p>
        (split-with (partial not= &quot;in&quot;))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn apply-filters [item filter-names]
   (reduce
-   (fn [value filter] ((compile-filter-body (str &quot;value|&quot; filter) false) {:value value}))
-   item filter-names))</pre></td></tr><tr><td class="docs">
+    (fn [value filter] ((compile-filter-body (str &quot;value|&quot; filter) false) {:value value}))
+    item filter-names))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn for-handler [args tag-content render rdr]
   (let [content (tag-content rdr :for :empty :endfor)
         for-content (get-in content [:for :content])
@@ -3748,18 +3762,18 @@ take care of its compilation.</p>
           (.append buf (render empty-content context-map))
           (doseq [[counter value] (map-indexed vector items)]
             (let [loop-info
-                  {:length length
-                   :counter0 counter
-                   :counter (inc counter)
-                   :revcounter (- length (inc counter))
+                  {:length      length
+                   :counter0    counter
+                   :counter     (inc counter)
+                   :revcounter  (- length (inc counter))
                    :revcounter0 (- length counter)
-                   :first (= counter 0)
-                   :last (= counter (dec length))}]
+                   :first       (= counter 0)
+                   :last        (= counter (dec length))}]
               (-&gt;&gt; (assoc (create-value-mappings context-map ids value)
-                          :forloop loop-info
-                          :parentloop loop-info)
-                (render for-content)
-                (.append buf)))))
+                     :forloop loop-info
+                     :parentloop loop-info)
+                   (render for-content)
+                   (.append buf)))))
         (.toString buf)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn render-if [render context-map condition first-block second-block]
   (render
@@ -3774,10 +3788,10 @@ take care of its compilation.</p>
     context-map))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn if-result [value]
   (condp = value
-    nil     false
-          false
+    nil false
+     false
     &quot;false&quot; false
-    false   false
+    false false
     true))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn if-default-handler [[condition1 condition2] if-tags else-tags render]
   &quot; Handler of if-condition tags. Expects conditions, enclosed
@@ -3791,7 +3805,7 @@ take care of its compilation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn compare-numeric [op value arg-position]
   (let [value (java.lang.Double/parseDouble value)
         op (condp = op &quot;&gt;&quot; &gt; &quot;&lt;&quot; &lt; &quot;=&quot; == &quot;&gt;=&quot; &gt;= &quot;&lt;=&quot; &lt;=
-             (exception &quot;Unrecognized operator in 'if' statement: &quot; op))]
+                       (exception &quot;Unrecognized operator in 'if' statement: &quot; op))]
     (if (= :first arg-position)
       #(op (java.lang.Double/parseDouble %) value)
       #(op value (java.lang.Double/parseDouble %)))))</pre></td></tr><tr><td class="docs">
@@ -3831,24 +3845,37 @@ take care of its compilation.</p>
       (let [[not? op] (if (= &quot;not&quot; (first params))
                         [true (second params)]
                         [false (first params)])
-            params    (if not? (drop 2 params) (rest params))]
+            params (if not? (drop 2 params) (rest params))]
         (render-if-any-all not? (if (= &quot;any&quot; op) some every?) params if-tags else-tags render))
       (&lt; (count params) 3)
       (if-default-handler params if-tags else-tags render)
       :else
       (if-numeric-handler params if-tags else-tags render))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn compare-tag [args comparator render success failure]
+  (fn [context-map]
+    (let [condition (apply comparator (map #(if (fn? %) (% context-map) %) args))]
+      (render-if render context-map condition success failure))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn parse-eq-args [args]
+  (for [^String arg args]
+    (if (= \&quot; (first arg))
+      (.substring arg 1 (dec (.length arg)))
+      (compile-filter-body arg))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn ifequal-handler [args tag-content render rdr]
-  (let [tags (tag-content rdr :ifequal :else :endifequal)
-        args (for [^String arg args]
-               (if (= \&quot; (first arg))
-                 (.substring arg 1 (dec (.length arg)))
-                 (compile-filter-body arg)))]
-    (fn [context-map]
-      (let [condition (apply = (map #(if (fn? %) (% context-map) %) args))]
-        (render-if render context-map condition (:ifequal  tags) (:else tags))))))</pre></td></tr><tr><td class="docs">
+  (let [{:keys [ifequal else]} (tag-content rdr :ifequal :else :endifequal)
+        args (parse-eq-args args)]
+    (compare-tag args = render ifequal else)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn ifunequal-handler [args tag-content render rdr]
+  (let [{:keys [ifunequal else]} (tag-content rdr :ifunequal :else :endifunequal)
+        args (parse-eq-args args)]
+    (compare-tag args not= render ifunequal else)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn block-handler [args tag-content render rdr]
   (let [content (get-in (tag-content rdr :block :endblock) [:block :content])]
     (fn [context-map] (render content context-map))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn sum-handler [args _ _ _]
+  (fn [context-map]
+    (reduce + (map (fn [val]
+                     (let [accessor (split-filter-val val)]
+                       (get-in context-map accessor))) args))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn now-handler [args _ _ _]
   (fn [context-map]
     ((:date @filters) (java.util.Date.) (clojure.string/join &quot; &quot; args))))</pre></td></tr><tr><td class="docs">
@@ -3863,27 +3890,32 @@ take care of its compilation.</p>
         (or first-true )))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn read-verbatim [rdr]
   (-&gt;buf [buf]
-    (loop [ch (read-char rdr)]
-      (when ch
-        (cond
-          (open-tag? ch rdr)
-          (let [tag (read-tag-content rdr)]
-            (if-not (re-matches #&quot;\{\%\s*endverbatim\s*\%\}&quot; tag)
-              (do (.append buf tag)
-                (recur (read-char rdr)))))
-          :else
-          (do
-            (.append buf ch)
-            (recur (read-char rdr))))))))</pre></td></tr><tr><td class="docs">
+         (loop [ch (read-char rdr)]
+           (when ch
+             (cond
+               (open-tag? ch rdr)
+               (let [tag (read-tag-content rdr)]
+                 (if-not (re-matches #&quot;\{\%\s*endverbatim\s*\%\}&quot; tag)
+                   (do (.append buf tag)
+                       (recur (read-char rdr)))))
+               :else
+               (do
+                 (.append buf ch)
+                 (recur (read-char rdr))))))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn verbatim-handler [args _ render rdr]
   (let [content (read-verbatim rdr)]
     (fn [context-map] content)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn parse-with [^String arg]
-  (let [[id value] (.split arg &quot;=&quot;)]
+</td><td class="codes"><pre class="brush: clojure">(defn compile-args [args]
+  (when-not (even? (count args))
+    (exception &quot;invalid arguments passed to 'with' tag: &quot; args))
+  (for [[id value] (partition 2 args)]
     [(keyword id) (compile-filter-body value false)]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn with-handler [args tag-content render rdr]
   (let [content (get-in (tag-content rdr :with :endwith) [:with :content])
-        args (map parse-with args)]
+        args (-&gt;&gt; args
+                  (mapcat #(.split % &quot;=&quot;))
+                  (remove #{&quot;=&quot;})
+                  (compile-args))]
     (fn [context-map]
       (render content
               (reduce
@@ -3899,10 +3931,10 @@ take care of its compilation.</p>
 </td><td class="codes"><pre class="brush: clojure">(defn cycle-handler [args _ _ _]
   (let [fields (vec args)
         length (dec (count fields))
-       i       (int-array [0])]
+        i (int-array [0])]
     (fn [_]
       (let [cur-i (aget i 0)
-            val   (fields cur-i)]
+            val (fields cur-i)]
         (aset i 0 (if (&lt; cur-i length) (inc cur-i) 0))
         val))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn safe-handler [args tag-content render rdr]
@@ -3912,48 +3944,51 @@ take care of its compilation.</p>
 {% for ... %}, and {% block blockname %}</p>
 </td><td class="codes"></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defonce expr-tags
-         (atom {:if if-handler
-                :ifequal ifequal-handler
-                :for for-handler
-                :block block-handler
-                :cycle cycle-handler
-                :now now-handler
-                :comment comment-handler
-                :firstof first-of-handler
-                :verbatim verbatim-handler
-                :with with-handler
-                :script script-handler
-                :style style-handler
-                :safe safe-handler
-                :extends nil
-                :include nil}))</pre></td></tr><tr><td class="docs">
+         (atom {:if        if-handler
+                :ifequal   ifequal-handler
+                :ifunequal ifunequal-handler
+                :sum       sum-handler
+                :for       for-handler
+                :block     block-handler
+                :cycle     cycle-handler
+                :now       now-handler
+                :comment   comment-handler
+                :firstof   first-of-handler
+                :verbatim  verbatim-handler
+                :with      with-handler
+                :script    script-handler
+                :style     style-handler
+                :safe      safe-handler
+                :extends   nil
+                :include   nil}))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defonce closing-tags
-         (atom {:if       [:else :endif]
-                :else     [:endif :endifequal]
-                :ifequal  [:else :endifequal]
-                :block    [:endblock]
-                :for      [:empty :endfor]
-                :empty    [:endfor]
-                :comment  [:endcomment]
-                :safe     [:endsafe]
-                :verbatim [:endverbatim]
-                :with     [:endwith]}))</pre></td></tr><tr><td class="docs"><p>helpers for custom tag definition</p>
+         (atom {:if        [:else :endif]
+                :else      [:endif :endifequal :endifunequal]
+                :ifequal   [:else :endifequal]
+                :ifunequal [:else :endifunequal]
+                :block     [:endblock]
+                :for       [:empty :endfor]
+                :empty     [:endfor]
+                :comment   [:endcomment]
+                :safe      [:endsafe]
+                :verbatim  [:endverbatim]
+                :with      [:endwith]}))</pre></td></tr><tr><td class="docs"><p>helpers for custom tag definition</p>
 </td><td class="codes"><pre class="brush: clojure">(defn render-tags [context-map tags]
   (into {}
-    (for [[tag content] tags]
-      [tag
-       (update-in content [:content]
-         (fn [^selmer.node.INode node]
-           (clojure.string/join (map #(.render-node ^selmer.node.INode % context-map) node))))])))</pre></td></tr><tr><td class="docs">
+        (for [[tag content] tags]
+          [tag
+           (update-in content [:content]
+                      (fn [^selmer.node.INode node]
+                        (clojure.string/join (map #(.render-node ^selmer.node.INode % context-map) node))))])))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn tag-handler [handler &amp; tags]
   (fn [args tag-content render rdr]
-     (if-let [content (if (&gt; (count tags) 1) (apply (partial tag-content rdr) tags))]
-       (-&gt; (fn [context-map]
-             (render
-               [(-&gt;&gt; content (render-tags context-map) (handler args context-map) (TextNode.))]
-               context-map)))
-       (fn [context-map]
-         (render [(TextNode. (handler args context-map))] context-map)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.template-parser" name="selmer.template-parser"><h1 class="project-name">selmer.template-parser</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p> Where we preprocess the inheritance and mixin components of the templates.
+    (if-let [content (if (&gt; (count tags) 1) (apply (partial tag-content rdr) tags))]
+      (-&gt; (fn [context-map]
+            (render
+              [(-&gt;&gt; content (render-tags context-map) (handler args context-map) (TextNode.))]
+              context-map)))
+      (fn [context-map]
+        (render [(TextNode. (handler args context-map))] context-map)))))</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#selmer.template-parser" name="selmer.template-parser"><h1 class="project-name">selmer.template-parser</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p> Where we preprocess the inheritance and mixin components of the templates.
   These are presumed to be static and we only aggregate them on the first
   template render. The compile-time tag parsing routines happen on a flat string
   composed from the result of <code>extends</code> inheritance and <code>include</code> mixins. </p>
@@ -4175,7 +4210,13 @@ take care of its compilation.</p>
  (if (class? param)
    `(throw (new ~param (str ~@more)))
    `(throw (Exception. (str ~@params)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def custom-resource-path (atom nil))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def ^:dynamic *custom-resource-path* nil)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn set-custom-resource-path!
+  [path]
+  (alter-var-root #'*custom-resource-path*
+                  (constantly path)
+                  (when (thread-bound? #'*custom-resource-path*)
+                    (set! *custom-resource-path* path))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn pattern [&amp; content]
   (re-pattern (clojure.string/join content)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn read-char [^java.io.Reader rdr]
@@ -4204,6 +4245,9 @@ take care of its compilation.</p>
 (def ^:dynamic ^Pattern   *block-pattern* nil)
 (def ^:dynamic ^Pattern   *block-super-pattern* nil)
 (def ^:dynamic ^Pattern   *endblock-pattern* nil)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def match-unquoted &quot; *(?=(?:[^\&quot;]*\&quot;[^\&quot;]*\&quot;)*[^\&quot;]*$)&quot;)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn split-unquoted [^String s ^String x]
+  (clojure.string/split s (re-pattern (str &quot; *&quot; x match-unquoted))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn check-tag-args [args]
   (if (even? (count (filter #{\&quot;} args)))
     args (exception &quot;malformed tag arguments in &quot; args)))</pre></td></tr><tr><td class="docs">
@@ -4279,12 +4323,8 @@ take care of its compilation.</p>
   (-&gt; (Thread/currentThread)
       (.getContextClassLoader)
       (.getResource resource)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def decode-path
-  (memoize
-    (fn [file-path]
-      (java.net.URLDecoder/decode file-path &quot;utf-8&quot;))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn resource-path [template]
-  (if-let [path @custom-resource-path]
+  (if-let [path *custom-resource-path*]
     (java.net.URL. (str path template))
     (get-resource template)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn resource-last-modified [^java.net.URL resource]
