@@ -1,6 +1,6 @@
 (ns selmer.tags
   (:require selmer.node
-            [selmer.filter-parser :refer [safe-filter compile-filter-body fix-accessor]]
+            [selmer.filter-parser :refer [split-filter-val safe-filter compile-filter-body fix-accessor]]
             [selmer.filters :refer [filters]]
             [selmer.util :refer :all])
   (:import [selmer.node INode TextNode FunctionNode]))
@@ -176,6 +176,13 @@
   (let [content (get-in (tag-content rdr :block :endblock) [:block :content])]
     (fn [context-map] (render content context-map))))
 
+
+(defn sum-handler [args _ _ _]
+  (fn [context-map]
+    (reduce + (map (fn [val]
+                     (let [accessor (split-filter-val val)]
+                       (get-in context-map accessor))) args))))
+
 (defn now-handler [args _ _ _]
   (fn [context-map]
     ((:date @filters) (java.util.Date.) (clojure.string/join " " args))))
@@ -260,6 +267,7 @@
          (atom {:if        if-handler
                 :ifequal   ifequal-handler
                 :ifunequal ifunequal-handler
+                :sum       sum-handler
                 :for       for-handler
                 :block     block-handler
                 :cycle     cycle-handler

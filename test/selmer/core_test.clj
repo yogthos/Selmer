@@ -295,6 +295,24 @@
                  {:list '[]})
          "beforeafter")))
 
+(deftest tag-sum-test
+  (is
+   (= "3"
+      (render "{% sum foo %}" {:foo 3})) "sum of Foo solely should be 3")
+  (is
+   (= "5"
+      (render "{% sum foo bar %}" {:foo 2 :bar 3})) "sum of Foo and bar should be 5")
+  (is
+   (= "6"
+      (render "{% sum foo foo %}" {:foo 3})) "sum of Foo twice should be 6")
+  (is
+   (= "6"
+      (render "{% sum foo bar baz %}" {:foo 3 :bar 2 :baz 1})))
+  (is
+   (= "6"
+      (render "{% sum foo bar.baz %}" {:foo 3 :bar {:baz 3} })))
+  )
+
 (deftest tag-info-test
   (is
     (= {:args ["i" "in" "nums"], :tag-name :for, :tag-type :expr}
