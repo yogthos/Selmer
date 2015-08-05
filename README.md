@@ -305,7 +305,7 @@ Can be used inside a block to insert the content from the parent block in its pl
 `"{{amount|currency-format}}" {:amount 123})` => `"$123.00"`
 
 Uses `java.text.NumberFormat/getCurrencyInstance` for formatting the currency value.
-The formatter defaults to the `"en"`, `"US"` locale.
+The formatter defaults to the default locale for this instance of the Java Virtual Machine.
 
 An ISO 639 2-letter language code can be added as a locale.
 

@@ -3239,15 +3239,16 @@ aims to prevent that.</p>
                     locale (cond
                              (and locale country) (Locale. locale country)
                              locale (Locale. locale)
-                             :else (Locale. &quot;en&quot; &quot;US&quot;))
+                             :else (Locale/getDefault))
                     currency-format (java.text.NumberFormat/getCurrencyInstance locale)]
                 (.format ^NumberFormat currency-format n)))
             :number-format
             (fn [n fmt &amp; [locale]]
               (throw-when-expecting-number n)
-              (let [locale (java.util.Locale. (or locale &quot;en&quot;))]
+              (let [locale (if locale (java.util.Locale. locale)
+                               (Locale/getDefault))]
                 (String/format locale fmt (into-array Object [n]))))
-            ;;; Formats a date with english locale, expects an instance of DateTime (Joda Time) or Date.
+            ;;; Formats a date with default locale, expects an instance of DateTime (Joda Time) or Date.
             ;;; The format can be a key from valid-date-formats or a manually defined format
             ;;; Look in
             ;;; http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
@@ -3257,7 +3258,8 @@ aims to prevent that.</p>
             :date
             (fn [d fmt &amp; [locale]]
               (let [fixed-date (fix-date d)
-                    locale (java.util.Locale. (or locale &quot;en&quot;))
+                    locale (if locale (java.util.Locale. locale)
+                               (Locale/getDefault))
                     ^DateTimeFormatter fmt (.withLocale (or (valid-date-formats fmt)
                                                             (DateTimeFormat/forPattern fmt)) locale)]
                 (.print fmt fixed-date)))

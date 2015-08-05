@@ -108,17 +108,18 @@ map. The rest of the arguments are optional and are always strings."
                     locale (cond
                              (and locale country) (Locale. locale country)
                              locale (Locale. locale)
-                             :else (Locale. "en" "US"))
+                             :else (Locale/getDefault))
                     currency-format (java.text.NumberFormat/getCurrencyInstance locale)]
                 (.format ^NumberFormat currency-format n)))
 
             :number-format
             (fn [n fmt & [locale]]
               (throw-when-expecting-number n)
-              (let [locale (java.util.Locale. (or locale "en"))]
+              (let [locale (if locale (java.util.Locale. locale)
+                               (Locale/getDefault))]
                 (String/format locale fmt (into-array Object [n]))))
 
-            ;;; Formats a date with english locale, expects an instance of DateTime (Joda Time) or Date.
+            ;;; Formats a date with default locale, expects an instance of DateTime (Joda Time) or Date.
             ;;; The format can be a key from valid-date-formats or a manually defined format
             ;;; Look in
             ;;; http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
@@ -128,7 +129,8 @@ map. The rest of the arguments are optional and are always strings."
             :date
             (fn [d fmt & [locale]]
               (let [fixed-date (fix-date d)
-                    locale (java.util.Locale. (or locale "en"))
+                    locale (if locale (java.util.Locale. locale)
+                               (Locale/getDefault))
                     ^DateTimeFormatter fmt (.withLocale (or (valid-date-formats fmt)
                                                             (DateTimeFormat/forPattern fmt)) locale)]
                 (.print fmt fixed-date)))
