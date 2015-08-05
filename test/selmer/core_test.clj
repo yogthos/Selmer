@@ -6,7 +6,8 @@
             [selmer.parser :refer :all]
             [selmer.template-parser :refer :all]
             [selmer.util :refer :all])
-  (:import java.io.File))
+  (:import java.util.Locale
+           java.io.File))
 
 (def path (str "test/templates" File/separator))
 
@@ -491,7 +492,7 @@
 
 (deftest filter-currency-format
   (let [amount 123.45
-        curr (java.text.NumberFormat/getCurrencyInstance (java.util.Locale. "en" "US"))
+        curr (java.text.NumberFormat/getCurrencyInstance (Locale/getDefault))
         curr-de (java.text.NumberFormat/getCurrencyInstance (java.util.Locale. "de"))
         curr-de-DE (java.text.NumberFormat/getCurrencyInstance (java.util.Locale. "de" "DE"))]
     (is (= (.format curr amount)
@@ -502,7 +503,7 @@
 (deftest filter-number-format
   (let [number 123.04455
         numberformat "%.3f"
-        locale (java.util.Locale. "en")
+        locale (Locale/getDefault)
         locale-de (java.util.Locale. "de")]
     (is (= (String/format locale numberformat (into-array Object [number]))
            (render (str "{{f|number-format:" numberformat "}}") {:f number})))
@@ -672,8 +673,10 @@
 
 (deftest number-format-test
   (testing "formats the number with default locale"
-    (is (= "123.045" (render "{{amount|number-format:%.3f}}" {:amount 123.04455})))
-    (is (= "123.045" (render "{{amount|number-format:%.3f}}" {:amount 123.045}))))
+    (let [locale-number (String/format (Locale/getDefault) "%.3f"
+                                       (into-array Object [123.045]))]
+      (is (= locale-number (render "{{amount|number-format:%.3f}}" {:amount 123.04455})))
+      (is (= locale-number (render "{{amount|number-format:%.3f}}" {:amount 123.045})))))
   (testing "formats the number with specified locale"
     (is (= "123,045" (render "{{amount|number-format:%.3f:de}}" {:amount 123.04455})))))
 
