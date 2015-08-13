@@ -2,7 +2,8 @@
   (:require selmer.node
             [selmer.filter-parser :refer [split-filter-val safe-filter compile-filter-body fix-accessor]]
             [selmer.filters :refer [filters]]
-            [selmer.util :refer :all])
+            [selmer.util :refer :all]
+            [json-html.core :refer [edn->html]])
   (:import [selmer.node INode TextNode FunctionNode]))
 
 ;; A tag can modify the context map for its body
@@ -226,7 +227,7 @@
 (defn with-handler [args tag-content render rdr]
   (let [content (get-in (tag-content rdr :with :endwith) [:with :content])
         args (->> args
-                  (mapcat #(.split % "="))
+                  (mapcat #(.split ^String % "="))
                   (remove #{"="})
                   (compile-args))]
     (fn [context-map]
@@ -260,6 +261,14 @@
     (fn [context-map]
       (render content (assoc context-map safe-filter true)))))
 
+(defn debug-handler [_ _ _ _]
+  (fn [context-map]
+    (str
+      "<style>"
+      (-> "json.human.css" clojure.java.io/resource slurp)
+      "</style>"
+      (edn->html context-map))))
+
 ;; expr-tags are {% if ... %}, {% ifequal ... %},
 ;; {% for ... %}, and {% block blockname %}
 
@@ -279,6 +288,7 @@
                 :script    script-handler
                 :style     style-handler
                 :safe      safe-handler
+                :debug     debug-handler
                 :extends   nil
                 :include   nil}))
 

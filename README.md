@@ -69,6 +69,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [block] (#block)
 [comment] (#comment)
 [cycle] (#cycle)
+[debug] (#debug)
 [if] (#if)
 [ifequal] (#ifequal)
 [ifunequal] (#ifunequal)
@@ -543,6 +544,24 @@ Will cycle through the supplied values.
 ```
 "<li class=\"blue\">0</li><li class=\"white\">1</li><li class=\"blue\">2</li><li class=\"white\">3</li><li class=\"blue\">4</li>"
 ```
+
+#### debug
+
+Pretty prints the context map passed to the template using [json-html](https://github.com/yogthos/json-html).
+ 
+ ```
+ (render "{% debug %}" {:foo :bar})
+ ```
+ =>
+ ```
+ <div class="jh-root">
+  <table class="jh-type-object">
+   <tbody><tr><th class="jh-key jh-object-key"><span class="jh-type-string">:foo</span></th>
+     <td class="jh-value jh-object-value"><span class="jh-type-string">:bar</span></td></tr>
+   </tbody>
+  </table>
+ </div>
+ ```
 
 #### extends
 

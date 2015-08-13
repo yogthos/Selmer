@@ -116,7 +116,7 @@ map. The rest of the arguments are optional and are always strings."
             (fn [n fmt & [locale]]
               (throw-when-expecting-number n)
               (let [locale (if locale (java.util.Locale. locale)
-                               (Locale/getDefault))]
+                                      (Locale/getDefault))]
                 (String/format locale fmt (into-array Object [n]))))
 
             ;;; Formats a date with default locale, expects an instance of DateTime (Joda Time) or Date.
@@ -130,9 +130,10 @@ map. The rest of the arguments are optional and are always strings."
             (fn [d fmt & [locale]]
               (let [fixed-date (fix-date d)
                     locale (if locale (java.util.Locale. locale)
-                               (Locale/getDefault))
-                    ^DateTimeFormatter fmt (.withLocale (or (valid-date-formats fmt)
-                                                            (DateTimeFormat/forPattern fmt)) locale)]
+                                      (Locale/getDefault))
+                    ^DateTimeFormatter fmt (.withLocale
+                                             (or ^DateTimeFormatter (valid-date-formats fmt)
+                                                 ^DateTimeFormatter (DateTimeFormat/forPattern fmt)) locale)]
                 (.print fmt fixed-date)))
 
             ;;; Default if x is falsey

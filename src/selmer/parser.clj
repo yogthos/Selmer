@@ -198,10 +198,10 @@
 ;; before returning the persistent vector of INodes (TextNode, FunctionNode)
 
 (defn add-node [template buf rdr]
-  (let [template (if-let [text (not-empty (.toString buf))]
+  (let [template (if-let [text (not-empty (.toString ^StringBuilder buf))]
                    (conj! template (TextNode. text))
                    template)]
-    (.setLength buf 0)
+    (.setLength ^StringBuilder buf 0)
     (conj! template (FunctionNode. (parse-tag (read-tag-info rdr) rdr)))))
 
 (defn parse* [input]
