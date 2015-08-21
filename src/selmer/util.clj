@@ -102,7 +102,7 @@
       (when next-ch
         (loop [ch (read-char rdr)]
           (.append buf ch)
-          (when (not= *tag-close* ch)
+          (when (and (not= *tag-close* ch) (not= *filter-close* ch))
             (recur (read-char rdr))))
         (when filter?
           (.append buf (read-char rdr)))))))
