@@ -13,7 +13,7 @@ You can escape doublequotes inside doublequotes. And you can put colons
 inside doublequotes which will be ignored for the purpose of separating
 arguments."
   (:require [selmer.filters :refer [get-filter]]
-            [selmer.util :refer [exception]]
+            [selmer.util :refer [exception *escape-variables*]]
             [clojure.string :as s]))
 
 ;;; More Utils
@@ -22,20 +22,22 @@ arguments."
   "HTML-escapes the given string. Escapes the same characters as django's escape."
   ;; This method is "Java in Clojure" for serious speedups.
   ;; Stolen from davidsantiago/quoin and modified.
-  (let [sb (StringBuilder.)
-        slength (count s)]
-    (loop [idx 0]
-      (if (>= idx slength)
-        (.toString sb)
-        (let [c (char (.charAt s idx))]
-          (case c
-            \& (.append sb "&amp;")
-            \< (.append sb "&lt;")
-            \> (.append sb "&gt;")
-            \" (.append sb "&quot;")
-            \' (.append sb "&#39;")
-            (.append sb c))
-          (recur (inc idx)))))))
+  (if *escape-variables*
+    (let [sb (StringBuilder.)
+          slength (count s)]
+      (loop [idx 0]
+        (if (>= idx slength)
+          (.toString sb)
+          (let [c (char (.charAt s idx))]
+            (case c
+              \& (.append sb "&amp;")
+              \< (.append sb "&lt;")
+              \> (.append sb "&gt;")
+              \" (.append sb "&quot;")
+              \' (.append sb "&#39;")
+              (.append sb c))
+            (recur (inc idx))))))
+    s))
 
 (defn strip-doublequotes
   "Removes doublequotes from the start and end of a string if any."
@@ -46,7 +48,8 @@ arguments."
     s))
 
 (defn escape-html
-  "Must have the form [:safe safe-string] to prevent escaping."
+  "Must have the form [:safe safe-string] to prevent escaping. Alternatively,
+  you can call selmer.util/turn-off-escaping! to turn it off completely."
   [x]
   (if (and (vector? x)
            (= :safe (first x)))
@@ -126,4 +129,3 @@ applied filter."
            (safe-filter context-map) x
            escape? (escape-html x)
            :else x))))))
-
