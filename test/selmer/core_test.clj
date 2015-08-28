@@ -686,3 +686,12 @@
     (is (= "I &lt;3 ponies" (render "{{name|default-if-empty:\"I <3 ponies\"}}" {:name nil})))
     (is (= "I &lt;3 ponies" (render "{{name|default-if-empty:\"I <3 ponies\"}}" {:name []})))
     (is (= "I &lt;3 ponies" (render "{{name|default-if-empty:\"I <3 ponies\"}}" {})))))
+
+(deftest turn-off-escaping
+  (testing "with escaping turned off"
+    (try
+      (turn-off-escaping!)
+      (is (= "I <3 ponies" (render "{{name}}" {:name "I <3 ponies"})))
+      (is (= "I <3 ponies" (render "{{name|default-if-empty:\"I <3 ponies\"}}" {})))
+      (is (= "I <3 ponies" (render "{{name|default-if-empty:\"I <3 ponies\"|safe}}" {})))
+      (finally (turn-on-escaping!)))))

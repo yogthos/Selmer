@@ -17,6 +17,16 @@
                   (when (thread-bound? #'*custom-resource-path*)
                     (set! *custom-resource-path* path))))
 
+(def ^:dynamic *escape-variables* true)
+
+(defn turn-off-escaping! []
+  (alter-var-root #'*escape-variables*
+                  (constantly false)))
+
+(defn turn-on-escaping! []
+  (alter-var-root #'*escape-variables*
+                  (constantly true)))
+
 (defn pattern [& content]
   (re-pattern (clojure.string/join content)))
 

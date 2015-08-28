@@ -267,6 +267,16 @@ in a vector with a `:safe` keyword:
 =>"<DIV>I'M SAFE</DIV>"
 ```
 
+It is possible to disable escaping entirely (if, for example, your target format is not HTML/XML):
+
+```clojure
+(require '[selmer.util :refer [turn-off-escaping!]])
+
+(turn-off-escaping!)
+
+(render "{{x}}" {:x "I <3 NY"})
+=>"I <3 NY"
+```
 
 ### Built-in Filters
 
