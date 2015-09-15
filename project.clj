@@ -5,9 +5,9 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [criterium "0.4.3" :scope "test"]
-                 [joda-time "2.8.1"]
+                 [joda-time "2.8.2"]
                  [commons-codec "1.10"]
-                 [json-html "0.3.4"]
+                 [json-html "0.3.5"]
                  [cheshire "5.5.0"]]
 
   :aot [selmer.node]
@@ -19,4 +19,4 @@
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
                    :repl-options {:port 10123}
                    :plugins [[lein-marginalia "0.8.0"]]
-                   :dependencies [[environ "1.0.0"]]}})
+                   :dependencies [[environ "1.0.1"]]}})
