@@ -671,6 +671,11 @@
     (is (= "foobar" (render "{{foo|lower}}" {:foo "FOOBaR"})))
     (is (= "foobar" (render "{{foo|lower}}" {:foo "foobar"})))))
 
+(deftest literals-test
+  (testing "converts words to lower case"
+    (is (= "foobar" (render "{{\"FOObar\"|lower}}" {})))
+    (is (= "10" (render "{{1|add:2:3:4}}" {})))))
+
 (deftest number-format-test
   (testing "formats the number with default locale"
     (let [locale-number (String/format (Locale/getDefault) "%.3f"

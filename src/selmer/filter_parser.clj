@@ -100,6 +100,26 @@ applied filter."
 
 (def safe-filter ::selmer-safe-filter)
 
+(defn- literal? [^String val]
+  (or
+    (and (.startsWith val "\"") (.endsWith val "\""))
+    (re-matches #"[0-9]+" val)))
+
+(defn- parse-literal [^String val]
+  (if (.startsWith val "\"")
+    (subs val 1 (dec (count val)))
+    val))
+
+(defn- apply-filters [val s filter-strs filters]
+  (reduce
+    (fn [acc [filter-str filter]]
+      (try (filter acc)
+           (catch Exception e
+             (exception
+               "On filter body '" s "' and filter '" filter-str "' this error occurred:" (.getMessage e)))))
+    val
+    (map vector filter-strs filters)))
+
 (defn compile-filter-body
   "Turns a string like foo|filter1:x|filter2:y into a fn that expects a
  context-map and will apply the filters one after the other to the value
@@ -114,18 +134,21 @@ applied filter."
                                   (re-seq #"(?:[^|\"]|\"[^\"]*\")+"))
          accessor (split-filter-val val)
          filters (map filter-str->fn filter-strs)]
-
-     (fn [context-map]
-       (let [x (reduce
-                 (fn [acc [filter-str filter]]
-                   (try (filter acc)
-                        (catch Exception e
-                          (exception
-                            "On filter body '" s "' and filter '" filter-str "' this error occurred:" (.getMessage e)))))
-                 (get-in context-map accessor)
-                 (map vector filter-strs filters))]
-         ;; Escape by default unless the last filter is 'safe' or safe-filter is set in the context-map
-         (cond
-           (safe-filter context-map) x
-           escape? (escape-html x)
-           :else x))))))
+     (if (literal? val)
+       (constantly
+         (apply-filters
+           (parse-literal val)
+           s
+           filter-strs
+           filters))
+       (fn [context-map]
+         (let [x (apply-filters
+                   (get-in context-map accessor)
+                   s
+                   filter-strs
+                   filters)]
+           ;; Escape by default unless the last filter is 'safe' or safe-filter is set in the context-map
+           (cond
+             (safe-filter context-map) x
+             escape? (escape-html x)
+             :else x)))))))
