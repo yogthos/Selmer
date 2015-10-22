@@ -27,6 +27,14 @@
   (alter-var-root #'*escape-variables*
                   (constantly true)))
 
+(defmacro with-escaping [& body]
+  `(binding [*escape-variables* true]
+     ~@body))
+
+(defmacro without-escaping [& body]
+  `(binding [*escape-variables* false]
+     ~@body))
+
 (defn pattern [& content]
   (re-pattern (clojure.string/join content)))
 
