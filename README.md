@@ -267,16 +267,18 @@ in a vector with a `:safe` keyword:
 =>"<DIV>I'M SAFE</DIV>"
 ```
 
-It is possible to disable escaping entirely (if, for example, your target format is not HTML/XML):
+It is possible to disable escaping (if, for example, your target format is not HTML/XML) using the `selmer.util/without-escaping` macro:
 
 ```clojure
-(require '[selmer.util :refer [turn-off-escaping!]])
+(require '[selmer.util :refer [without-escaping]])
 
-(turn-off-escaping!)
-
-(render "{{x}}" {:x "I <3 NY"})
+(without-escaping
+  (render "{{x}}" {:x "I <3 NY"}))
 =>"I <3 NY"
 ```
+
+Alternatively, you can turn off escaping permanently in all threads with the `selmer.util/turn-off-escaping!` function.
+
 
 ### Built-in Filters
 

@@ -692,11 +692,30 @@
     (is (= "I &lt;3 ponies" (render "{{name|default-if-empty:\"I <3 ponies\"}}" {:name []})))
     (is (= "I &lt;3 ponies" (render "{{name|default-if-empty:\"I <3 ponies\"}}" {})))))
 
-(deftest turn-off-escaping
+(deftest turn-off-escaping-test
   (testing "with escaping turned off"
     (try
       (turn-off-escaping!)
       (is (= "I <3 ponies" (render "{{name}}" {:name "I <3 ponies"})))
       (is (= "I <3 ponies" (render "{{name|default-if-empty:\"I <3 ponies\"}}" {})))
       (is (= "I <3 ponies" (render "{{name|default-if-empty:\"I <3 ponies\"|safe}}" {})))
+      (finally (turn-on-escaping!)))))
+
+(deftest without-escaping-test
+  (testing "without-escaping macro"
+    (without-escaping
+     (is (= "I <3 ponies" (render "{{name}}" {:name "I <3 ponies"}))))
+    ;; ensure escaping is on after the macro.
+    (is (= "<tag>&lt;foo bar=&quot;baz&quot;&gt;\\&gt;</tag>"
+         (render "<tag>{{f}}</tag>" {:f "<foo bar=\"baz\">\\>"})))))
+
+(deftest with-escaping-test
+  (testing "with-escaping macro when turn-off-escaping! has been called"
+    (try
+      (turn-off-escaping!)
+      (is (= "I <3 ponies" (render "{{name}}" {:name "I <3 ponies"})))
+      (with-escaping
+        (is (= "<tag>&lt;foo bar=&quot;baz&quot;&gt;\\&gt;</tag>"
+               (render "<tag>{{f}}</tag>" {:f "<foo bar=\"baz\">\\>"}))))
+      (is (= "I <3 ponies" (render "{{name}}" {:name "I <3 ponies"})))
       (finally (turn-on-escaping!)))))
