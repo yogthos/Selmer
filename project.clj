@@ -1,4 +1,4 @@
-(defproject selmer "0.9.3"
+(defproject selmer "0.9.4"
   :description "Django style templates for Clojure"
   :url "https://github.com/yogthos/Selmer"
   :license {:name "Eclipse Public License"

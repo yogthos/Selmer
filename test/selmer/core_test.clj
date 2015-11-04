@@ -627,6 +627,19 @@
   (is (= "<FOO>"
          (render "{{f|upper|safe}}" {:f "<foo>"}))))
 
+;; test @-syntax for dereferencing context map in filter arguments
+(deftest test-deref-filter-arg
+  (is (= " Sean " ;; note center filter expects String for width!
+         (render "{{name|center:@width}}" {:name "Sean" :width "6"})))
+  (is (= "4" ;; ensure we can substitute a data structure
+         (render "{{name|default:@v|count}}" {:v [1 2 3 4]})))
+  (is (= "@" ;; literal @ is not dereferenced
+         (render "{{name|default:@}}" {:name nil})))
+  (is (= "@foo" ;; literal @foo used when no context map match
+         (render "{{name|default:@foo}}" {:name nil})))
+  (is (= "quux" ;; test nested lookup
+         (render "{{name|default:@foo.bar.baz}}" {:name nil :foo {:bar {:baz "quux"}}}))))
+
 (deftest custom-resource-path-setting
   (is nil? *custom-resource-path*)
   (is (= "file:////some/path/" (set-resource-path! "/some/path")))
