@@ -240,7 +240,9 @@ For example, if we wanted to convert the variable to upper case we could write `
 rendered with `{:user-name "Yogthos"}` it would produce `YOGTHOS` as its output.
 
 Some filters can take parameters. `{{domain|hash:"md5"}}` rendered with `{:domain "example.org"}` would produce
-`1bdf72e04d6b50c82a48c7e4dd38cc69`.
+`1bdf72e04d6b50c82a48c7e4dd38cc69`. If a parameter begins with `@` it will be looked up in the context map and,
+if found, will be replaced with its value before
+being passed to the filter function. For example, `@foo.bar` will treated as `(get-in context-map [:foo :bar] "@foo.bar")`.
 
 Finally, you can easily register custom filters in addition to those already provided. A filter is simply a function
 that accepts a value and returns its replacement:

@@ -83,6 +83,17 @@ to the filters. Only strips enclosing doublequotes for now."
          (strip-doublequotes s))
        args))
 
+(defn lookup-args
+  "Given a context map, return a function that accepts a filter
+  argument and if it begins with @, return the value from the
+  context map instead of treating it as a literal."
+  [context-map]
+  (fn [^String arg]
+    (if (and (> (count arg) 1) (.startsWith arg "@"))
+      (let [accessor (split-filter-val (subs arg 1))]
+        (get-in context-map accessor arg))
+      arg)))
+
 (defn filter-str->fn
   "Turns a filter string like \"pluralize:y:ies\" into a function that
 expects a value obtained from a context map or from a previously
@@ -94,8 +105,8 @@ applied filter."
         args (fix-filter-args args)
         filter (get-filter filter-name)]
     (if filter
-      (fn [x]
-        (apply filter x args))
+      (fn [x context-map]
+        (apply filter x (map (lookup-args context-map) args)))
       (exception "No filter defined with the name '" filter-name "'"))))
 
 (def safe-filter ::selmer-safe-filter)
@@ -110,10 +121,10 @@ applied filter."
     (subs val 1 (dec (count val)))
     val))
 
-(defn- apply-filters [val s filter-strs filters]
+(defn- apply-filters [val s filter-strs filters context-map]
   (reduce
     (fn [acc [filter-str filter]]
-      (try (filter acc)
+      (try (filter acc context-map)
            (catch Exception e
              (exception
                "On filter body '" s "' and filter '" filter-str "' this error occurred:" (.getMessage e)))))
@@ -135,18 +146,20 @@ applied filter."
          accessor (split-filter-val val)
          filters (map filter-str->fn filter-strs)]
      (if (literal? val)
-       (constantly
+       (fn [context-map]
          (apply-filters
            (parse-literal val)
            s
            filter-strs
-           filters))
+           filters
+           context-map))
        (fn [context-map]
          (let [x (apply-filters
                    (get-in context-map accessor)
                    s
                    filter-strs
-                   filters)]
+                   filters
+                   context-map)]
            ;; Escape by default unless the last filter is 'safe' or safe-filter is set in the context-map
            (cond
              (safe-filter context-map) x
