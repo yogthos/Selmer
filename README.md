@@ -335,6 +335,8 @@ Valid predefined date, time formats: `shortDate` `shortTime` `shortDateTime` `me
 
 `(render "{{d|date:\"yyyy-MM-dd\"}}" {:d nil})` => `""`
 
+for current time use the [now](#now) tag
+
 `(render "{{creation-time|date:\"yyyy-MM-dd_HH:mm:ss\"}}" {:creation-time (java.util.Date.)})` => `"2013-07-28_20:51:48"`
 
 `(render "{{today|date:shortDate}}" {:today (java.util.Date.)})` => `"8/3/13"`
