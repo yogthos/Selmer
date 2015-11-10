@@ -694,7 +694,7 @@ Sums multiple variables together
 #### now
 renders current time
 
-`(render (str "{% now \"" date-format "\"%}") {})` => `"\"01 08 2013\""`
+`(render (str "{% now \"dd MM yyyy\" %}") {})` => `"\"01 08 2013\""`
 
 #### comment
 ignores any content inside the block
