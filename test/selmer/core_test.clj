@@ -513,6 +513,7 @@
 (deftest filter-date
   (let [date (java.util.Date.)
         firstofmarch (java.util.Date. 2014 2 1)]
+    (is (= "" (render "{{d|date:\"yyyy-MM-dd\"}}" {:d nil})))
     (is (= (.format (java.text.SimpleDateFormat. "yyyy-MM-dd HH:mm:ss") date)
            (render "{{f|date:\"yyyy-MM-dd HH:mm:ss\"}}" {:f date})))
     (is (= (.format (java.text.SimpleDateFormat. "MMMM" (java.util.Locale. "fr")) firstofmarch)
