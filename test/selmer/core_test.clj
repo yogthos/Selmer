@@ -122,6 +122,12 @@
     (is
       (= "/page?name=foo - xyz" (render-file "templates/include.html" {:gridid "xyz"})))))
 
+(deftest include-in-path-name
+  (is
+    (= "main template foo body" (render-file "templates/my-include.html" {:foo "foo"}))
+    )
+  )
+
 (deftest custom-tags
   (is
     (= "<<1>><<2>><<3>>"
@@ -591,7 +597,7 @@
   (is (= "1" (render "{{f|json}}" {:f 1})))
   (is (= "[1]" (render "{{f|json}}" {:f [1]})))
   (is (= {"dan" "awesome", "foo" 27}
-         (-> (render "{{f|json}}" {:f {:foo 27 :dan "awesome"}})
+         (-> ^String (render "{{f|json}}" {:f {:foo 27 :dan "awesome"}})
              (.replaceAll "&quot;" "\"")
              parse-string)))
   (is (= {"dan" "awesome", "foo" 27}

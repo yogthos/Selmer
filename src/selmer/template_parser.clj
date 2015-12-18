@@ -5,14 +5,15 @@
   composed from the result of `extends` inheritance and `include` mixins. "
   (:require [clojure.java.io :refer [reader]]
             [selmer.util :refer :all]
-            [clojure.string :refer [split trim]]
+            [clojure.string :as s :refer [split trim]]
             [selmer.validator :as validator])
   (:import [java.io File StringReader]))
 
 (declare consume-block preprocess-template)
 
 (defn get-tag-params [tag-id block-str]
-  (-> block-str (split tag-id) second (split *tag-second-pattern*) first trim))
+  (let [tag-id (re-pattern (str "^.+?" tag-id "\\s*"))]
+    (-> block-str (s/replace tag-id "") (split *tag-second-pattern*) first trim)))
 
 (defn parse-defaults [defaults]  
   (when defaults    
@@ -25,7 +26,7 @@
          (into {}))))
 
 (defn split-include-tag [^String tag-str]
-  (seq (.split ^String (get-tag-params #"[^/]include" (.replace tag-str "\\" "/")) " ")))
+  (seq (.split ^String (get-tag-params "include" (.replace tag-str "\\" "/")) " ")))
 
 (defn string->reader [string]
   (reader (StringReader. string)))
@@ -54,7 +55,7 @@
                (recur (read-char rdr)))))))
 
 (defn get-parent [tag-str]
-  (let [template (get-tag-params #"extends" tag-str)]
+  (let [template (get-tag-params "extends" tag-str)]
     (.substring ^String template 1 (dec (.length ^String template)))))
 
 (defn write-tag? [buf super-tag? existing-block blocks-to-close omit-close-tag?]
@@ -72,7 +73,7 @@
         (if (open-tag? ch rdr)
           (let [tag-str        (read-tag-content rdr)
                 block?         (re-matches *block-pattern* tag-str)
-                block-name     (if block? (get-tag-params #"block" tag-str))
+                block-name     (if block? (get-tag-params "block" tag-str))
                 super-tag?     (re-matches *block-super-pattern* tag-str)
                 existing-block (if block-name (get-in blocks [block-name :content]))]
             ;;check if we wish to write the closing tag for the block. If we're
@@ -106,7 +107,7 @@
   (clojure.string/replace block *block-super-pattern* parent-content))
 
 (defn read-block [rdr block-tag blocks]
-  (let [block-name     (get-tag-params #"block" block-tag)
+  (let [block-name     (get-tag-params "block" block-tag)
         existing-block (get blocks block-name)]
     (cond
       ;;we have a child block with a {{block.super}} tag, we'll need to
@@ -133,7 +134,7 @@
                 :content (.toString buf)})))))
 
 (defn process-block [rdr buf block-tag blocks]
-  (let [block-name (get-tag-params #"block" block-tag)]
+  (let [block-name (get-tag-params "block" block-tag)]
     (if-let [child-content (get-in blocks [block-name :content])]
       (.append ^StringBuilder buf
                (rewrite-super
