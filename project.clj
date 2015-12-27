@@ -1,4 +1,4 @@
-(defproject selmer "0.9.6"
+(defproject selmer "0.9.7"
   :description "Django style templates for Clojure"
   :url "https://github.com/yogthos/Selmer"
   :license {:name "Eclipse Public License"
@@ -8,7 +8,6 @@
                  [joda-time "2.9.1"]
                  [commons-codec "1.10"]
                  [json-html "0.3.6"]
-                 [fipp "0.6.3"]
                  [cheshire "5.5.0"]]
 
   :aot [selmer.node]
