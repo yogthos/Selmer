@@ -653,7 +653,7 @@ Only render the body if the two args are equal (according to clojure.core/=).
 #### ifunequal
 Only render the body if the two args are unequal (according to clojure.core/=).
 
-`{% ifunequal foo bar %}yes!{% endifequal %}`
+`{% ifunequal foo bar %}yes!{% endifunequal %}`
 
 **for/endfor** *block*
 
