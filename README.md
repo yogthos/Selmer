@@ -699,7 +699,11 @@ renders current time
 #### comment
 ignores any content inside the block
 
-`(render "foo bar {% comment %} baz test {{x}} {% endcomment %} blah" {})` => `"foo bar  baz test  blah"`
+`(render "foo bar {% comment %} baz test {{x}} {% endcomment %} blah" {})` => `"foo bar  blah"`
+
+A short form is also available:
+
+`(render "foo bar {# baz test {{x}} #} blah" {})` => `"foo bar  blah"`
 
 #### firstof
 renders the first occurance of supplied keys that doesn't resolve to false:

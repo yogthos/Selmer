@@ -164,7 +164,10 @@
       (render "foo bar {% comment %} baz test {{x}} {% endcomment %} blah" {})))
   (is
     (= "foo bar  blah"
-       (render "foo bar {% comment %} baz{% if x %}nonono{%endif%} test {{x}} {% endcomment %} blah" {}))))
+       (render "foo bar {% comment %} baz{% if x %}nonono{%endif%} test {{x}} {% endcomment %} blah" {})))
+  (is
+    (= "foo bar  blah"
+       (render "foo bar {# baz test {{x}} #} blah" {}))))
 
 
 (deftest test-firstof

@@ -56,6 +56,7 @@
 (def ^:dynamic ^Character *filter-open* \{)
 (def ^:dynamic ^Character *filter-close* \})
 (def ^:dynamic ^Character *tag-second* \%)
+(def ^:dynamic ^Character *short-comment-second* \#)
 
 ;; tag regex patterns
 (def ^:dynamic ^Pattern   *tag-second-pattern* nil)
@@ -130,6 +131,11 @@
        (let [next-ch (peek-rdr rdr)]
          (or (= *filter-open* next-ch)
              (= *tag-second* next-ch)))))
+
+(defn open-short-comment? [ch rdr]
+  (and (= *tag-open* ch)
+       (let [next-ch (peek-rdr rdr)]
+         (= *short-comment-second* next-ch))))
 
 (defn split-by-args [s]
   (let [rdr (StringReader. s)

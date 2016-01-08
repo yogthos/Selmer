@@ -194,6 +194,13 @@
           (.append buf ch)
           (recur (read-char rdr) tags content cur-tag end-tags))))))
 
+(defn skip-short-comment-tag [template rdr]
+  (loop [ch1 (read-char rdr)
+         ch2 (read-char rdr)]
+    (if (and (= *short-comment-second* ch1) (= *tag-close* ch2))
+      template
+      (recur ch2 (read-char rdr)))))
+
 ;; Compile-time parsing of tags. Accumulates a transient vector
 ;; before returning the persistent vector of INodes (TextNode, FunctionNode)
 
@@ -210,15 +217,23 @@
         (loop [template (transient [])
                ch (read-char rdr)]
           (if ch
-            (if (and (open-tag? ch rdr) (some #{(peek-rdr rdr)} [*tag-second* *filter-open*]))
+            (cond
               ;; We hit a tag so we append the buffer content to the template
               ;; and empty the buffer, then we proceed to parse the tag
+              (and (open-tag? ch rdr) (some #{(peek-rdr rdr)} [*tag-second* *filter-open*]))
               (recur (add-node template buf rdr) (read-char rdr))
+
+              ;; Short comment tags are dropped
+              (open-short-comment? ch rdr)
+              (recur (skip-short-comment-tag template rdr) (read-char rdr))
+
+              ;; Default case, here we append the character and
+              ;; read the next char
+              :else
               (do
-                ;; Default case, here we append the character and
-                ;; read the next char
                 (.append buf ch)
                 (recur template (read-char rdr))))
+
             ;; Add the leftover content of the buffer and return the template
             (->> buf (.toString) (TextNode.) (conj! template) persistent!))))))
 
@@ -235,18 +250,20 @@
 (defn parse-file [file params]
   (-> file preprocess-template (java.io.StringReader.) (parse-input params)))
 
-(defn parse [parse-fn input & [{:keys [tag-open tag-close filter-open filter-close tag-second]
-                                :or {tag-open     *tag-open*
-                                     tag-close    *tag-close*
-                                     filter-open  *filter-open*
-                                     filter-close *filter-close*
-                                     tag-second   *tag-second*}
-                                :as params}]]
-  (binding [*tag-open*     tag-open
-            *tag-close*    tag-close
-            *filter-open*  filter-open
-            *filter-close* filter-close
-            *tag-second*   tag-second
+(defn parse [parse-fn input & [{:keys [tag-open tag-close filter-open filter-close tag-second short-comment-second]
+                                :or   {tag-open             *tag-open*
+                                       tag-close            *tag-close*
+                                       filter-open          *filter-open*
+                                       filter-close         *filter-close*
+                                       tag-second           *tag-second*
+                                       short-comment-second *short-comment-second*}
+                                :as   params}]]
+  (binding [*tag-open*             tag-open
+            *tag-close*            tag-close
+            *filter-open*          filter-open
+            *filter-close*         filter-close
+            *tag-second*           tag-second
+            *short-comment-second* short-comment-second
             *tag-second-pattern*   (pattern tag-second)
             *filter-open-pattern*  (pattern "\\" tag-open "\\" filter-open "\\s*")
             *filter-close-pattern* (pattern "\\s*\\" filter-close "\\" tag-close)
