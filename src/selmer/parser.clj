@@ -197,9 +197,12 @@
 (defn skip-short-comment-tag [template rdr]
   (loop [ch1 (read-char rdr)
          ch2 (read-char rdr)]
-    (if (and (= *short-comment-second* ch1) (= *tag-close* ch2))
+    (cond
+      (nil? ch2)
+      (exception "short-form comment tag was not closed")
+      (and (= *short-comment-second* ch1) (= *tag-close* ch2))
       template
-      (recur ch2 (read-char rdr)))))
+      :else (recur ch2 (read-char rdr)))))
 
 ;; Compile-time parsing of tags. Accumulates a transient vector
 ;; before returning the persistent vector of INodes (TextNode, FunctionNode)
