@@ -47,6 +47,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [linebreaks-br] (#linebreaks-br)
 [linenumbers] (#linenumbers)
 [lower] (#lower)
+[name] (#name)
 [pluralize] (#pluralize)
 [rand-nth] (#rand-nth)
 [remove] (#remove)
@@ -423,6 +424,9 @@ Displays text with line numbers.
 #### lower
 `(render "{{foo|lower}}" {:foo "FOOBaR"})` => `"foobar"`
 
+#### name
+`(render "{{foo|name}}" {:foo :foobar})` => `"foobar"`
+
 #### number-format
 `(render "{{amount|number-format:%.3f}}" {:amount 123.04455})` => `"123.045"`
 
@@ -566,7 +570,7 @@ Will cycle through the supplied values.
 #### debug
 
 Pretty prints the context map passed to the template using [json-html](https://github.com/yogthos/json-html).
- 
+
  ```
  (render "{% debug %}" {:foo :bar})
  ```

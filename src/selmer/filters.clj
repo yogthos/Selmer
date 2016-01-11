@@ -361,7 +361,12 @@ map. The rest of the arguments are optional and are always strings."
                       closing (re-pattern (str "(?i)</" tags ">"))]
                   (-> s
                       (s/replace opening "")
-                      (s/replace closing "")))))}))
+                      (s/replace closing "")))))
+
+
+            :name
+            name}))
+
 
 (defn get-filter
   [name]
