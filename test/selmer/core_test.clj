@@ -742,3 +742,9 @@
                (render "<tag>{{f}}</tag>" {:f "<foo bar=\"baz\">\\>"}))))
       (is (= "I <3 ponies" (render "{{name}}" {:name "I <3 ponies"})))
       (finally (turn-on-escaping!)))))
+
+(deftest name-test
+  (testing "converts keywords to strings"
+    (is (= "foobar" (render "{{foo|name}}" {:foo :foobar}))))
+  (testing "leaves strings as they are"
+    (is (= "foobar" (render "{{foo|name}}" {:foo "foobar"})))))
