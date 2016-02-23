@@ -1,11 +1,11 @@
-(defproject selmer "1.0.0"
+(defproject selmer "1.0.1"
   :description "Django style templates for Clojure"
   :url "https://github.com/yogthos/Selmer"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [criterium "0.4.3" :scope "test"]
-                 [joda-time "2.9.1"]
+                 [criterium "0.4.4" :scope "test"]
+                 [joda-time "2.9.2"]
                  [commons-codec "1.10"]
                  [json-html "0.3.8"]
                  [cheshire "5.5.0"]]
@@ -19,4 +19,4 @@
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
                    :repl-options {:port 10123}
                    :plugins [[lein-marginalia "0.8.0"]]
-                   :dependencies [[environ "1.0.1"]]}})
+                   :dependencies [[environ "1.0.2"]]}})
