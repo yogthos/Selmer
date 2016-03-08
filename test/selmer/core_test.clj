@@ -16,7 +16,7 @@
 (deftest dev-error-handling
   (is (= "No filter defined with the name 'woot'"
          (try (render "{{blah|safe|woot" {:blah "woot"})
-           (catch Exception ex (.getMessage ex))))))
+              (catch Exception ex (.getMessage ex))))))
 
 (deftest custom-handler-test
   (let [handler (tag-handler
@@ -26,14 +26,14 @@
     (is
       (= "some bar content"
          (render-template (parse parse-input (java.io.StringReader. "{% foo %}some {{bar}} content{% endfoo %}")
-                        {:custom-tags {:foo handler}}) {:bar "bar"}))))
+                                 {:custom-tags {:foo handler}}) {:bar "bar"}))))
 
   (let [handler (tag-handler
                   (fn [args context-map] (clojure.string/join "," args))
                   :bar)]
     (is (= "arg1,arg2"
            (render-template (parse parse-input (java.io.StringReader. "{% bar arg1 arg2 %}")
-                          {:custom-tags {:bar handler}}) {}))))
+                                   {:custom-tags {:bar handler}}) {}))))
 
   (add-tag! :bar (fn [args context-map] (clojure.string/join "," args)))
   (render-template (parse parse-input (java.io.StringReader. "{% bar arg1 arg2 %}")) {}))
@@ -41,8 +41,8 @@
 (deftest custom-filter-test
   (is (= "BAR"
          (render-template (parse parse-input (java.io.StringReader. "{{bar|embiginate}}")
-                        {:custom-filters
-                         {:embiginate (fn [^String s] (.toUpperCase s))}}) {:bar "bar"}))))
+                                 {:custom-filters
+                                  {:embiginate (fn [^String s] (.toUpperCase s))}}) {:bar "bar"}))))
 
 (deftest passthrough
   (let [s "a b c d"]
@@ -62,8 +62,8 @@
      *filter-open-pattern* (pattern "\\" *tag-open* "\\" *filter-open* "\\s*")
      *filter-close-pattern* (pattern "\\s*\\" *filter-close* "\\" *tag-close*)
      *filter-pattern* (pattern "\\" *tag-open* "\\" *filter-open* "\\s*.*\\s*\\" *filter-close* "\\" *tag-close*)
-     *tag-pattern*  (pattern "\\" *tag-open* "\\" *tag-second* "\\s*.*\\s*\\" *tag-second* "\\" *tag-close*)
-     *tag-open-pattern*  (pattern "\\" *tag-open* "\\" *tag-second* "\\s*")
+     *tag-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*.*\\s*\\" *tag-second* "\\" *tag-close*)
+     *tag-open-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*")
      *tag-close-pattern* (pattern "\\s*\\" *tag-second* "\\" *tag-close*)
      *include-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*include.*")
      *extends-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*extends.*")
@@ -133,18 +133,18 @@
     (= "<<1>><<2>><<3>>"
        (render "[% for ele in foo %]<<[{ele}]>>[%endfor%]"
                {:foo [1 2 3]}
-               {:tag-open \[
+               {:tag-open  \[
                 :tag-close \]})))
 
   (is
     (= (fix-line-sep "Base template.\n\n\t\n<p></p>\n\n\n")
        (render-file "templates/child-custom.html"
                     {}
-                    {:tag-open \[
-                     :tag-close \]
-                     :filter-open \(
+                    {:tag-open     \[
+                     :tag-close    \]
+                     :filter-open  \(
                      :filter-close \)
-                     :tag-second \#}))))
+                     :tag-second   \#}))))
 
 (deftest no-tag
   (is (= "{" (render-file "templates/no_tag.html" {}))))
@@ -156,12 +156,12 @@
 (deftest test-now
   (let [date-format "dd MM yyyy"
         formatted-date (.format (java.text.SimpleDateFormat. date-format) (java.util.Date.))]
-    (is  (= (str "\"" formatted-date "\"") (render (str "{% now \"" date-format "\"%}") {})))))
+    (is (= (str "\"" formatted-date "\"") (render (str "{% now \"" date-format "\"%}") {})))))
 
 (deftest test-comment
   (is
     (= "foo bar  blah"
-      (render "foo bar {% comment %} baz test {{x}} {% endcomment %} blah" {})))
+       (render "foo bar {% comment %} baz test {{x}} {% endcomment %} blah" {})))
   (is
     (= "foo bar  blah"
        (render "foo bar {% comment %} baz{% if x %}nonono{%endif%} test {{x}} {% endcomment %} blah" {})))
@@ -198,7 +198,7 @@
 (deftest test-for
   (is
     (= " s  a "
-      (render "{%for x in foo.0%} {{x.id}} {%endfor%}" {:foo [[{:id "s"} {:id "a"}]]})))
+       (render "{%for x in foo.0%} {{x.id}} {%endfor%}" {:foo [[{:id "s"} {:id "a"}]]})))
   (is
     (= "<ul><li>Sorry, no athletes in this list.</li><ul>"
        (render (str "<ul>"
@@ -210,20 +210,20 @@
                     "<ul>")
                {})))
   (is
-   (= "1345"
-      (render "{% for x in foo.bar|sort %}{{x}}{% endfor %}" {:foo {:bar [1 4 3 5]}})))
+    (= "1345"
+       (render "{% for x in foo.bar|sort %}{{x}}{% endfor %}" {:foo {:bar [1 4 3 5]}})))
   (is
-   (= "5431"
-      (render "{% for x in foo.bar|sort|sort-reversed %}{{x}}{% endfor %}" {:foo {:bar [1 4 3 5]}})))
+    (= "5431"
+       (render "{% for x in foo.bar|sort|sort-reversed %}{{x}}{% endfor %}" {:foo {:bar [1 4 3 5]}})))
   (is
     (= "1,2,a;3,4,;"
        (render "{% for a, b, c in items %}{{a}},{{b}},{{c}};{% endfor %}" {:items [[1 2 "a" "b"] [3 4]]})))
   (is
     (= "1,2,a;3,4,;"
-      (render "{% for a,b, c in items %}{{a}},{{b}},{{c}};{% endfor %}" {:items [[1 2 "a" "b"] [3 4]]})))
+       (render "{% for a,b, c in items %}{{a}},{{b}},{{c}};{% endfor %}" {:items [[1 2 "a" "b"] [3 4]]})))
   (is
     (= "[1 2 &quot;a&quot; &quot;b&quot;],,;[3 4],,;"
-      (render "{% for a in items %}{{a}},{{b}},{{c}};{% endfor %}" {:items [[1 2 "a" "b"] [3 4]]})))
+       (render "{% for a in items %}{{a}},{{b}},{{c}};{% endfor %}" {:items [[1 2 "a" "b"] [3 4]]})))
   (is
     (= "a,bc,d"
        (render "{% for x,y in items %}{{x}},{{y}}{% endfor %}" {:items [["a" "b"] ["c" "d"]]})))
@@ -234,24 +234,33 @@
     (= "1234567890"
        (render-template
          (parse parse-input (java.io.StringReader.
-                  "{% for item in list %}{% for i in item.items %}{{i}}{% endfor %}{% endfor %}"))
+                              "{% for item in list %}{% for i in item.items %}{{i}}{% endfor %}{% endfor %}"))
          {:list [{:items [1 2 3]} {:items [4 5 6]} {:items [7 8 9 0]}]})))
-(is (= "bob"
-       (render-template
-         (parse parse-input (java.io.StringReader.
-                  "{% for item in list.items %}{{item.name}}{% endfor %}"))
-         {:list {:items [{:name "bob"}]}})))
-(is (= (render "{% for ele in foo %}<<{{ele}}>>{%endfor%}"
+  (is (= "bob"
+         (render-template
+           (parse parse-input (java.io.StringReader.
+                                "{% for item in list.items %}{{item.name}}{% endfor %}"))
+           {:list {:items [{:name "bob"}]}})))
+  (is (= (render "{% for ele in foo %}<<{{ele}}>>{%endfor%}"
                  {:foo [1 2 3]})
          "<<1>><<2>><<3>>"))
   (is (= (render "{% for ele in foo %}{{ele}}-{{forloop.counter}}-{{forloop.counter0}}-{{forloop.revcounter}}-{{forloop.revcounter0}};{%endfor%}"
                  {:foo [1 2 3]})
          "1-1-0-2-3;2-2-1-1-2;3-3-2-0-1;")))
 
+(deftest for-filter-test
+  (is
+    (=
+      "barbazfoo"
+      (render
+        "{% for m in thing|sort-by:@sort-key %}{{m.name}}{% endfor %}"
+        {:sort-key :name :thing [{:name "bar"} {:name "foo"} {:name "baz"}]}))))
+
 (deftest nested-for-test
-  (= "<html>\n<body>\n<ul>\n\n\t<li>\n\t\n\ttest\n\t\t</li>\n\n\t<li>\n\t\n\ttest1\n\t\t</li>\n\n</ul>\n</body>\n</html>"
-    (render-template (parse parse-input (str path "nested-for.html"))
-            {:name "Bob" :users [[{:name "test" }] [{:name "test1" }]]})))
+  (is
+    (= "<html>\n<body>\n<ul>\n\n\t<li>\n\t\n\ttest\n\t\n\t</li>\n\n\t<li>\n\t\n\ttest1\n\t\n\t</li>\n \n</ul>\n</body>\n</html>"
+       (render-template (parse parse-input (str path "nested-for.html"))
+                        {:name "Bob" :users [[{:name "test"}] [{:name "test1"}]]}))))
 
 (deftest test-map-lookup
   (is (= (render "{{foo}}" {:foo {:bar 42}})
@@ -274,21 +283,21 @@
   (is
     (= "\"foo\"1\"bar\"2\"baz\"1\"foo\"2\"bar\"1"
        (render "{% for i in range %}{% cycle \"foo\" \"bar\" \"baz\" %}{% cycle 1 2 %}{% endfor %}"
-            {:range (range 5)}))))
+               {:range (range 5)}))))
 
 (deftest render-test
   (= "<ul><li>0</li><li>1</li><li>2</li><li>3</li><li>4</li></ul>"
      (render-template (parse parse-input (java.io.StringReader. "<ul>{% for item in items %}<li>{{item}}</li>{% endfor %}</ul>"))
-             {:items (range 5)})))
+                      {:items (range 5)})))
 
 (deftest nested-forloop-first
   (is (= (render (str "{% for x in list1 %}"
-                             "{% for y in list2 %}"
-                             "{{x}}-{{y}}"
-                             "{% if forloop.first %}'{% endif %} "
-                             "{% endfor %}{% endfor %}")
-                        {:list1 '[a b c]
-                         :list2 '[1 2 3]})
+                      "{% for y in list2 %}"
+                      "{{x}}-{{y}}"
+                      "{% if forloop.first %}'{% endif %} "
+                      "{% endfor %}{% endfor %}")
+                 {:list1 '[a b c]
+                  :list2 '[1 2 3]})
          "a-1' a-2 a-3 b-1' b-2 b-3 c-1' c-2 c-3 ")))
 
 (deftest forloop-with-one-element
@@ -307,20 +316,20 @@
 
 (deftest tag-sum-test
   (is
-   (= "3"
-      (render "{% sum foo %}" {:foo 3})) "sum of Foo solely should be 3")
+    (= "3"
+       (render "{% sum foo %}" {:foo 3})) "sum of Foo solely should be 3")
   (is
-   (= "5"
-      (render "{% sum foo bar %}" {:foo 2 :bar 3})) "sum of Foo and bar should be 5")
+    (= "5"
+       (render "{% sum foo bar %}" {:foo 2 :bar 3})) "sum of Foo and bar should be 5")
   (is
-   (= "6"
-      (render "{% sum foo foo %}" {:foo 3})) "sum of Foo twice should be 6")
+    (= "6"
+       (render "{% sum foo foo %}" {:foo 3})) "sum of Foo twice should be 6")
   (is
-   (= "6"
-      (render "{% sum foo bar baz %}" {:foo 3 :bar 2 :baz 1})))
+    (= "6"
+       (render "{% sum foo bar baz %}" {:foo 3 :bar 2 :baz 1})))
   (is
-   (= "6"
-      (render "{% sum foo bar.baz %}" {:foo 3 :bar {:baz 3} })))
+    (= "6"
+       (render "{% sum foo bar.baz %}" {:foo 3 :bar {:baz 3}})))
   )
 
 (deftest tag-info-test
@@ -381,7 +390,7 @@
        (render "{% if 5 >= v %}less equal{% endif %}" {:v 5})))
   (is
     (= " no value "
-       (render "{% if user-id %} has value {% else %} no value {% endif %}"  {})))
+       (render "{% if user-id %} has value {% else %} no value {% endif %}" {})))
   (is (= (render "{% if foo %}foo is true{% endif %}" {:foo true})
          "foo is true"))
   (is (= (render "{% if foo %}foo is true{% endif %}" {:foo false})
@@ -395,19 +404,19 @@
 
   (let [template
         (parse parse-input
-          (java.io.StringReader.
-            "{% if foo %}
-             foo is true
-             {% if bar %}bar is also true{% endif %}
-             {% else %} foo is false
-             {% if baz %}but baz is true {% else %}baz is also false{% endif %}
-             {% endif %}"))]
+               (java.io.StringReader.
+                 "{% if foo %}
+                  foo is true
+                  {% if bar %}bar is also true{% endif %}
+                  {% else %} foo is false
+                  {% if baz %}but baz is true {% else %}baz is also false{% endif %}
+                  {% endif %}"))]
     (is (= (render-template template {:foo true :bar true :baz false})
-           "\n             foo is true\n             bar is also true\n             "))
+           "\n                  foo is true\n                  bar is also true\n                  "))
     (is (= (render-template template {:foo false :bar true :baz false})
-           " foo is false\n             baz is also false\n             "))
+           " foo is false\n                  baz is also false\n                  "))
     (is (= (render-template template {:foo false :bar true :baz true})
-           " foo is false\n             but baz is true \n             ")))
+           " foo is false\n                  but baz is true \n                  ")))
   (is (thrown? Exception (render "foo {% else %} bar" {}))))
 
 (deftest test-if-not
@@ -479,12 +488,12 @@
 
 (deftest tag-content-test
   (is
-    (= {:if {:args nil :content ["foo bar "]}
+    (= {:if   {:args nil :content ["foo bar "]}
         :else {:args nil :content [" baz"]}}
        (into {}
              (map
                (fn [[k v]]
-                 [k (update-in v [:content]  #(map (fn [node] (.render-node ^selmer.node.INode node {})) %))])
+                 [k (update-in v [:content] #(map (fn [node] (.render-node ^selmer.node.INode node {})) %))])
                (tag-content (java.io.StringReader. "foo bar {%else%} baz{% endif %}") :if :else :endif)))))
   (is
     (= {:for {:args nil, :content ["foo bar  baz"]}}
@@ -607,7 +616,7 @@
          (parse-string (render "{{f|json|safe}}" {:f {:foo 27 :dan "awesome"}}))))
   ;; safe only works at the end
   #_(is (= "{\"foo\":27,\"dan\":\"awesome\"}"
-         (render "{{f|safe|json}}" {:f {:foo 27 :dan "awesome"}})))
+           (render "{{f|safe|json}}" {:f {:foo 27 :dan "awesome"}})))
   ;; Do we really want to nil-pun the empty map?
   ;; Is that going to surprise the user?
   (is (= "null" (render "{{f|json}}" {}))))
@@ -639,15 +648,15 @@
 
 ;; test @-syntax for dereferencing context map in filter arguments
 (deftest test-deref-filter-arg
-  (is (= " Sean " ;; note center filter expects String for width!
+  (is (= " Sean "                                           ;; note center filter expects String for width!
          (render "{{name|center:@width}}" {:name "Sean" :width "6"})))
-  (is (= "4" ;; ensure we can substitute a data structure
+  (is (= "4"                                                ;; ensure we can substitute a data structure
          (render "{{name|default:@v|count}}" {:v [1 2 3 4]})))
-  (is (= "@" ;; literal @ is not dereferenced
+  (is (= "@"                                                ;; literal @ is not dereferenced
          (render "{{name|default:@}}" {:name nil})))
-  (is (= "@foo" ;; literal @foo used when no context map match
+  (is (= "@foo"                                             ;; literal @foo used when no context map match
          (render "{{name|default:@foo}}" {:name nil})))
-  (is (= "quux" ;; test nested lookup
+  (is (= "quux"                                             ;; test nested lookup
          (render "{{name|default:@foo.bar.baz}}" {:name nil :foo {:bar {:baz "quux"}}}))))
 
 (deftest custom-resource-path-setting
@@ -661,18 +670,18 @@
 (deftest custom-resource-path-setting-url
   (set-resource-path! (clojure.java.io/resource "templates/inheritance"))
   (is (string? *custom-resource-path*))
-  (is (= (fix-line-sep "Hello, World!\n")  (render-file "foo.html" {:name "World"})))
+  (is (= (fix-line-sep "Hello, World!\n") (render-file "foo.html" {:name "World"})))
   (set-resource-path! nil))
 
 (deftest safe-filter
-  (add-filter! :foo  (fn [^String x] [:safe (.toUpperCase x)]))
+  (add-filter! :foo (fn [^String x] [:safe (.toUpperCase x)]))
   (is
     (= "<DIV>I'M SAFE</DIV>"
        (render "{{x|foo}}" {:x "<div>I'm safe</div>"})))
   (add-filter! :bar #(.toUpperCase ^String %))
   (is
     (= "&lt;DIV&gt;I&#39;M NOT SAFE&lt;/DIV&gt;"
-      (render "{{x|bar}}" {:x "<div>I'm not safe</div>"}))))
+       (render "{{x|bar}}" {:x "<div>I'm not safe</div>"}))))
 
 (deftest linebreaks-test
   (testing "single newlines become <br />, double newlines become <p>"
@@ -727,10 +736,10 @@
 (deftest without-escaping-test
   (testing "without-escaping macro"
     (without-escaping
-     (is (= "I <3 ponies" (render "{{name}}" {:name "I <3 ponies"}))))
+      (is (= "I <3 ponies" (render "{{name}}" {:name "I <3 ponies"}))))
     ;; ensure escaping is on after the macro.
     (is (= "<tag>&lt;foo bar=&quot;baz&quot;&gt;\\&gt;</tag>"
-         (render "<tag>{{f}}</tag>" {:f "<foo bar=\"baz\">\\>"})))))
+           (render "<tag>{{f}}</tag>" {:f "<foo bar=\"baz\">\\>"})))))
 
 (deftest with-escaping-test
   (testing "with-escaping macro when turn-off-escaping! has been called"

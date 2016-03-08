@@ -25,12 +25,12 @@
        (apply concat)
        (split-with (partial not= "in"))))
 
-(defn compile-filters [filter-names]
-  (map #(compile-filter-body (str "value|" %) false) filter-names))
+(defn compile-filters [items filter-names]
+  (map #(compile-filter-body (str items "|" %) false) filter-names))
 
-(defn apply-filters [item filters]
+(defn apply-filters [item filters context-map items]
   (reduce
-    (fn [value filter] (filter {:value value}))
+    (fn [value filter] (filter (assoc context-map items value)))
     item filters))
 
 (defn for-handler [args tag-content render rdr]
@@ -40,13 +40,13 @@
         [ids [_ items]] (aggregate-args args)
         ids (map parse-arg ids)
         [items & filter-names] (if items (.split ^String items "\\|"))
-        filters (compile-filters filter-names)
+        filters (compile-filters items filter-names)
         item-keys (parse-arg items)]
     (fn [context-map]
       (let [buf (StringBuilder.)
-            items (-> (get-in context-map item-keys) (apply-filters filters))
-            length (count items)
-            parentloop (:parentloop context-map)]
+            items (-> (get-in context-map item-keys)
+                      (apply-filters filters context-map items))
+            length (count items)]
         (if (and empty-content (empty? items))
           (.append buf (render empty-content context-map))
           (doseq [[counter value] (map-indexed vector items)]
