@@ -23,4 +23,6 @@
 (deftype TextNode [text]
   INode
   (render-node [this context-map]
+    text)
+  (toString [_]
     text))
