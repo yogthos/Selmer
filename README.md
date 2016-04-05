@@ -219,6 +219,11 @@ A variables can also be nested data structures, eg:
 
 `(render "{{foo.bar.0.baz}}" {:foo {:bar [{:baz "hi"}]}})`
 
+It works with string keys too. For optimal performance, prefer maps with keyword keys. Occasional
+string keys are ok, but heavily nested context maps with all string key lookups are slower to render.
+
+`(render "{{foo.bar.baz}}" {:foo {:bar {"baz" "hi"}}})`
+
 Tags are used to add various functionality to the template such as looping and conditions.
 For example, if we wanted to create a list from a collection of items we could use the `for` tag
 as follows:

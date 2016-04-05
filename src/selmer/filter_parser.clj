@@ -131,6 +131,12 @@ applied filter."
     val
     (map vector filter-strs filters)))
 
+(defn- get-accessor [m k]
+  "Returns the value of `k` from map `m`, either as a keyword or string lookup."
+  (or (get m k)
+      (when (keyword? k)
+        (get m (name k)))))
+
 (defn compile-filter-body
   "Turns a string like foo|filter1:x|filter2:y into a fn that expects a
  context-map and will apply the filters one after the other to the value
@@ -155,7 +161,7 @@ applied filter."
            context-map))
        (fn [context-map]
          (let [x (apply-filters
-                   (get-in context-map accessor)
+                   (reduce get-accessor context-map accessor)
                    s
                    filter-strs
                    filters
