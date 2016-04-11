@@ -69,9 +69,10 @@ so it can access vectors as well as maps."
         ks))
 
 (defn split-filter-val
-  "Split accessors like foo.bar.baz by the dot."
+  "Split accessors like foo.bar.baz by the dot.
+   But if there is a double dot '..' then it will leave it"
   [s]
-  (let [ks (s/split s #"\.")]
+  (let [ks (s/split s #"(?<!\.)\.(?!\.)")]
     (fix-accessor ks)))
 
 (defn fix-filter-args
