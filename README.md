@@ -232,7 +232,7 @@ A variables can also be nested data structures, eg:
 
 `(render "{{foo.bar.0.baz}}" {:foo {:bar [{:baz "hi"}]}})`
 
-======
+START:
 Added by Zuriar:
 
 The only modification is a minor change to selmer/filter_parser.clj on the split-filter-val function.
@@ -244,7 +244,8 @@ we require: [:this 0 :nested :my.namespace/here]
 FIX: use a double dot in the template to 'escape' the dot you wish to keep: 
 
 {{this.0.nested.my..namespace/here}} --> [:this 0 :nested :my.namespace/here]
-======
+
+END-ZURIAR
 
 It works with string keys too. For optimal performance, prefer maps with keyword keys. Occasional
 string keys are ok, but heavily nested context maps with all string key lookups are slower to render.
