@@ -22,7 +22,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 
 #### Leiningen
 
-[![Clojars Project](http://clojars.org/selmer/latest-version.svg)](http://clojars.org/selmer)
+[![Clojars Project](http://clojars.org/selmer-zuriar/latest-version.svg)](http://clojars.org/selmer)
 
 ## Marginalia documentation
 
