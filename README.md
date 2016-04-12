@@ -1,4 +1,17 @@
-Selmer
+Selmer-Zuriar
+
+This is a clone of https://github.com/yogthos/Selmer - ALL CREDIT TO THE ORIGINAL AUTHOR
+
+The only modification is a minor change to selmer/filter_parser.clj on the split-filter-val function.
+REASON: Datomic makes use of dotted namespace such as :my.namespace/here
+We need to escape these dots in nested structures from the template: {{this.0.nested.my.namespace/here}}
+IN Selmer 1.0.4 this is resolved as [:this 0 :nested :my :namespace/here]
+we require: [:this 0 :nested :my.namespace/here]
+
+FIX: use a double dot in the template to 'escape' the dot you wish to keep: 
+
+{{this.0.nested.my..namespace/here}} --> [:this 0 :nested :my.namespace/here]
+
 ======
 
 [![Continuous Integration status](https://secure.travis-ci.org/yogthos/Selmer.png)](http://travis-ci.org/yogthos/Selmer)
@@ -218,6 +231,20 @@ A variables can also be nested data structures, eg:
 `(render "{{person.name}}" {:person {:name "John Doe"}})`
 
 `(render "{{foo.bar.0.baz}}" {:foo {:bar [{:baz "hi"}]}})`
+
+======
+Added by Zuriar:
+
+The only modification is a minor change to selmer/filter_parser.clj on the split-filter-val function.
+REASON: Datomic makes use of dotted namespace such as :my.namespace/here
+We need to escape these dots in nested structures from the template: {{this.0.nested.my.namespace/here}}
+IN Selmer 1.0.4 this is resolved as [:this 0 :nested :my :namespace/here]
+we require: [:this 0 :nested :my.namespace/here]
+
+FIX: use a double dot in the template to 'escape' the dot you wish to keep: 
+
+{{this.0.nested.my..namespace/here}} --> [:this 0 :nested :my.namespace/here]
+======
 
 It works with string keys too. For optimal performance, prefer maps with keyword keys. Occasional
 string keys are ok, but heavily nested context maps with all string key lookups are slower to render.
