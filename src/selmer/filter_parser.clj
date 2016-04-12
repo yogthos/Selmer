@@ -69,10 +69,13 @@ so it can access vectors as well as maps."
         ks))
 
 (defn split-filter-val
-  "Split accessors like foo.bar.baz by the dot."
+  "Split accessors like foo.bar.baz by the dot.
+   But if there is a double dot '..' then it will leave it"
   [s]
-  (let [ks (s/split s #"\.")]
-    (fix-accessor ks)))
+  (let [ks (clojure.string/split s #"(?<!\.)\.(?!\.)")
+        kss (map
+              (fn [s] (clojure.string/replace s ".." ".")) ks)] ;we remove the double dot here
+    (fix-accessor kss)))
 
 (defn fix-filter-args
   "Map any sort of needed fixes to the arguments before passing them
