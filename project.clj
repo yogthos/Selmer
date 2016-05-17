@@ -5,10 +5,10 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [criterium "0.4.4" :scope "test"]
-                 [joda-time "2.9.2"]
+                 [joda-time "2.9.3"]
                  [commons-codec "1.10"]
                  [json-html "0.3.9"]
-                 [cheshire "5.5.0"]]
+                 [cheshire "5.6.1"]]
 
   :aot [selmer.node]
   :javac-options ["-target" "1.6"]
@@ -19,4 +19,4 @@
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
                    :repl-options {:port 10123}
                    :plugins [[lein-marginalia "0.8.0"]]
-                   :dependencies [[environ "1.0.2"]]}})
+                   :dependencies [[environ "1.0.3"]]}})
