@@ -3,7 +3,7 @@
   :url "https://github.com/yogthos/Selmer"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.7.0"]
+  :dependencies [[org.clojure/clojure "1.7.0" :scope "provided"]
                  [criterium "0.4.4" :scope "test"]
                  [joda-time "2.9.3"]
                  [commons-codec "1.10"]
