@@ -149,9 +149,11 @@
 ;; or for. filter-tags are conflated with vanilla tag
 
 (defn parse-tag [{:keys [tag-type] :as tag} rdr]
-  (if (= :filter tag-type)
-    (filter-tag tag)
-    (expr-tag tag rdr)))
+  (with-meta
+    (if (= :filter tag-type)
+      (filter-tag tag)
+      (expr-tag tag rdr))
+    {:tag tag}))
 
 ;; Parses and detects tags which turn into
 ;; FunctionNode call-sites or TextNode content. open-tag? fn returns
