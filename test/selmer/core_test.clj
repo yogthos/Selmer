@@ -757,3 +757,11 @@
     (is (= "foobar" (render "{{foo|name}}" {:foo :foobar}))))
   (testing "leaves strings as they are"
     (is (= "foobar" (render "{{foo|name}}" {:foo "foobar"})))))
+
+(deftest handler-metadata
+  (testing "puts tag into FunctionNode handlers"
+    (is (= {:tag {:tag-type :filter, :tag-value "foo"}}
+           (as-> (parse-input (java.io.StringReader. "{{foo}}")) $
+             (first $)
+             (.handler ^selmer.node.FunctionNode $)
+             (meta $))))))
