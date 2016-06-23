@@ -683,6 +683,13 @@
     (= "&lt;DIV&gt;I&#39;M NOT SAFE&lt;/DIV&gt;"
        (render "{{x|bar}}" {:x "<div>I'm not safe</div>"}))))
 
+(deftest remove-filter
+  (testing "we can add and remove a filter"
+    (add-filter! :temp (fn [x] (str "TEMP_" (clojure.string/upper-case x))))
+    (is (= "TEMP_FOO_BAR" (render "{{x|temp}}" {:x "foo_bar"})))
+    (remove-filter! :temp)
+    (is (thrown? Exception (render "{{x|temp}}" {:x "foo_bar"})))))
+
 (deftest linebreaks-test
   (testing "single newlines become <br />, double newlines become <p>"
     (is (= "<p><br />bar<br />baz</p>"
