@@ -38,6 +38,12 @@
   (add-tag! :bar (fn [args context-map] (clojure.string/join "," args)))
   (render-template (parse parse-input (java.io.StringReader. "{% bar arg1 arg2 %}")) {}))
 
+(deftest remove-tag
+  (add-tag! :temp (fn [args _] (str "TEMP_" (clojure.string/join "_" (map (comp clojure.string/upper-case str) args)))))
+  (is (= "TEMP_ARG1_ARG2" (render "{% temp arg1 arg2 %}" {})))
+  (remove-tag! :temp)
+  (is (thrown? Exception (render "{% temp arg1 arg2 %}" {}))))
+
 (deftest custom-filter-test
   (is (= "BAR"
          (render-template (parse parse-input (java.io.StringReader. "{{bar|embiginate}}")
@@ -682,6 +688,13 @@
   (is
     (= "&lt;DIV&gt;I&#39;M NOT SAFE&lt;/DIV&gt;"
        (render "{{x|bar}}" {:x "<div>I'm not safe</div>"}))))
+
+(deftest remove-filter
+  (testing "we can add and remove a filter"
+    (add-filter! :temp (fn [x] (str "TEMP_" (clojure.string/upper-case x))))
+    (is (= "TEMP_FOO_BAR" (render "{{x|temp}}" {:x "foo_bar"})))
+    (remove-filter! :temp)
+    (is (thrown? Exception (render "{{x|temp}}" {:x "foo_bar"})))))
 
 (deftest linebreaks-test
   (testing "single newlines become <br />, double newlines become <p>"

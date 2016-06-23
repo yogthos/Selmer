@@ -379,3 +379,7 @@ map. The rest of the arguments are optional and are always strings."
 (defn add-filter!
   [name f]
   (swap! filters assoc (keyword name) f))
+
+(defn remove-filter!
+  [name]
+  (swap! filters dissoc (keyword name)))
