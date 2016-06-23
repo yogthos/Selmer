@@ -38,6 +38,12 @@
   (add-tag! :bar (fn [args context-map] (clojure.string/join "," args)))
   (render-template (parse parse-input (java.io.StringReader. "{% bar arg1 arg2 %}")) {}))
 
+(deftest remove-tag
+  (add-tag! :temp (fn [args _] (str "TEMP_" (clojure.string/join "_" (map (comp clojure.string/upper-case str) args)))))
+  (is (= "TEMP_ARG1_ARG2" (render "{% temp arg1 arg2 %}" {})))
+  (remove-tag! :temp)
+  (is (thrown? Exception (render "{% temp arg1 arg2 %}" {}))))
+
 (deftest custom-filter-test
   (is (= "BAR"
          (render-template (parse parse-input (java.io.StringReader. "{{bar|embiginate}}")

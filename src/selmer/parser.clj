@@ -83,6 +83,11 @@
      (set-closing-tags! ~k ~@tags)
      (swap! selmer.tags/expr-tags assoc ~k (tag-handler ~handler ~k ~@tags))))
 
+(defn remove-tag!
+  [k]
+  (swap! expr-tags dissoc k)
+  (swap! closing-tags dissoc k))
+
 ;; render-template renders at runtime, accepts
 ;; post-parsing vectors of INode elements.
 
