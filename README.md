@@ -1,8 +1,7 @@
 Selmer
 ======
 
-[![Continuous Integration status](https://secure.travis-ci.org/yogthos/Selmer.png)](http://travis-ci.org/yogthos/Selmer) [![Dependencies Status](https://jarkeeper.com/yogthos/selmer/status.svg)](https://jarkeeper.com/yogthos/selmer)
-
+[![Continuous Integration status](https://secure.travis-ci.org/yogthos/Selmer.png)](http://travis-ci.org/yogthos/Selmer) 
 A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) inspired template system for Clojure.
 
 ## Installation
