@@ -794,7 +794,10 @@
                                             (str "<missing value: " (:tag-name tag) ">")))]
       (is (= "Hi <missing value: name>" (render "Hi {{name}}" {}))
           (= "Hi mr. <missing value: name.lastname>" (render "Hi mr. {{name.lastname}}" {})))
-      (is (= "Hi <missing value: name|upper>" (render "Hi {{name|upper}}" {})))
+
+      ;; The missing value will still be passed to filters, which then are likely to convert it to an empty string.
+      (is (= "Hi " (render "Hi {{name|upper}}" {})))
+      (is (= "0" (render "{{name|count}}" {})))
 
       (let [custom-tag-handler (tag-handler
                                  (fn [_ context-map]
