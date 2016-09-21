@@ -957,7 +957,32 @@ or you can throw an exception:
 
 (selmer.parser/render "{{not-here}}" {}) => Exception: Nope
 
+When you set a custom missing value handler, by default filters are bypassed for missing values:
+
+```clojure
+(defn missing-value-fn [tag context-map]
+  (str "<Missing value: " (or (:tag-value tag) (:tag-name tag)) ">"))
+
+(selmer.util/set-missing-value-formatter! missing-value-fn)
+
+(selmer.parser/render "{{not-here|count}}" {})
+=> "<Missing value: not-here>"
 ```
+
+but this can be overwritten so filters are evaluated for missing values:
+
+```clojure
+(defn missing-value-fn [tag context-map]
+  (str "<Missing value: " (or (:tag-value tag) (:tag-name tag)) ">"))
+
+(selmer.util/set-missing-value-formatter! missing-value-fn :filter-missing-values true)
+
+(selmer.parser/render "{{not-here|count}}" {})
+=> "0"
+```
+
+Although for most use cases, this will not make sense.
+
 
 
 

@@ -187,13 +187,17 @@
 (def default-missing-value-formatter (constantly ""))
 
 (def ^:dynamic *missing-value-formatter* default-missing-value-formatter)
+(def ^:dynamic *filter-missing-values* true)
 
 (defn set-missing-value-formatter!
   "Takes a function of two arguments which is called on a missing value.
    The function should return the value to be output in place of an empty string
    (which is the default from 'default-missing-value-formatter').
 
-   Arguments:
+   Call with named argument :filter-missing-values true to force filtering of missing
+   values (although for most use cases this will not make sense).
+
+   Arguments to missing-value-fn:
    tag - map with data for the tag being evaluated.
          Contains the key :tag-type with the value :filter or :expr (for filter or expression tag types.
          For :filter:
@@ -202,7 +206,10 @@
             tag-name - the name of the expression.
             args - the args provided to the expression.
    context-map - the context-map provided to the render function."
-  [missing-value-fn]
-  (alter-var-root #'*missing-value-formatter*
-                  (constantly missing-value-fn)))
+  [missing-value-fn & {:keys [filter-missing-values] :or {filter-missing-values false}}]
+  (alter-var-root #'*missing-value-formatter* (constantly missing-value-fn))
+  (alter-var-root #'*filter-missing-values* (constantly filter-missing-values)))
+
+
+
 

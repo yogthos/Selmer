@@ -785,19 +785,18 @@
     (is (= "" (render "{{missing.too}}" {} ""))))
 
   (testing "Missing value - with custom missing value handlers"
-    (binding [*missing-value-formatter* (constantly "XXX")]
-      (is (= "XXX" (render "{{missing}}" {}))
-          (= "XXX" (render "{{missing.too}}" {}))))
+    ;; Using bindings instead of set-missing-value-formatter! to avoid cleanup
+    (binding [*missing-value-formatter* (constantly "XXX")
+              *filter-missing-values* false]
+      (is (= "XXX" (render "{{missing}}" {})))
+      (is (= "XXX" (render "{{missing.too}}" {}))))
     (binding [*missing-value-formatter* (fn [tag context-map]
                                           (if (= (:tag-type tag) :filter)
                                             (str "<missing value: " (:tag-value tag) ">")
-                                            (str "<missing value: " (:tag-name tag) ">")))]
+                                            (str "<missing value: " (:tag-name tag) ">")))
+              *filter-missing-values* false]
       (is (= "Hi <missing value: name>" (render "Hi {{name}}" {}))
           (= "Hi mr. <missing value: name.lastname>" (render "Hi mr. {{name.lastname}}" {})))
-
-      ;; The missing value will still be passed to filters, which then are likely to convert it to an empty string.
-      (is (= "Hi " (render "Hi {{name|upper}}" {})))
-      (is (= "0" (render "{{name|count}}" {})))
 
       (let [custom-tag-handler (tag-handler
                                  (fn [_ context-map]
@@ -811,7 +810,16 @@
         (is (= "<missing value: :bar>"
                (render-template
                  (parse parse-input (java.io.StringReader. "{% bar %}") {:custom-tags {:bar custom-tag-handler}})
-                 {})))))))
+                 {}))))
+
+      (is (= "<missing value: name|count>" (render "{{name|count}}" {})))))
+
+  (testing "Missing value - custom missing value handler with filtering of missing values turned on"
+    (binding [*missing-value-formatter* (constantly "XXX")
+              *filter-missing-values* true]
+      (is (= "XXX" (render "{{missing}}" {})))
+      (is (= "XXX" (render "{{missing.too}}" {})))
+      (is (= "0" (render "{{missing|count}}" {}))))))
 
 
 
