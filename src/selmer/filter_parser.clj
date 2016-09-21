@@ -163,14 +163,16 @@ applied filter."
            filters
            context-map))
        (fn [context-map]
-         (when-let [x (apply-filters
-                        (reduce get-accessor context-map accessor)
-                        s
-                        filter-strs
-                        filters
-                        context-map)]
-           ;; Escape by default unless the last filter is 'safe' or safe-filter is set in the context-map
-           (cond
-             (safe-filter context-map) x
-             escape? (escape-html x)
-             :else x)))))))
+         (let [val (reduce get-accessor context-map accessor)]
+           (when (or val (and selmer.util/*filter-missing-values* (seq filters)))
+             (let [x (apply-filters
+                       val
+                       s
+                       filter-strs
+                       filters
+                       context-map)]
+               ;; Escape by default unless the last filter is 'safe' or safe-filter is set in the context-map
+               (cond
+                 (safe-filter context-map) x
+                 escape? (escape-html x)
+                 :else x)))))))))
