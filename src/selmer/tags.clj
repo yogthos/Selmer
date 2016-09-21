@@ -320,9 +320,9 @@
 (defn tag-handler [handler & tags]
   (fn [args tag-content render rdr]
     (if-let [content (if (> (count tags) 1) (apply (partial tag-content rdr) tags))]
-      (-> (fn [context-map]
-            (render
-              [(->> content (render-tags context-map) (handler args context-map) (TextNode.))]
-              context-map)))
       (fn [context-map]
-        (render [(TextNode. (handler args context-map))] context-map)))))
+        (render
+          [(->> content (render-tags context-map) (handler args context-map) (TextNode.))]
+          context-map))
+      (fn [context-map]
+        (handler args context-map)))))
