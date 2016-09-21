@@ -778,3 +778,39 @@
              (first $)
              (.handler ^selmer.node.FunctionNode $)
              (meta $))))))
+
+(deftest missing-values
+  (testing "Missing value - default behaviour"
+    (is (= "" (render "{{missing}}" {})))
+    (is (= "" (render "{{missing.too}}" {} ""))))
+
+  (testing "Missing value - with custom missing value handlers"
+    (binding [*missing-value-formatter* (constantly "XXX")]
+      (is (= "XXX" (render "{{missing}}" {}))
+          (= "XXX" (render "{{missing.too}}" {}))))
+    (binding [*missing-value-formatter* (fn [tag context-map]
+                                          (if (= (:tag-type tag) :filter)
+                                            (str "<missing value: " (:tag-value tag) ">")
+                                            (str "<missing value: " (:tag-name tag) ">")))]
+      (is (= "Hi <missing value: name>" (render "Hi {{name}}" {}))
+          (= "Hi mr. <missing value: name.lastname>" (render "Hi mr. {{name.lastname}}" {})))
+      (is (= "Hi <missing value: name|upper>" (render "Hi {{name|upper}}" {})))
+
+      (let [custom-tag-handler (tag-handler
+                                 (fn [_ context-map]
+                                   (when-let [l (:list context-map)]
+                                     (clojure.string/join ", " (:list context-map))))
+                                 :bar)]
+        (is (= "1, 2, 3, 4"
+               (render-template
+                 (parse parse-input (java.io.StringReader. "{% bar %}") {:custom-tags {:bar custom-tag-handler}})
+                 {:list [1 2 3 4]})))
+        (is (= "<missing value: :bar>"
+               (render-template
+                 (parse parse-input (java.io.StringReader. "{% bar %}") {:custom-tags {:bar custom-tag-handler}})
+                 {})))))))
+
+
+
+
+

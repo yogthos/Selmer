@@ -16,13 +16,16 @@
 (deftype FunctionNode [handler]
   INode
   (render-node [this context-map]
-    (handler context-map)))
+    (handler context-map))
+  clojure.lang.IMeta
+  (meta [this]
+    (meta handler)))
 
 ;; Implements dumb text content injection at runtime.
 
 (deftype TextNode [text]
   INode
   (render-node [this context-map]
-    text)
+    (str text))
   (toString [_]
-    text))
+    (str text)))

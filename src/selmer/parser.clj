@@ -96,7 +96,8 @@
   (let [buf (StringBuilder.)]
     (doseq [^selmer.node.INode element template]
         (if-let [value (.render-node element context-map)]
-          (.append buf value)))
+          (.append buf value)
+          (.append buf (*missing-value-formatter* (:tag (meta element)) context-map))))
     (.toString buf)))
 
 (defn render [s context-map & [opts]]

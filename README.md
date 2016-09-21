@@ -921,6 +921,46 @@ You may also specify more than one value:
 {% include "content.html" with content="some content" url="/path/to/page" %}
 </html>
 ```
+
+
+## Missing values
+
+Missing values are by default rendered as an empty string:
+
+```clojure
+(render "{{missing}}" {})
+=> ""
+```
+
+It is possible to overwrite this behavior to output a different value when encountering a mising value. This is done by calling `selmer.util/set-missing-value-formatter!` to provide a function that produces the desired output.
+
+`set-missing-value-formatter!` takes a function of two arguments, a map of info about the tag and the context map, which is called on a missing value. The function should return the value to be output in place of an empty string (which is the default from 'default-missing-value-formatter').
+
+
+```clojure
+(defn missing-value-fn [tag context-map]
+  (str "<Missing value: " (or (:tag-value tag) (:tag-name tag)) ">"))
+
+(selmer.util/set-missing-value-formatter! missing-value-fn)
+
+(selmer.parser/render "{{not-here}}" {})
+=> "<Missing value: not-here>"
+```
+
+or you can throw an exception:
+
+```clojure
+(defn missing-value-fn [tag context-map]
+  (throw (Exception. "Nope")))
+
+(selmer.util/set-missing-value-formatter! missing-value-fn)
+
+(selmer.parser/render "{{not-here}}" {}) => Exception: Nope
+
+```
+
+
+
 [**Back To Top ⇧**](#selmer)
 
 ## License

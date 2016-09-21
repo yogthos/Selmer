@@ -163,14 +163,15 @@ applied filter."
            filters
            context-map))
        (fn [context-map]
-         (let [x (apply-filters
-                   (reduce get-accessor context-map accessor)
-                   s
-                   filter-strs
-                   filters
-                   context-map)]
-           ;; Escape by default unless the last filter is 'safe' or safe-filter is set in the context-map
+         (when-let [val (reduce get-accessor context-map accessor)]
+           (let [x (apply-filters
+                        val
+                        s
+                        filter-strs
+                        filters
+                        context-map)]
+             ;; Escape by default unless the last filter is 'safe' or safe-filter is set in the context-map
            (cond
              (safe-filter context-map) x
              escape? (escape-html x)
-             :else x)))))))
+             :else x))))))))

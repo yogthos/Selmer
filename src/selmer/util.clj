@@ -183,3 +183,26 @@
 (defn check-template-exists [^java.net.URL resource]
   (when-not resource
     (exception "template: \"" (.getPath ^java.net.URL resource) "\" not found")))
+
+(def default-missing-value-formatter (constantly ""))
+
+(def ^:dynamic *missing-value-formatter* default-missing-value-formatter)
+
+(defn set-missing-value-formatter!
+  "Takes a function of two arguments which is called on a missing value.
+   The function should return the value to be output in place of an empty string
+   (which is the default from 'default-missing-value-formatter').
+
+   Arguments:
+   tag - map with data for the tag being evaluated.
+         Contains the key :tag-type with the value :filter or :expr (for filter or expression tag types.
+         For :filter:
+            tag-value - the contents of the filter tag as a string.
+         For :expr:
+            tag-name - the name of the expression.
+            args - the args provided to the expression.
+   context-map - the context-map provided to the render function."
+  [missing-value-fn]
+  (alter-var-root #'*missing-value-formatter*
+                  (constantly missing-value-fn)))
+
