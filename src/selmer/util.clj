@@ -12,9 +12,10 @@
 
 (defn set-custom-resource-path!
   [path]
-  (alter-var-root #'*custom-resource-path* (constantly path))
-  (when (thread-bound? #'*custom-resource-path*)
-    (set! *custom-resource-path* path)))
+  (alter-var-root #'*custom-resource-path*
+                  (constantly path)
+                  (when (thread-bound? #'*custom-resource-path*)
+                    (set! *custom-resource-path* path))))
 
 (def ^:dynamic *escape-variables* true)
 
