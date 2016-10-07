@@ -667,9 +667,13 @@
 
 (deftest custom-resource-path-setting
   (is nil? *custom-resource-path*)
-  (is (= "file:////some/path/" (set-resource-path! "/some/path")))
-  (is (= "file:////any/other/path/" (set-resource-path! "/any/other/path/")))
-  (is (= "file:////any/other/path/" (set-resource-path! "file:////any/other/path/")))
+  (do
+    (set-resource-path! "/some/path")
+    (is (= "file:////some/path/" *custom-resource-path*)))
+  (do (set-resource-path! "/any/other/path/")
+      (is (= "file:////any/other/path/" *custom-resource-path*)))
+  (do (set-resource-path! "file:////any/other/path/")
+    (is (= "file:////any/other/path/" *custom-resource-path*)))
   (set-resource-path! nil)
   (is nil? *custom-resource-path*))
 
