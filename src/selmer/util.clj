@@ -12,10 +12,9 @@
 
 (defn set-custom-resource-path!
   [path]
-  (alter-var-root #'*custom-resource-path*
-                  (constantly path)
-                  (when (thread-bound? #'*custom-resource-path*)
-                    (set! *custom-resource-path* path))))
+  (alter-var-root #'*custom-resource-path* (constantly path))
+  (when (thread-bound? #'*custom-resource-path*)
+    (set! *custom-resource-path* path)))
 
 (def ^:dynamic *escape-variables* true)
 
@@ -209,6 +208,3 @@
   [missing-value-fn & {:keys [filter-missing-values] :or {filter-missing-values false}}]
   (alter-var-root #'*missing-value-formatter* (constantly missing-value-fn))
   (alter-var-root #'*filter-missing-values* (constantly filter-missing-values)))
-
-
-
