@@ -110,28 +110,30 @@
 ;; map and potentially opts. Smart (last-modified timestamp)
 ;; auto-memoization of compiler output.
 
-(defn render-file [^String filename context-map & [{:keys [cache]
-                                                     :or  {cache @cache?}
-                                                     :as opts}]]
+(defn render-file [^String filename context-map & [{:keys [cache custom-resource-path]
+                                                    :or  {cache @cache?
+                                                          custom-resource-path *custom-resource-path*}
+                                                    :as opts}]]
   " Parses files if there isn't a memoized post-parse vector ready to go,
   renders post-parse vector with passed context-map regardless. Double-checks
   last-modified on files. Uses classpath for filename path "
-  (if-let [resource (resource-path filename)]
-    (let [{:keys [template last-modified]} (get @templates filename)
-          ;;for some resources, such as ones inside a jar, it's
-          ;;not possible to check the last modified timestamp
-          last-modified-time (if (or (nil? last-modified) (pos? last-modified))
-                               (resource-last-modified resource) -1)]
-      (check-template-exists resource)
-      (if (and cache last-modified (= last-modified last-modified-time))
-        (render-template template context-map)
-        (let [template (parse parse-file filename opts)]
-          (swap! templates assoc filename {:template template
-                                           :last-modified last-modified-time})
-          (render-template template context-map))))
-    (validation-error
-      (str "resource-path for " filename " returned nil, typically means the file doesn't exist in your classpath.")
-      nil nil nil)))
+  (binding [*custom-resource-path* custom-resource-path]
+    (if-let [resource (resource-path filename)]
+      (let [{:keys [template last-modified]} (get @templates filename)
+            ;;for some resources, such as ones inside a jar, it's
+            ;;not possible to check the last modified timestamp
+            last-modified-time (if (or (nil? last-modified) (pos? last-modified))
+                                 (resource-last-modified resource) -1)]
+        (check-template-exists resource)
+        (if (and cache last-modified (= last-modified last-modified-time))
+          (render-template template context-map)
+          (let [template (parse parse-file filename opts)]
+            (swap! templates assoc filename {:template template
+                                             :last-modified last-modified-time})
+            (render-template template context-map))))
+      (validation-error
+       (str "resource-path for " filename " returned nil, typically means the file doesn't exist in your classpath.")
+       nil nil nil))))
 
 ;; For a given tag, get the fn handler for the tag type,
 ;; pass it the arguments, tag-content, render-template fn,
