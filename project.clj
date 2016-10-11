@@ -5,10 +5,10 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [criterium "0.4.4" :scope "test"]
-                 [joda-time "2.9.3"]
+                 [joda-time "2.9.4"]
                  [commons-codec "1.10"]
-                 [json-html "0.3.9"]
-                 [cheshire "5.6.1"]]
+                 [json-html "0.4.0"]
+                 [cheshire "5.6.3"]]
 
   :aot [selmer.node]
   :javac-options ["-target" "1.6"]
