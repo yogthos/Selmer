@@ -169,6 +169,12 @@ a map containing any of the following keys to the parser:
 =>"{{1}}{{2}}{{3}}"
 ```
 
+Note that if you're using namespaces keys, such as `:foo.bar/baz`, then you will need to escape the `.` as follows:
+
+```clojure
+(parser/render "{{foo..bar/baz}}" {:foo.bar/baz "hello"})
+```
+
 ## Error Handling
 
 Selmer will attempt to validate your templates by default, if you wish to disable validation for any reason it can be done by
