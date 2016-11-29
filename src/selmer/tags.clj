@@ -162,8 +162,14 @@
 
 (defn parse-eq-args [args]
   (for [^String arg args]
-    (if (= \" (first arg))
+    (cond
+      (= \" (first arg))
       (.substring arg 1 (dec (.length arg)))
+
+      (= \: (first arg))
+      arg
+
+      :else
       (compile-filter-body arg))))
 
 (defn ifequal-handler [args tag-content render rdr]

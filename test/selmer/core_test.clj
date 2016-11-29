@@ -467,7 +467,10 @@
          "foo"))
   (is (= (render "{% ifequal foo \"foo\" %}foo{% else %}no foo{% endifequal %}"
                  {:foo false})
-         "no foo")))
+         "no foo"))
+  (is (= (render "{% ifequal foo :foo %}foo{% endifequal %}"
+                 {:foo :foo})
+         "foo")))
 
 (deftest ifunequal-tag-test
   (is (= (render "{% ifunequal foo \"bar\" %}yez{% endifunequal %}" {:foo "foo"})
@@ -475,7 +478,10 @@
   (is (= (render "{% ifunequal foo \"foo\" %}yez{% endifunequal %}" {:foo "foo"})
          ""))
   (is (= (render "{% ifunequal foo|upper \"foo\" %}yez{% endifunequal %}" {:foo "foo"})
-         "yez")))
+         "yez"))
+  (is (= (render "{% ifunequal foo :bar %}foo{% endifunequal %}"
+                 {:foo :foo})
+         "foo")))
 
 (deftest safe-tag
   (is (= (render "{% safe %} {% if bar %}{% for i in y %} {{foo|upper}} {% endfor %}{%endif%} {% endsafe %}"
