@@ -285,6 +285,20 @@
     (= "<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
        (render "{% style \"/css/screen.css\" %}" {:servlet-context "/myapp"}))))
 
+(deftest script-async
+  (is
+    (= "<script async src=\"/js/site.js\" type=\"text/javascript\"></script>"
+      (render "{% script \"/js/site.js\" async=\"true\" %}" {})))
+  (is
+    (= "<script async src=\"/js/site.js\" type=\"text/javascript\"></script>"
+      (render "{% script \"/js/site.js\" async=1 %}" {})))
+  (is
+    (= "<script async src=\"/js/site.js\" type=\"text/javascript\"></script>"
+      (render "{% with var = 1 %}{% script \"/js/site.js\" async=var %}{% endwith %}" {})))
+  (is
+    (= "<script src=\"/js/site.js\" type=\"text/javascript\"></script>"
+      (render "{% script \"/js/site.js\" async=nil %}" {}))))
+
 (deftest cycle-test
   (is
     (= "\"foo\"1\"bar\"2\"baz\"1\"foo\"2\"bar\"1"
@@ -830,8 +844,3 @@
       (is (= "XXX" (render "{{missing}}" {})))
       (is (= "XXX" (render "{{missing.too}}" {})))
       (is (= "0" (render "{{missing|count}}" {}))))))
-
-
-
-
-

@@ -247,9 +247,21 @@
                 context-map args)))))
 
 
-(defn script-handler [[^String uri] _ _ _]
-  (fn [{:keys [servlet-context]}]
-    (str "<script src=\"" servlet-context (.substring uri 1) " type=\"text/javascript\"></script>")))
+(defn script-handler [[^String uri & args] _ _ _]
+  (let [args (->> args
+                  (mapcat #(.split ^String % "="))
+                  (remove #{"="})
+                  (compile-args))]
+    (fn [{:keys [servlet-context] :as context-map}]
+      (let [args (reduce
+                   (fn [context-map [k v]]
+                     (assoc context-map k (v context-map)))
+                   context-map args)]
+        (str "<script "
+          (when (:async args) "async ")
+          "src=\""
+          servlet-context (.substring uri 1)
+          " type=\"text/javascript\"></script>")))))
 
 (defn style-handler [[^String uri] _ _ _]
   (fn [{:keys [servlet-context]}]
