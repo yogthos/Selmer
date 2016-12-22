@@ -34,18 +34,18 @@
     item filters))
 
 (defn for-handler [args tag-content render rdr]
-  (let [content (tag-content rdr :for :empty :endfor)
-        for-content (get-in content [:for :content])
+  (let [content       (tag-content rdr :for :empty :endfor)
+        for-content   (get-in content [:for :content])
         empty-content (get-in content [:empty :content])
         [ids [_ items]] (aggregate-args args)
-        ids (map parse-arg ids)
+        ids           (map parse-arg ids)
         [items & filter-names] (if items (.split ^String items "\\|"))
-        filters (compile-filters items filter-names)
-        item-keys (parse-arg items)]
+        filters       (compile-filters items filter-names)
+        item-keys     (parse-arg items)]
     (fn [context-map]
-      (let [buf (StringBuilder.)
-            items (-> (get-in context-map item-keys)
-                      (apply-filters filters context-map items))
+      (let [buf    (StringBuilder.)
+            items  (-> (get-in context-map item-keys)
+                       (apply-filters filters context-map items))
             length (count items)]
         (if (and empty-content (empty? items))
           (.append buf (render empty-content context-map))
@@ -92,31 +92,51 @@
   " Handler of if-condition tags. Expects conditions, enclosed
   tag-content, render boolean. Returns anonymous fn that will expect
   runtime context-map. (Separate from compile-time) "
-  (let [not? (and condition1 condition2 (= condition1 "not"))
+  (let [not?      (and condition1 condition2 (= condition1 "not"))
         condition (compile-filter-body (or condition2 condition1))]
     (fn [context-map]
       (let [condition (if-result (condition context-map))]
         (render-if render context-map (if not? (not condition) condition) if-tags else-tags)))))
 
-(defn compare-numeric [op value arg-position]
-  (let [value (java.lang.Double/parseDouble value)
-        op (condp = op ">" > "<" < "=" == ">=" >= "<=" <=
-                       (exception "Unrecognized operator in 'if' statement: " op))]
-    (if (= :first arg-position)
-      #(op (java.lang.Double/parseDouble %) value)
-      #(op value (java.lang.Double/parseDouble %)))))
+(defn match-comparator [op]
+  (condp = op ">" > "<" < "=" == ">=" >= "<=" <=
+              (exception "Unrecognized operator in 'if' statement: " op)))
+
+(defn- num? [v]
+  (re-matches #"[0-9]*\.?[0-9]+" v))
+
+(defn- parse-double [v]
+  (java.lang.Double/parseDouble v))
 
 (defn parse-numeric-params [p1 op p2]
-  (if (re-matches #"[0-9]+" p1)
-    [(compare-numeric op p1 :second) p2]
-    [(compare-numeric op p2 :first) p1]))
+  (let [comparator (match-comparator op)]
+    (cond
+      (and (not (num? p1)) (not (num? p2)))
+      [#(comparator (parse-double %1) (parse-double %2)) p1 p2]
+      (num? p1)
+      [#(comparator (parse-double p1) (parse-double %)) nil p2]
+      (num? p2)
+      [#(comparator (parse-double %) (parse-double p2)) p1 nil])))
 
-(defn render-if-numeric [render negate? [comparator context-key] context-map if-tags else-tags]
+(defn render-if-numeric [render negate? [comparator context-key1 context-key2] context-map if-tags else-tags]
   (render
-    (let [value (not-empty ((compile-filter-body context-key) context-map))
-          result (if value (comparator value) false)
-          result (if negate? (not result) result)]
-      (or (:content (if result if-tags else-tags))
+    (let [[value1 value2]
+          (cond
+            (and context-key1 context-key2)
+            [(not-empty ((compile-filter-body context-key1) context-map))
+             (not-empty ((compile-filter-body context-key2) context-map))]
+            context-key1
+            [(not-empty ((compile-filter-body context-key1) context-map))]
+            context-key2
+            [(not-empty ((compile-filter-body context-key2) context-map))])
+          result (cond
+                   (and value1 value2)
+                   (comparator value1 value2)
+                   value1
+                   (comparator value1)
+                   value2
+                   (comparator value2))]
+      (or (:content (if (if negate? (not result) result) if-tags else-tags))
           [(TextNode. "")]))
     context-map))
 
@@ -235,10 +255,10 @@
 
 (defn with-handler [args tag-content render rdr]
   (let [content (get-in (tag-content rdr :with :endwith) [:with :content])
-        args (->> args
-                  (mapcat #(.split ^String % "="))
-                  (remove #{"="})
-                  (compile-args))]
+        args    (->> args
+                     (mapcat #(.split ^String % "="))
+                     (remove #{"="})
+                     (compile-args))]
     (fn [context-map]
       (render content
               (reduce
@@ -258,10 +278,10 @@
                      (assoc context-map k (v context-map)))
                    context-map args)]
         (str "<script "
-          (when (:async args) "async ")
-          "src=\""
-          servlet-context (.substring uri 1)
-          " type=\"text/javascript\"></script>")))))
+             (when (:async args) "async ")
+             "src=\""
+             servlet-context (.substring uri 1)
+             " type=\"text/javascript\"></script>")))))
 
 (defn style-handler [[^String uri] _ _ _]
   (fn [{:keys [servlet-context]}]
@@ -270,10 +290,10 @@
 (defn cycle-handler [args _ _ _]
   (let [fields (vec args)
         length (dec (count fields))
-        i (int-array [0])]
+        i      (int-array [0])]
     (fn [_]
       (let [cur-i (aget i 0)
-            val (fields cur-i)]
+            val   (fields cur-i)]
         (aset i 0 (if (< cur-i length) (inc cur-i) 0))
         val))))
 

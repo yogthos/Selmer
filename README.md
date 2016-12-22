@@ -641,6 +641,8 @@ numeric comparisons are also supported using the `=`, `<`, `>`, `<=` and `>=` op
 
 `(render "{% if 5 >= x %}yes!{% endif %}" {:x 3})`
 
+`(render "{% if x <= y %}yes!{% endif %}" {:x 3 :y 5})`
+
 `(render "{% if x = 5.0 %}yes!{% else %}no!{% endif %}" {:x 5})`
 
 `(render "{% if x > 5 %}yes!{% else %}no!{% endif %}" {:x 6})`

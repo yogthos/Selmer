@@ -409,6 +409,8 @@
     (= "less equal"
        (render "{% if 5 >= v %}less equal{% endif %}" {:v 5})))
   (is
+    (= (render "{% if v1 >= v2 %}less equal{% endif %}" {:v1 5 :v2 3})))
+  (is
     (= " no value "
        (render "{% if user-id %} has value {% else %} no value {% endif %}" {})))
   (is (= (render "{% if foo %}foo is true{% endif %}" {:foo true})
