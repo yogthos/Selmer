@@ -167,6 +167,16 @@ map. The rest of the arguments are optional and are always strings."
               (throw-when-expecting-seqable coll)
               (first coll))
 
+            :take
+            (fn [coll n]
+              (throw-when-expecting-seqable coll)
+              (take n coll))
+
+            :drop
+            (fn [coll n]
+              (throw-when-expecting-seqable coll)
+              (drop n coll))
+
             ;;; Get the ith digit of a number
             ;;; 1 is the rightmost digit
             ;;; Returns the number if the index is out of bounds
