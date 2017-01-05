@@ -36,6 +36,8 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [empty?] (#empty)
 [not-empty] (#not-empty)
 [first] (#first)
+[take] (#take)
+[drop] (#drop)
 [get-digit] (#get-digit)
 [hash] (#hash)
 [join] (#join)
@@ -384,6 +386,12 @@ An ISO 639 2-letter language code can be added as a locale.
 
 #### first
 `(render "{{seq-of-some-sort|first}}" {:seq-of-some-sort [:dog :cat :bird :bird :bird :is :the :word]})` => `:dog`
+
+#### take
+`(render "{{seq-of-some-sort|take:3}}" {:seq-of-some-sort [:dog :cat :bird :bird :bird :is :the :word]})` => `'(:dog :cat :bird)`
+
+#### drop
+`(render "{{seq-of-some-sort|drop:4}}" {:seq-of-some-sort [:dog :cat :bird :bird :bird :is :the :word]})` => `'(:bird :is :the :word)`
 
 #### get-digit
 `(render "{{tis-a-number|get-digit:1}}" {:tis-a-number 12.34567})` => `7`
