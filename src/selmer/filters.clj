@@ -170,12 +170,14 @@ map. The rest of the arguments are optional and are always strings."
             :take
             (fn [coll n]
               (throw-when-expecting-seqable coll)
-              (take n coll))
+              (take (Long/valueOf ^String n) coll))
+
 
             :drop
             (fn [coll n]
               (throw-when-expecting-seqable coll)
-              (drop n coll))
+              (drop (Long/valueOf ^String n) coll))
+
 
             ;;; Get the ith digit of a number
             ;;; 1 is the rightmost digit
