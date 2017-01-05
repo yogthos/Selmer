@@ -533,11 +533,17 @@
 
 
 (deftest filter-take
-  (is (= "[:dog :cat :bird]" (render "{{seq-of-some-sort|take:3}}" {:seq-of-some-sort [:dog :cat :bird :bird :bird :is :the :word]}))))
+  (is (= "[:dog :cat :bird]"
+         (render "{{seq-of-some-sort|take:3}}" {:seq-of-some-sort [:dog :cat :bird :bird :bird :is :the :word]}))))
 
 
 (deftest filter-drop
-  (is (= "[:bird :is :the :word]" (render "{{seq-of-some-sort|drop:4}}" {:seq-of-some-sort [:dog :cat :bird :bird :bird :is :the :word]}))))
+  (is (= "[:bird :is :the :word]"
+         (render "{{seq-of-some-sort|drop:4}}" {:seq-of-some-sort [:dog :cat :bird :bird :bird :is :the :word]}))))
+
+(deftest filter-drop-formatted
+  (is (= "bird is the word"
+         (render "{{seq-of-some-sort|drop:4|join:\" \"}}" {:seq-of-some-sort ["dog" "cat" "bird" "bird" "bird" "is" "the" "word"]}))))
 
 ;; How do we handle nils ?
 ;; nils should return empty strings at the point of injection in a DTL library. - cma
