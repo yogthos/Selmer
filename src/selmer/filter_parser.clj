@@ -138,7 +138,9 @@ applied filter."
   "Returns the value of `k` from map `m`, either as a keyword or string lookup."
   (or (get m k)
       (when (keyword? k)
-        (get m (name k)))))
+        (if-let [n (namespace k)]
+          (get m (str n "/" (name k)))
+          (get m (name k))))))
 
 (defn compile-filter-body
   "Turns a string like foo|filter1:x|filter2:y into a fn that expects a
