@@ -807,7 +807,8 @@
 
 (deftest name-test
   (testing "converts keywords to strings"
-    (is (= "foobar" (render "{{foo|name}}" {:foo :foobar}))))
+    (is (= "foobar" (render "{{foo|name}}" {:foo :foobar})))
+    (is (= "foobar" (render "{{foo/bar}}" {"foo/bar" "foobar"}))))
   (testing "leaves strings as they are"
     (is (= "foobar" (render "{{foo|name}}" {:foo "foobar"})))))
 
