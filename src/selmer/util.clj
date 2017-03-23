@@ -208,3 +208,11 @@
   [missing-value-fn & {:keys [filter-missing-values] :or {filter-missing-values false}}]
   (alter-var-root #'*missing-value-formatter* (constantly missing-value-fn))
   (alter-var-root #'*filter-missing-values* (constantly filter-missing-values)))
+
+(defn map-string->map-key [m]
+  (let [ks (keys m)]
+    (into {} (map (fn [k]
+                    [(keyword k)
+                     (if (map? (get m k))
+                       (map-string->map-key (get m k))
+                       (get m k))]) ks))))

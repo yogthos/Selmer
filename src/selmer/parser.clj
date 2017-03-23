@@ -102,7 +102,7 @@
 
 (defn render [s context-map & [opts]]
   " render takes the string, the context-map and possibly also opts. "
-  (render-template (parse parse-input (java.io.StringReader. s) opts) context-map))
+  (render-template (parse parse-input (java.io.StringReader. s) opts) (map-string->map-key context-map)))
 
 ;; Primary fn you interact with as a user, you pass a path that
 ;; exists somewhere in your class-path, typically something like
