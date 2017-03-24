@@ -1,6 +1,6 @@
 (ns selmer.tags
   (:require selmer.node
-            [selmer.filter-parser :refer [split-filter-val safe-filter compile-filter-body fix-accessor]]
+            [selmer.filter-parser :refer [split-filter-val safe-filter compile-filter-body fix-accessor get-accessor]]
             [selmer.filters :refer [filters]]
             [selmer.util :refer :all]
             [json-html.core :refer [edn->html]])
@@ -44,7 +44,7 @@
         item-keys     (parse-arg items)]
     (fn [context-map]
       (let [buf    (StringBuilder.)
-            items  (-> (get-in context-map item-keys)
+            items  (-> (reduce get-accessor context-map item-keys)
                        (apply-filters filters context-map items))
             length (count items)]
         (if (and empty-content (empty? items))

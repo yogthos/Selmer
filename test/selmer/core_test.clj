@@ -252,7 +252,11 @@
          "<<1>><<2>><<3>>"))
   (is (= (render "{% for ele in foo %}{{ele}}-{{forloop.counter}}-{{forloop.counter0}}-{{forloop.revcounter}}-{{forloop.revcounter0}};{%endfor%}"
                  {:foo [1 2 3]})
-         "1-1-0-2-3;2-2-1-1-2;3-3-2-0-1;")))
+         "1-1-0-2-3;2-2-1-1-2;3-3-2-0-1;"))
+  (is (= (render "{% for ele in foo %}{{ele.bar}} {% endfor %}"
+                 {"foo" [{:bar "bar"}
+                         {:bar "bar"}]})
+         "bar bar ")))
 
 (deftest for-filter-test
   (is

@@ -134,7 +134,7 @@ applied filter."
     val
     (map vector filter-strs filters)))
 
-(defn- get-accessor [m k]
+(defn get-accessor [m k]
   "Returns the value of `k` from map `m`, either as a keyword or string lookup."
   (or (get m k)
       (when (keyword? k)
