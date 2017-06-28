@@ -5,7 +5,8 @@
             [selmer.filters :refer :all]
             [selmer.parser :refer :all]
             [selmer.template-parser :refer :all]
-            [selmer.util :refer :all])
+            [selmer.util :refer :all]
+            [clojure.java.io :as io])
   (:import java.util.Locale
            java.io.File))
 
@@ -133,6 +134,10 @@
     (= "main template foo body" (render-file "templates/my-include.html" {:foo "foo"}))
     )
   )
+
+(deftest render-file-accepts-resource-URL
+  (is
+   (= "main template foo body" (render-file (io/resource "templates/my-include.html") {:foo "foo"}))))
 
 (deftest custom-tags
   (is

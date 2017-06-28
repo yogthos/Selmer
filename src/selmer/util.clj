@@ -169,9 +169,11 @@
       (.getResource resource)))
 
 (defn resource-path [template]
-  (if-let [path *custom-resource-path*]
-    (java.net.URL. (str path template))
-    (get-resource template)))
+  (if (instance? java.net.URL template)
+    template
+    (if-let [path *custom-resource-path*]
+      (java.net.URL. (str path template))
+      (get-resource template))))
 
 (defn resource-last-modified [^java.net.URL resource]
   (let [path (.getPath resource)]
