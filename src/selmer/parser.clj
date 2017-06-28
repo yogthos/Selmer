@@ -111,15 +111,15 @@
 ;; map and potentially opts. Smart (last-modified timestamp)
 ;; auto-memoization of compiler output.
 
-(defn render-file [filename-or-URL context-map & [{:keys [cache custom-resource-path]
+(defn render-file [filename-or-url context-map & [{:keys [cache custom-resource-path]
                                             :or  {cache @cache?
                                                   custom-resource-path *custom-resource-path*}
                                             :as opts}]]
   " Parses files if there isn't a memoized post-parse vector ready to go,
   renders post-parse vector with passed context-map regardless. Double-checks
-  last-modified on files. Uses classpath for filename-or-URL path "
+  last-modified on files. Uses classpath for filename-or-url path "
   (binding [*custom-resource-path* custom-resource-path]
-    (if-let [resource (resource-path filename-or-URL)]
+    (if-let [resource (resource-path filename-or-url)]
       (let [{:keys [template last-modified]} (get @templates resource)
             ;;for some resources, such as ones inside a jar, it's
             ;;not possible to check the last modified timestamp
@@ -128,12 +128,12 @@
         (check-template-exists resource)
         (if (and cache last-modified (= last-modified last-modified-time))
           (render-template template context-map)
-          (let [template (parse parse-file filename-or-URL opts)]
+          (let [template (parse parse-file filename-or-url opts)]
             (swap! templates assoc resource {:template template
                                              :last-modified last-modified-time})
             (render-template template context-map))))
       (validation-error
-       (str "resource-path for " filename-or-URL " returned nil, typically means the file doesn't exist in your classpath.")
+       (str "resource-path for " filename-or-url " returned nil, typically means the file doesn't exist in your classpath.")
        nil nil nil))))
 
 ;; For a given tag, get the fn handler for the tag type,
