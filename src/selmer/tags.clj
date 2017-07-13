@@ -30,7 +30,10 @@
 
 (defn apply-filters [item filters context-map items]
   (reduce
-    (fn [value filter] (filter (assoc context-map items value)))
+    (fn [value filter]
+      (filter (assoc context-map
+                     (keyword items) value
+                     (name items) value)))
     item filters))
 
 (defn for-handler [args tag-content render rdr]
