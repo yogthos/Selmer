@@ -139,6 +139,15 @@
   (is
    (= "main template foo body" (render-file (io/resource "templates/my-include.html") {:foo "foo"}))))
 
+(deftest render-file-accepts-custom-resource-path-without-protocol
+  (is
+    (= "barfoo"
+       (render-file "my-include-child.html"
+                    {:foo "bar" :bar "foo"}
+                    {:custom-resource-path (-> (io/resource "templates/")
+                                               io/as-file
+                                               .getAbsolutePath)}))))
+
 (deftest custom-tags
   (is
     (= "<<1>><<2>><<3>>"
