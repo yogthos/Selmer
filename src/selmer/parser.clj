@@ -118,7 +118,7 @@
   " Parses files if there isn't a memoized post-parse vector ready to go,
   renders post-parse vector with passed context-map regardless. Double-checks
   last-modified on files. Uses classpath for filename-or-url path "
-  (binding [*custom-resource-path* custom-resource-path]
+  (binding [*custom-resource-path* (make-resource-path custom-resource-path)]
     (if-let [resource (resource-path filename-or-url)]
       (let [{:keys [template last-modified]} (get @templates resource)
             ;;for some resources, such as ones inside a jar, it's
