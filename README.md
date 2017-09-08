@@ -754,6 +754,18 @@ to the URI. When `servlet-context` key is not present then the original URI is s
 ```
 "<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
 ```
+
+Since 1.11.1 URI can be a name of context parameter with optional filters.
+
+`(render "{% script path %}" {:servlet-context "/myapp" :path "/js/site.js"})` =>
+```
+"<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
+```
+
+`(render "{% script path|upper %}" {:servlet-context "/myapp" :path "/js/site.js"})` =>
+```
+"<script src=\"/myapp/JS/SITE.JS\" type=\"text/javascript\"></script>"
+```
 #### style
 
 The style tag will generate an HTML style tag and prepend the value of the `servlet-context` key
@@ -762,6 +774,18 @@ to the URI. When `servlet-context` key is not present then the original URI is s
 `(render "{% style \"/css/screen.css\" %}" {:servlet-context "/myapp"})` =>
 ```
 "<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
+```
+
+Since 1.11.1 URI can be a name of context parameter with optional filters.
+
+`(render "{% style path %}" {:servlet-context "/myapp" :path "/css/screen.css"})` =>
+```
+"<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
+```
+
+`(render "{% style path|upper %}" {:servlet-context "/myapp" :path "/css/screen.css"})` =>
+```
+"<link href=\"/myapp/CSS/SCREEN.CSS\" rel=\"stylesheet\" type=\"text/css\" />"
 ```
 #### verbatim
 prevents any tags inside from being parsed:

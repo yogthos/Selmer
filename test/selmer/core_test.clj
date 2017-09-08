@@ -294,14 +294,26 @@
 
 (deftest script-style
   (is
-    (= "<script src=\"/js/site.js\" type=\"text/javascript\"></script>"
-       (render "{% script \"/js/site.js\" %}" {})))
+   (= "<script src=\"/js/site.js\" type=\"text/javascript\"></script>"
+      (render "{% script \"/js/site.js\" %}" {})))
   (is
-    (= "<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
-       (render "{% script \"/js/site.js\" %}" {:servlet-context "/myapp"})))
+   (= "<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
+      (render "{% script \"/js/site.js\" %}" {:servlet-context "/myapp"})))
   (is
-    (= "<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
-       (render "{% style \"/css/screen.css\" %}" {:servlet-context "/myapp"}))))
+   (= "<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
+      (render "{% script path %}" {:servlet-context "/myapp" :path "/js/site.js"})))
+  (is
+   (= "<script src=\"/myapp/JS/SITE.JS\" type=\"text/javascript\"></script>"
+      (render "{% script path|upper %}" {:servlet-context "/myapp" :path "/js/site.js"})))
+  (is
+   (= "<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
+      (render "{% style \"/css/screen.css\" %}" {:servlet-context "/myapp"})))
+  (is
+   (= "<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
+      (render "{% style path %}" {:servlet-context "/myapp" :path "/css/screen.css"})))
+  (is
+   (= "<link href=\"/myapp/CSS/SCREEN.CSS\" rel=\"stylesheet\" type=\"text/css\" />"
+      (render "{% style path|upper %}" {:servlet-context "/myapp" :path "/css/screen.css"}))))
 
 (deftest script-async
   (is
