@@ -269,26 +269,56 @@
                   (assoc context-map k (v context-map)))
                 context-map args)))))
 
+(defn- build-uri-for-script-or-style-tag
+  "Accepts `uri` passed in as first argument to {% script %} or {% style %} tag
+  and context map. Returns string - new URI built with value of
+  `servlet-context` context parameter in mind. `uri` can be a string literal or
+  name of context parameter (filters also supported)."
+  [^String uri {:keys [servlet-context] :as context-map}]
+  (let [literal? (and (.startsWith uri "\"") (.endsWith uri "\""))
+        uri
+        (if literal?
+          (.replace uri "\"" "")     ; case of {% style "/css/foo.css" %}
+          (-> uri                    ; case of {% style context-param|some-filter:arg1:arg2 %}
+              (compile-filter-body)
+              (apply [context-map])))]
+    (-> servlet-context (str uri) (.replace "//" "/"))))
 
-(defn script-handler [[^String uri & args] _ _ _]
-  (let [args (->> args
-                  (mapcat #(.split ^String % "="))
-                  (remove #{"="})
-                  (compile-args))]
+(defn script-handler
+  "Returns function that renders HTML `<SCRIPT/>` tag. Accepts `uri` that would
+  be used to build value for 'src' attribute of generated tag and variable
+  number of optional arguments. Value for 'src' attribute is built accounting
+  value of `servlet-context` context parameter and `uri` can be a string literal
+  or name of context parameter (filters also supported). Optional arguments are:
+  * `async` - when evaluates to logical true then 'async' attribute would be
+    added to generated tag."
+  [[^String uri & args] _ _ _]
+  (let [args
+        (->> args
+             (mapcat #(.split ^String % "="))
+             (remove #{"="})
+             (compile-args))]
     (fn [{:keys [servlet-context] :as context-map}]
-      (let [args (reduce
-                   (fn [context-map [k v]]
-                     (assoc context-map k (v context-map)))
-                   context-map args)]
-        (str "<script "
-             (when (:async args) "async ")
-             "src=\""
-             servlet-context (.substring uri 1)
-             " type=\"text/javascript\"></script>")))))
+      (let [args
+            (reduce
+             (fn [context-map [k v]]
+               (assoc context-map k (v context-map)))
+             context-map
+             args)
+            async-attr (when (:async args) "async ")
+            src-attr-val (build-uri-for-script-or-style-tag uri context-map)]
+        (str "<script " async-attr "src=\"" src-attr-val "\" type=\"text/javascript\"></script>")))))
 
-(defn style-handler [[^String uri] _ _ _]
-  (fn [{:keys [servlet-context]}]
-    (str "<link href=\"" servlet-context (.substring uri 1) " rel=\"stylesheet\" type=\"text/css\" />")))
+(defn style-handler
+  "Returns function that renders HTML `<LINK/>` tag. Accepts `uri` that would
+  be used to build value for 'href' attribute of generated tag. Value for 'href'
+  attribute is built accounting value of `servlet-context` context parameter and
+  `uri` can be a string literal or name of context parameter (filters also
+  supported)."
+  [[^String uri] _ _ _]
+  (fn [{:keys [servlet-context] :as context-map}]
+    (let [href-attr-val (build-uri-for-script-or-style-tag uri context-map)]
+      (str "<link href=\"" href-attr-val "\" rel=\"stylesheet\" type=\"text/css\" />"))))
 
 (defn cycle-handler [args _ _ _]
   (let [fields (vec args)
