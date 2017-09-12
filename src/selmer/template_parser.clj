@@ -7,7 +7,7 @@
             [selmer.util :refer :all]
             [clojure.string :as s :refer [split trim]]
             [selmer.validator :as validator])
-  (:import [java.io File StringReader]))
+  (:import java.io.StringReader))
 
 (declare consume-block preprocess-template)
 
@@ -15,8 +15,8 @@
   (let [tag-id (re-pattern (str "^.+?" tag-id "\\s*"))]
     (-> block-str (s/replace tag-id "") (split *tag-second-pattern*) first trim)))
 
-(defn parse-defaults [defaults]  
-  (when defaults    
+(defn parse-defaults [defaults]
+  (when defaults
     (->> defaults
          (interpose " ")
          (apply str)

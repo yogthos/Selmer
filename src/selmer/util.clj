@@ -1,12 +1,11 @@
 (ns selmer.util
-  (:require [clojure.java.io :as io])
-  (:import java.io.File java.io.StringReader
+  (:import java.io.StringReader
            java.util.regex.Pattern))
 
 (defmacro exception [& [param & more :as params]]
- (if (class? param)
-   `(throw (new ~param (str ~@more)))
-   `(throw (Exception. (str ~@params)))))
+  (if (class? param)
+    `(throw (new ~param (str ~@more)))
+    `(throw (Exception. (str ~@params)))))
 
 (def ^:dynamic *custom-resource-path* nil)
 
@@ -58,30 +57,27 @@
 (def ^:dynamic ^Character *short-comment-second* \#)
 
 ;; tag regex patterns
-(def ^:dynamic ^Pattern   *tag-second-pattern* nil)
-(def ^:dynamic ^Pattern   *filter-open-pattern* nil)
-(def ^:dynamic ^Pattern   *filter-close-pattern* nil)
-(def ^:dynamic ^Pattern   *filter-pattern* nil)
-(def ^:dynamic ^Pattern   *tag-open-pattern* nil)
-(def ^:dynamic ^Pattern   *tag-close-pattern* nil)
-(def ^:dynamic ^Pattern   *tag-pattern* nil)
-(def ^:dynamic ^Pattern   *include-pattern* nil)
-(def ^:dynamic ^Pattern   *extends-pattern* nil)
-(def ^:dynamic ^Pattern   *block-pattern* nil)
-(def ^:dynamic ^Pattern   *block-super-pattern* nil)
-(def ^:dynamic ^Pattern   *endblock-pattern* nil)
+(def ^:dynamic ^Pattern *tag-second-pattern* nil)
+(def ^:dynamic ^Pattern *filter-open-pattern* nil)
+(def ^:dynamic ^Pattern *filter-close-pattern* nil)
+(def ^:dynamic ^Pattern *filter-pattern* nil)
+(def ^:dynamic ^Pattern *tag-open-pattern* nil)
+(def ^:dynamic ^Pattern *tag-close-pattern* nil)
+(def ^:dynamic ^Pattern *tag-pattern* nil)
+(def ^:dynamic ^Pattern *include-pattern* nil)
+(def ^:dynamic ^Pattern *extends-pattern* nil)
+(def ^:dynamic ^Pattern *block-pattern* nil)
+(def ^:dynamic ^Pattern *block-super-pattern* nil)
+(def ^:dynamic ^Pattern *endblock-pattern* nil)
 
 (def match-unquoted " *(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")
-
-(defn split-unquoted [^String s ^String x]
-  (clojure.string/split s (re-pattern (str " *" x match-unquoted))))
 
 (defn check-tag-args [args]
   (if (even? (count (filter #{\"} args)))
     args (exception "malformed tag arguments in " args)))
 
 (defn read-tag-info [rdr]
-  (let [buf (StringBuilder.)
+  (let [buf      (StringBuilder.)
         tag-type (if (= *filter-open* (read-char rdr)) :filter :expr)]
     (loop [ch1 (read-char rdr)
            ch2 (read-char rdr)]
@@ -99,7 +95,7 @@
              (if (= :filter tag-type)
                {:tag-value (first content)}
                {:tag-name (keyword (first content))
-                :args (next content)})))))
+                :args     (next content)})))))
 
 (defn peek-rdr [^java.io.Reader rdr]
   (.mark rdr 1)
@@ -109,21 +105,21 @@
 
 (defmacro ->buf [[buf] & body]
   `(let [~buf (StringBuilder.)]
-    (do ~@body)
-    (.toString ~buf)))
+     (do ~@body)
+     (.toString ~buf)))
 
 (defn read-tag-content [rdr]
   (->buf [buf]
-    (let [next-ch (peek-rdr rdr)
-          filter? (not= *tag-second* next-ch)]
-      (.append buf *tag-open*)
-      (when next-ch
-        (loop [ch (read-char rdr)]
-          (.append buf ch)
-          (when (and (not= *tag-close* ch) (not= *filter-close* ch))
-            (recur (read-char rdr))))
-        (when filter?
-          (.append buf (read-char rdr)))))))
+         (let [next-ch (peek-rdr rdr)
+               filter? (not= *tag-second* next-ch)]
+           (.append buf *tag-open*)
+           (when next-ch
+             (loop [ch (read-char rdr)]
+               (.append buf ch)
+               (when (and (not= *tag-close* ch) (not= *filter-close* ch))
+                 (recur (read-char rdr))))
+             (when filter?
+               (.append buf (read-char rdr)))))))
 
 (defn open-tag? [ch rdr]
   (and (= *tag-open* ch)
@@ -140,7 +136,7 @@
   (let [rdr (StringReader. s)
         buf (StringBuilder.)]
     (loop [items []
-           ch (read-char rdr)
+           ch    (read-char rdr)
            open? false]
       (cond
         (nil? ch) items
