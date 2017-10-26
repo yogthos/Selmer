@@ -49,7 +49,10 @@ arguments."
 
 (defn escape-html
   "Must have the form [:safe safe-string] to prevent escaping. Alternatively,
-  you can call selmer.util/turn-off-escaping! to turn it off completely."
+  you can call selmer.util/turn-off-escaping! to turn it off completely.
+
+  If it is marked as :safe, the value will be returned as-is, otherwise it
+  will be converted to a string even if it is not escaped."
   [x]
   (if (and (vector? x)
            (= :safe (first x)))
