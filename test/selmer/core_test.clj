@@ -8,7 +8,8 @@
             [selmer.util :refer :all]
             [clojure.java.io :as io])
   (:import java.util.Locale
-           java.io.File))
+           java.io.File
+           (java.io StringReader)))
 
 (def path (str "test/templates" File/separator))
 
@@ -536,6 +537,28 @@
          "  <FOO>  <FOO>  "))
   (is (= (render-file "templates/safe.html" {:bar true :unsafe "<script>window.location.replace('http://not.so.safe');</script>"})
          "<script>window.location.replace('http://not.so.safe');</script>")))
+
+(deftest safe-tag-rendering
+  ;; .render-node returns a string by default
+  (is (= "48" (-> (parse parse-input
+                         (StringReader. "{{seed|add:1:2:3}}"))
+                  first
+                  (.render-node {:seed 42}))))
+  ;; If we mark a filter's result as safe, render-node neither
+  ;; converts it to a string nor escapes it
+  (selmer.filters/add-filter!
+    :safe-add
+    (fn [x y & rest]
+      (let [args (conj rest y (str x))]
+        (try [:safe
+              (apply +
+                     (map #(Long/valueOf ^String %) args))]
+             (catch NumberFormatException _
+               (apply str args))))))
+  (is (= 48 (-> (parse parse-input
+                       (StringReader. "{{seed|safe-add:1:2:3}}"))
+                first
+                (.render-node {:seed 42})))))
 
 (deftest filter-tag-test
   (is
