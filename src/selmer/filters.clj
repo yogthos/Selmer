@@ -34,6 +34,17 @@ map. The rest of the arguments are optional and are always strings."
              (catch Exception _
                (throw (IllegalArgumentException. (str d " is not a valid date format.")))))))
 
+(defn parse-number
+  "Parses a number to Long or Double. Throws NumberFormatException if value cannot be converted to Long or Double."
+  [value]
+  (if (number? value)
+    value
+    (let [value (str value)]
+      (try
+        (Long/parseLong value)
+        (catch NumberFormatException _
+          (Double/parseDouble value))))))
+
 ;;; Used in filters when we are expecting a collection but instead got nil or a number
 ;;; or something else just as useless.
 ;;; Some clojure functions silently do the wrong thing when given invalid arguments. This
@@ -71,10 +82,25 @@ map. The rest of the arguments are optional and are always strings."
             :add
             (fn [x y & rest]
               (let [args (conj rest y (str x))]
-                (try (apply +
-                            (map #(Long/valueOf ^String %) args))
+                (try [:safe (apply +
+                                   (map parse-number args))]
                      (catch NumberFormatException _
                        (apply str args)))))
+
+            :multiply
+            (fn [x y]
+              (* (parse-number x) (parse-number y)))
+
+            :divide
+            (fn [x y]
+              (let [val (/ (parse-number x) (parse-number y))]
+                (if (ratio? val)
+                  (double val)
+                  val)))
+
+            :round
+            (fn [x]
+              [:safe (Math/round (parse-number x))])
 
             ;;; Add backslashes to quotes
             :addslashes
@@ -170,12 +196,17 @@ map. The rest of the arguments are optional and are always strings."
             :take
             (fn [coll n]
               (throw-when-expecting-seqable coll)
-              (vec (take (Long/valueOf ^String n) coll)))
+              (vec (take (parse-number n) coll)))
 
             :drop
             (fn [coll n]
               (throw-when-expecting-seqable coll)
-              (vec (drop (Long/valueOf ^String n) coll)))
+              (vec (drop (parse-number n) coll)))
+
+            :drop-last
+            (fn [coll n]
+              (throw-when-expecting-seqable coll)
+              (vec (drop-last (parse-number n) coll)))
 
             ;;; Get the ith digit of a number
             ;;; 1 is the rightmost digit
@@ -248,14 +279,14 @@ map. The rest of the arguments are optional and are always strings."
               (when-not (nil? coll)
                 (throw-when-expecting-seqable coll))
               (let [n (Long/valueOf ^String n)]
-                (= n (count coll))))
+                [:safe (= n (count coll))]))
 
             :count-is
             (fn [coll n]
               (when-not (nil? coll)
                 (throw-when-expecting-seqable coll))
               (let [n (Long/valueOf ^String n)]
-                (= n (count coll))))
+                [:safe (= n (count coll))]))
 
             ;;; Single newlines become <br />, double newlines mean new paragraph
             :linebreaks
@@ -358,6 +389,19 @@ map. The rest of the arguments are optional and are always strings."
             (fn [coll]
               (throw-when-expecting-seqable coll)
               (sort (comp - compare) coll))
+
+            :between?
+            (fn [val x y]
+              (let [val (parse-number val)
+                    x   (parse-number x)
+                    y   (parse-number y)]
+                [:safe (if (<= x y)
+                         (<= x val y)
+                         (<= y val x))]))
+
+            :replace
+            (fn [s s-search s-replace]
+              (clojure.string/replace ^String s ^String s-search ^String s-replace))
 
             ;;; Remove tags
             ;;; Use like {{ value|remove-tags:b:span }}
