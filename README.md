@@ -38,6 +38,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [first](#first)
 [take](#take)
 [drop](#drop)
+[drop-last](#drop-last)
 [get-digit](#get-digit)
 [hash](#hash)
 [join](#join)
@@ -64,6 +65,11 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [title](#title)
 [upper](#upper)
 [urlescape](#urlescape)
+[multiply](#multiply)
+[divide](#divide)
+[round](#round)
+[between?](#between)
+[replace](#replace)
 
 ### [Jump to Tags](#tags)
 
@@ -299,6 +305,8 @@ Alternatively, you can turn off escaping permanently in all threads with the `se
 ### Built-in Filters
 
 #### add
+Can add Integers and Doubles. If one of the parameters cannot be casted into one of the two, all parameters will be concatenated to a String.
+
 `(render "{{add_me|add:2:3:4}}" {:add_me 2})` => `11`
 
 `(render "{{h|add:e:l:l:o}}" {:h "h"})` => `"hello"`
@@ -396,6 +404,13 @@ An ISO 639 2-letter language code can be added as a locale.
 `(render "{{seq-of-some-sort|drop:4}}" {:seq-of-some-sort [:dog :cat :bird :bird :bird :is :the :word]})` => `[:bird :is :the :word]`
 
 `(render "{{seq-of-some-sort|drop:4|join:\" \"}}" {:seq-of-some-sort ["dog" "cat" "bird" "bird" "bird" "is" "the" "word"]})` => `bird is the word`
+
+#### drop-last
+Similar to drop:
+
+`(render "{{seq-of-some-sort|drop-last:4}}" {:seq-of-some-sort [:dog :cat :bird :bird :bird :is :the :word]})` =\> `[:dog :cat :bird :bird]`
+
+
 #### get-digit
 `(render "{{tis-a-number|get-digit:1}}" {:tis-a-number 12.34567})` => `7`
 
@@ -517,6 +532,39 @@ Capitalize the words of a string
 
 #### urlescape
 `(render "{{data|urlescape}}" {:data "clojure url"})` => `"clojure+url"`
+
+#### round
+
+Returns the closest integer to the argument, with ties rounding up.
+
+`(render "{{foo|round}}" {:foo 3.33333})` =\> `"3"`
+
+#### multiply
+
+Multiplies the value with the given number. Throws error if one of the both
+values are neither Long nor Double.
+
+`(render "{{foo|multiply:2}}" {:foo 3.3})` =\> `"6.6"`
+
+#### divide
+
+Multiplies the value with the given number. Throws error if one of the both
+values are neither Long nor Double.
+
+`(render "{{foo|divide:2}}" {:foo 6})` =\> `"3"`
+
+#### replace
+
+Multiplies the value with the given number. Throws error if one of the both
+values are neither Long nor Double.
+
+`(render "{{foo|replace:foo:bar}}" {:foo "foo test foo ..."})` =\> `"bar test
+bar ..."`
+
+#### between?
+
+`(render "{{foo|between?:2:4}}" {:foo 3})` =\> `"true"`
+
 
 ## Tags
 
