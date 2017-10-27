@@ -539,26 +539,11 @@
          "<script>window.location.replace('http://not.so.safe');</script>")))
 
 (deftest safe-tag-rendering
-  ;; .render-node returns a string by default
-  (is (= "48" (-> (parse parse-input
+  ;; .render-node should return an integer as add is defined as a safe filter
+  (is (= 48 (-> (parse parse-input
                          (StringReader. "{{seed|add:1:2:3}}"))
                   first
-                  (.render-node {:seed 42}))))
-  ;; If we mark a filter's result as safe, render-node neither
-  ;; converts it to a string nor escapes it
-  (selmer.filters/add-filter!
-    :safe-add
-    (fn [x y & rest]
-      (let [args (conj rest y (str x))]
-        (try [:safe
-              (apply +
-                     (map #(Long/valueOf ^String %) args))]
-             (catch NumberFormatException _
-               (apply str args))))))
-  (is (= 48 (-> (parse parse-input
-                       (StringReader. "{{seed|safe-add:1:2:3}}"))
-                first
-                (.render-node {:seed 42})))))
+                  (.render-node {:seed 42})))))
 
 (deftest filter-tag-test
   (is
@@ -722,6 +707,76 @@
   (is (= "ACBD18DB4CC2F85CEDEF654FCCC4A4D8"
          (render "{{f|hash:\"md5\"|upper}}" {:f "foo"}))))
 
+(deftest filter-add
+  (testing "Adds numbers"
+    (is (= "40"
+           (render "{{seed|add:1:2:3}}" {:seed 34})))
+    (is (= "37.5"
+           (render "{{seed|add:1.1:-2:3.9}}" {:seed 34.5}))))
+  (testing "Concat strings if not a number"
+    (is (= "foo123"
+           (render "{{seed|add:1:2:3}}" {:seed "foo"})))))
+
+(deftest filter-round
+  (is (= "3"
+         (render "{{foo|round}}" {:foo 3.33333}))))
+
+(deftest filter-drop-last
+  (is (= "[:dog :cat :bird :bird]"
+         (render "{{seq-of-some-sort|drop-last:4}}" {:seq-of-some-sort [:dog :cat :bird :bird :bird :is :the :word]}))))
+
+(deftest filter-replace
+  (is (= "Float posuere erat a ante venenatis ..."
+         (render "{{foo|replace:Integer:Float}}" {:foo "Integer posuere erat a ante venenatis ..."})))
+  (is (= "bar bar test bar ..."
+         (render "{{foo|replace:foo:bar}}" {:foo "foo foo test foo ..."}))))
+
+(deftest filter-add
+  (is (= "5.1"
+         (render "{{foo|add:2.1}}" {:foo 3})))
+  (is (= "4.66"
+         (render "{{foo|add:2:0.33:-1}}" {:foo 3.33})))
+  (is (= "5"
+         (render "{{foo|add:2}}" {:foo 3}))))
+
+(deftest filter-multiply
+  (is (= "6"
+         (render "{{foo|multiply:2}}" {:foo 3})))
+  (is (= "9.99"
+         (render "{{foo|multiply:3}}" {:foo 3.33})))
+  (is (= "1.5"
+         (render "{{foo|multiply:0.5}}" {:foo 3})))
+  (is (thrown? Exception (render "{{foo|multiply:0.5}}" {:foo "bar"}))))
+
+(deftest filter-divide
+  (is (= "1.5"
+         (render "{{foo|divide:2}}" {:foo 3})))
+  (is (= "1.11"
+         (render "{{foo|divide:3}}" {:foo 3.33})))
+  (is (= "5"
+         (render "{{foo|divide:2}}" {:foo 10})))
+  (is (thrown? Exception (render "{{foo|divide:foo}}" {:foo 1})))
+  (is (thrown? Exception (render "{{foo|divide:0}}" {:foo 1}))))
+
+(deftest filter-between
+  (is (= "true"
+         (render "{% if foo|between?:2:4 %}true{% else %}false{% endif %}" {:foo 3})))
+  (is (= "true"
+         (render "{% if foo|between?:4:2 %}true{% else %}false{% endif %}" {:foo 3})))
+  (is (= "false"
+         (render "{% if foo|between?:2:4 %}true{% else %}false{% endif %}" {:foo 4.33})))
+  (is (= "false"
+         (render "{% if foo|between?:4:2 %}true{% else %}false{% endif %}" {:foo 4.33})))
+  (is (= "true"
+         (render "{% if foo|between?:@min:@max %}true{% else %}false{% endif %}" {:foo 20.1, :min 5.99, :max 100.5})))
+  (is (= "true"
+         (render "{% if foo|between?:@min:@max %}true{% else %}false{% endif %}" {:foo 5.99, :min 5.99, :max 100.5})))
+  (is (= "true"
+         (render "{% if foo|between?:@min:@max %}true{% else %}false{% endif %}" {:foo 100.5, :min 5.99, :max 100.5})))
+  (is (= "false"
+         (render "{% if foo|between?:@min:@max %}true{% else %}false{% endif %}" {:foo 5.98, :min 5.99, :max 100.5})))
+  (is (thrown? Exception (render "{{foo|between?:2:4}}" {:foo "throw me"}))))
+
 (deftest test-escaping
   (is (= "<tag>&lt;foo bar=&quot;baz&quot;&gt;\\&gt;</tag>"
          (render "<tag>{{f}}</tag>" {:f "<foo bar=\"baz\">\\>"})))
@@ -812,8 +867,7 @@
 
 (deftest literals-test
   (testing "converts words to lower case"
-    (is (= "foobar" (render "{{\"FOObar\"|lower}}" {})))
-    (is (= "10" (render "{{1|add:2:3:4}}" {})))))
+    (is (= "foobar" (render "{{\"FOObar\"|lower}}" {})))))
 
 (deftest number-format-test
   (testing "formats the number with default locale"
