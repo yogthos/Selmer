@@ -60,6 +60,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [sort-by](#sort-by)
 [sort-by-reversed](#sort-by-reversed)
 [sort-reversed](#sort-reversed)
+[subs](#subs)
 [sum](#sum)
 [str](#str)
 [title](#title)
@@ -522,6 +523,10 @@ same as sort-by, but in reverse order
 Like the clojure function `str`. So you can do crazy stuff like:
 `(render "{{people|length-is:2|str|join:\"-\"}} lad{{people|pluralize:\"y\":\"ies\"}}" {:people [1 2]})` => `"t-r-u-e ladies"`
 Without raising an exception.
+
+#### subs
+Like the clojure function `subs`.
+ `(render "{{s|subs:0:3:\" ..."}}", {:s "Foo bar baz"})` => `"Foo ..."`
 
 #### title
 Capitalize the words of a string
