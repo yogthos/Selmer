@@ -570,6 +570,8 @@
 (deftest filter-upper
   (is (= "FOO" (render "{{f|upper}}" {:f "foo"}))))
 
+(deftest filter-subs
+  (is (= "FOO ..." (render "{{f|subs:0:3:\" ...\"}}" {:f "FOO BAR"}))))
 
 (deftest filter-take
   (is (= "[:dog :cat :bird]"
