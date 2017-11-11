@@ -526,7 +526,7 @@ Without raising an exception.
 
 #### subs
 Like the clojure function `subs`.
- `(render "{{s|subs:0:4:\" ..."}}", {:s "Foo bar baz"})` => `"Foo ..."`
+ `(render "{{s|subs:0:3:\" ..."}}", {:s "Foo bar baz"})` => `"Foo ..."`
 
 #### title
 Capitalize the words of a string
