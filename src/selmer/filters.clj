@@ -80,12 +80,14 @@ map. The rest of the arguments are optional and are always strings."
             ;;; Like the subs, only adds rest if s is modified
             :subs
             (fn [s start end & rest]
-              (let [start (parse-number start)
-                    end (parse-number end)
-                    result (subs s start end)]
-                (if (and rest (not= (count s) (count result)))
-                  (str result (apply str rest))
-                  result)))
+              (try
+                (let [start (parse-number start)
+                      end (parse-number end)
+                      result (subs s start end)]
+                  (if (and rest (not= (count s) (count result)))
+                    (str result (apply str rest))
+                    result))
+                (catch Exception _ s)))
             
             ;;; Try to add the arguments as numbers
             ;;; If it fails concatenate them as strings
