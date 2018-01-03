@@ -473,6 +473,11 @@
            " foo is false\n                  but baz is true \n                  ")))
   (is (thrown? Exception (render "foo {% else %} bar" {}))))
 
+(deftest for-respects-missing-value-formatter
+  ;; Using bindings instead of set-missing-value-formatter! to avoid cleanup
+  (binding [*missing-value-formatter* (constantly "Missing value")]
+    (is (= "Missing value" (render "{% for e in items %}{% endfor %}" {})))))
+
 (deftest test-if-not
   (is (= (render "{% if not foo %}foo is true{% endif %}" {:foo true})
          ""))

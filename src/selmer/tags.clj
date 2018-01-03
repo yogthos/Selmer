@@ -47,25 +47,30 @@
         item-keys     (parse-arg items)]
     (fn [context-map]
       (let [buf    (StringBuilder.)
-            items  (-> (reduce get-accessor context-map item-keys)
-                       (apply-filters filters context-map items))
-            length (count items)]
-        (if (and empty-content (empty? items))
-          (.append buf (render empty-content context-map))
-          (doseq [[counter value] (map-indexed vector items)]
-            (let [loop-info
-                  {:length      length
-                   :counter0    counter
-                   :counter     (inc counter)
-                   :revcounter  (- length (inc counter))
-                   :revcounter0 (- length counter)
-                   :first       (= counter 0)
-                   :last        (= counter (dec length))}]
-              (->> (assoc (create-value-mappings context-map ids value)
-                     :forloop loop-info
-                     :parentloop loop-info)
-                   (render for-content)
-                   (.append buf)))))
+            unfiltered-items (reduce get-accessor context-map item-keys)]
+
+        (if (and (nil? unfiltered-items) (not empty-content))
+          ;item was not in the context map and it didn't have an {% empty %} fallback
+          (.append buf (*missing-value-formatter* :for context-map))
+          ;item was in context map, keep going
+          (let [items  (apply-filters unfiltered-items filters context-map items)
+                length (count items)]
+            (if (and empty-content (empty? items))
+              (.append buf (render empty-content context-map))
+              (doseq [[counter value] (map-indexed vector items)]
+                (let [loop-info
+                      {:length      length
+                       :counter0    counter
+                       :counter     (inc counter)
+                       :revcounter  (- length (inc counter))
+                       :revcounter0 (- length counter)
+                       :first       (= counter 0)
+                       :last        (= counter (dec length))}]
+                  (->> (assoc (create-value-mappings context-map ids value)
+                         :forloop loop-info
+                         :parentloop loop-info)
+                       (render for-content)
+                       (.append buf)))))))
         (.toString buf)))))
 
 (defn render-if [render context-map condition first-block second-block]
