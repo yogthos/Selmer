@@ -475,8 +475,12 @@
 
 (deftest for-respects-missing-value-formatter
   ;; Using bindings instead of set-missing-value-formatter! to avoid cleanup
-  (binding [*missing-value-formatter* (constantly "Missing value")]
-    (is (= "Missing value" (render "{% for e in items %}{% endfor %}" {})))))
+  (binding [*missing-value-formatter* (fn [tag context-map]
+                                        (str "missing: " tag))]
+    (is (= (render "{% for e in things %}{% endfor %}" {})
+           "missing: {:tag-name :for, :args [:things]}"))
+    (is (= (render "{% for e in things.a %}{% endfor %}" {:things {}})
+           "missing: {:tag-name :for, :args [:things :a]}"))))
 
 (deftest test-if-not
   (is (= (render "{% if not foo %}foo is true{% endif %}" {:foo true})
