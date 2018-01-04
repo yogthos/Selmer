@@ -51,7 +51,7 @@
 
         (if (and (nil? unfiltered-items) (not empty-content))
           ;item was not in the context map and it didn't have an {% empty %} fallback
-          (.append buf (*missing-value-formatter* :for context-map))
+          (.append buf (*missing-value-formatter* {:tag-name :for :args item-keys} context-map))
           ;item was in context map, keep going
           (let [items  (apply-filters unfiltered-items filters context-map items)
                 length (count items)]
