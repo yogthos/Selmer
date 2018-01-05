@@ -1026,6 +1026,11 @@ Missing values are by default rendered as an empty string:
 (render "{{missing}}" {})
 => ""
 ```
+The same goes for for loops:
+```clojure
+(parser/render "{% for e in items %}{% endfor %}" {})
+=> ""
+```
 
 It is possible to overwrite this behavior to output a different value when encountering a mising value. This is done by calling `selmer.util/set-missing-value-formatter!` to provide a function that produces the desired output.
 
