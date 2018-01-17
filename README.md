@@ -520,7 +520,7 @@ same as sort-by, but in reverse order
 
 #### str
 Like the clojure function `str`. So you can do crazy stuff like:
-`(render "{{people|length-is:2|str|join:\"-\"}} lad{{people|pluralize:\"y\":\"ies\"}}" {:people [1 2]})` => `"t-r-u-e ladies"`
+`(render "{{people|length-is:2|last|str|join:\"-\"}} lad{{people|pluralize:\"y\":\"ies\"}}" {:people [1 2]})` => `"t-r-u-e ladies"`
 Without raising an exception.
 
 #### subs
