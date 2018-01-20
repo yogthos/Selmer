@@ -234,7 +234,7 @@
             (cond
               ;; We hit a tag so we append the buffer content to the template
               ;; and empty the buffer, then we proceed to parse the tag
-              (and (open-tag? ch rdr) (some #{(peek-rdr rdr)} [*tag-second* *filter-open*]))
+              (and (open-tag? ch rdr) (contains? #{*tag-second* *filter-open*} (peek-rdr rdr)))
               (recur (add-node template buf rdr) (read-char rdr))
 
               ;; Short comment tags are dropped

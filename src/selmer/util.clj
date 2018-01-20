@@ -70,8 +70,6 @@
 (def ^:dynamic ^Pattern *block-super-pattern* nil)
 (def ^:dynamic ^Pattern *endblock-pattern* nil)
 
-(def match-unquoted " *(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")
-
 (defn check-tag-args [args]
   (if (even? (count (filter #{\"} args)))
     args (exception "malformed tag arguments in " args)))
