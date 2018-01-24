@@ -86,6 +86,46 @@ map. The rest of the arguments are optional and are always strings."
                 (if (and rest (not= (count s) (count result)))
                   (str result (apply str rest))
                   result)))
+
+            :abbr-left
+            (fn [s] (assoc (if (map? s) s {:s s}) :abbr-position :left))
+
+            :abbr-middle
+            (fn [s] (assoc (if (map? s) s {:s s}) :abbr-position :middle))
+
+            :abbr-right
+            (fn [s] (assoc (if (map? s) s {:s s}) :abbr-position :right))
+
+            :abbr-ellipsis
+            (fn [s ellipsis] (assoc (if (map? s) s {:s s}) :abbr-ellipsis ellipsis))
+
+            :abbreviate
+            (fn abbreviate
+              ([s max-width] (abbreviate s max-width max-width))
+              ([s max-width abbreviated-width]
+               (let [max-width (parse-number max-width)
+                     abbreviated-width (parse-number abbreviated-width)
+                     ellipsis (:abbr-ellipsis s "...")
+                     position (:abbr-position s :right)
+                     ellipsis-length (count ellipsis)
+                     effective-width (- abbreviated-width ellipsis-length)
+                     s (:s s s)         ; Extract string from map if it's not already a string
+                     width (count s)]
+                 (if (< max-width abbreviated-width)
+                   (throw (IllegalArgumentException.
+                           (format "Maximum width %d can't be shorter than abbreviated width %d"
+                                   max-width abbreviated-width))))
+                 (if (< abbreviated-width ellipsis-length)
+                   (throw (IllegalArgumentException.
+                           (format "Length %d of ellipsis '%s' can't be bigger than abbreviated width %d"
+                                   ellipsis-length ellipsis abbreviated-width))))
+                 (if (> width max-width)
+                   (case position
+                     :right (str (subs s 0 effective-width) ellipsis)
+                     :left (str ellipsis (subs s (- width effective-width)))
+                     :middle (str (subs s 0 (/ effective-width 2)) ellipsis
+                                  (subs s (- width (/ effective-width 2)))))
+                   s))))
             
             ;;; Try to add the arguments as numbers
             ;;; If it fails concatenate them as strings

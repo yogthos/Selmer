@@ -20,6 +20,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 
 #### Built-in Filters
 
+[abbreviate](#abbreviate)
 [add](#add)
 [addslashes](#addslashes)
 [block.super](#blocksuper)
@@ -303,6 +304,48 @@ Alternatively, you can turn off escaping permanently in all threads with the `se
 
 
 ### Built-in Filters
+
+#### abbreviate
+
+Abbreviate the input string to given width if it exceeds a maxium
+width. If only a maximum width is given, abbreviated and maximum width
+are the same. The first parameter is the maximum width, the optional
+second parameter the abbreviated width.
+
+`(render "{{f|abbreviate:19}}" {:f "an abbreviate example text"}) => "an abbreviate ex..."`
+
+`(render "{{f|abbreviate:19:12}}" {:f "an abbreviate example text"}) => "an abbrev..."`
+
+`(render "{{f|abbreviate:26:12}}" {:f "an abbreviate example text"}) => "an abbreviate example text"`
+
+The last example shows: if the string fits in the maximum width the
+full string is used even if the abbreviated form would be shorter.
+
+By default `...` is used as replacement for the abbreviated part of
+the string. You can easily change that with the `abbr-ellipsis` filter:
+
+`(render "{{f|abbr-ellipsis:\"… etc. pp.\"|abbreviate:19}}" {:f "an abbreviate example text"}) => "an abbrev… etc. pp."`
+
+`(render "{{f|abbr-ellipsis:\"\"abbreviate:19}}" {:f "an abbreviate example text"}) => "an abbreviate examp"`
+
+Note that the ellipsis can't be longer than the abbreviated width.
+
+With the `abbr-left`, `abbr-right` and `abbr-middle` filters you can
+also control in which position the abbreviation happens. Filter
+`abbr-right` is provided for completeness, even though it's the
+default.
+
+`(render "{{f|abbr-left|abbreviate:19:12}}" {:f "an abbreviate example text"}) => "...mple text"`
+
+`(render "{{f|abbr-middle|abbreviate:19}}" {:f "an abbreviate example text"}) => "an abbre...ple text"`
+
+You also can combine the position and ellipsis filter:
+
+`(render "{{f|abbr-ellipsis:\" <-- snip --> \"|abbr-middle|abbreviate:19}}" {:f "an abbreviate example text"}) => "an &lt;-- snip --&gt; ext"`
+
+Please note that the `abbr-left`, `abbr-right`, `abbr-middle` and
+`abbr-ellipsis` filters can only be used just before an `abbreviate`
+filter!
 
 #### add
 Can add Integers and Doubles. If one of the parameters cannot be casted into one of the two, all parameters will be concatenated to a String.

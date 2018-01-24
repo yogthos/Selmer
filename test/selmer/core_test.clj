@@ -582,6 +582,40 @@
 (deftest filter-subs
   (is (= "FOO ..." (render "{{f|subs:0:3:\" ...\"}}" {:f "FOO BAR"}))))
 
+(deftest filter-abbreviate
+  (are [expected input] (= expected (render input {:f "this is a text to test"}))
+    "this is a text t..." "{{f|abbreviate:19:19}}"
+    "this is a text to test" "{{f|abbreviate:22:22}}"
+    "this is a text to test" "{{f|abbreviate:22:12}}"
+    "this is a..." "{{f|abbreviate:21:12}}"
+    "this is a text to ..." "{{f|abbreviate:21}}"
+    "this is a text to ..." "{{f|abbr-right|abbreviate:21}}"
+    "this is a text to ..." "{{f|abbr-left|abbr-right|abbreviate:21}}"
+    "... is a text to test" "{{f|abbr-left|abbreviate:21}}"
+    "... is a text to test" "{{f|abbr-right|abbr-left|abbreviate:21}}"
+    "this is a text to tes" "{{f|abbr-ellipsis:\"\"|abbreviate:21}}"
+    "this is a...t to test" "{{f|abbr-middle|abbreviate:21}}"
+    "this is a//xt to test" "{{f|abbr-ellipsis://|abbr-middle|abbreviate:21}}"
+    "this is a …xt to test" "{{f|abbr-ellipsis:…|abbr-middle|abbreviate:21}}"
+    )
+  (are [expected input] (= expected (render input {:f "1234567890*0987654321"}))
+    "123456 [...] 7654321" "{{f|abbr-middle|abbr-ellipsis:\" [...] \"|abbreviate:20}}"
+    "1234567 [..] 7654321" "{{f|abbr-middle|abbr-ellipsis:\" [..] \"|abbreviate:20}}"
+    "1234567 [.] 87654321" "{{f|abbr-middle|abbr-ellipsis:\" [.] \"|abbreviate:20}}"
+    "12345678900987654321" "{{f|abbr-middle|abbr-ellipsis:\"\"|abbreviate:20}}"
+    "123456 [...] 654321" "{{f|abbr-middle|abbr-ellipsis:\" [...] \"|abbreviate:19}}"
+    "123456 [..] 7654321" "{{f|abbr-middle|abbr-ellipsis:\" [..] \"|abbreviate:19}}"
+    "1234567 [.] 7654321" "{{f|abbr-middle|abbr-ellipsis:\" [.] \"|abbreviate:19}}"
+    "...67890*098765..." "{{f|abbr-left|abbreviate:19|abbreviate:18}}"
+    "...567890*09876..." "{{f|abbreviate:19|abbr-left|abbreviate:18}}"
+    )
+  (is (thrown-with-msg? Exception #"15 .* 14"
+                        (render "{{f|abbr-ellipsis:\"a long ellipsis\"|abbreviate:14}}" {:f "short text"})))
+  (is (thrown-with-msg? Exception #"14 .* 15"
+                        (render "{{f|abbreviate:14:15}}" {:f "short text"})))
+  )
+
+
 (deftest filter-take
   (is (= "[:dog :cat :bird]"
          (render "{{seq-of-some-sort|take:3}}" {:seq-of-some-sort [:dog :cat :bird :bird :bird :is :the :word]}))))
