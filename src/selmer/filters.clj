@@ -215,9 +215,7 @@ map. The rest of the arguments are optional and are always strings."
             ;;; Default if x is falsey
             :default
             (fn [x default]
-              (if x
-                x
-                default))
+              (or x default))
 
             ;;; Default if coll is empty
             :default-if-empty
