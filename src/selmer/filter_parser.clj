@@ -139,7 +139,7 @@ applied filter."
 
 (defn get-val [m k]
   (let [v (get m k)]
-    (if (boolean? v) (str v) v)))
+    (if (instance? Boolean v) (str v) v)))
 
 (defn get-accessor [m k]
   "Returns the value of `k` from map `m`, either as a keyword or string lookup."
