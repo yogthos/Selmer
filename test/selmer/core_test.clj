@@ -973,6 +973,12 @@
              (.handler ^selmer.node.FunctionNode $)
              (meta $))))))
 
+(deftest testing-boolean-values
+  (testing "Boolean value"
+    (is (= "Hello true" (render "Hello {{name}}" {:name true})))
+    (is (= "Hello false" (render "Hello {{name}}" {:name false})))
+    (is (= "Hello " (render "Hello {{name}}" {:name nil})))))
+
 (deftest missing-values
   (testing "Missing value - default behaviour"
     (is (= "" (render "{{missing}}" {})))

@@ -23,7 +23,7 @@ arguments."
   ;; This method is "Java in Clojure" for serious speedups.
   ;; Stolen from davidsantiago/quoin and modified.
   (if *escape-variables*
-    (let [sb (StringBuilder.)
+    (let [sb      (StringBuilder.)
           slength (count s)]
       (loop [idx 0]
         (if (>= idx slength)
@@ -75,7 +75,7 @@ so it can access vectors as well as maps."
   "Split accessors like foo.bar.baz by the dot.
    But if there is a double dot '..' then it will leave it"
   [s]
-  (let [ks (clojure.string/split s #"(?<!\.)\.(?!\.)")
+  (let [ks  (clojure.string/split s #"(?<!\.)\.(?!\.)")
         kss (map
               (fn [s] (clojure.string/replace s ".." ".")) ks)] ;we remove the double dot here
     (fix-accessor kss)))
@@ -108,7 +108,7 @@ applied filter."
   (let [[filter-name & args]
         ;; Ignore colons inside doublequotes
         (re-seq #"(?:[^:\"]|\"[^\"]*\")+" s)
-        args (fix-filter-args args)
+        args   (fix-filter-args args)
         filter (get-filter filter-name)]
     (if filter
       (fn [x context-map]
@@ -137,13 +137,17 @@ applied filter."
     val
     (map vector filter-strs filters)))
 
+(defn get-val [m k]
+  (let [v (get m k)]
+    (if (boolean? v) (str v) v)))
+
 (defn get-accessor [m k]
   "Returns the value of `k` from map `m`, either as a keyword or string lookup."
-  (or (get m k)
+  (or (get-val m k)
       (when (keyword? k)
         (if-let [n (namespace k)]
-          (get m (str n "/" (name k)))
-          (get m (name k))))))
+          (get-val m (str n "/" (name k)))
+          (get-val m (name k))))))
 
 (defn compile-filter-body
   "Turns a string like foo|filter1:x|filter2:y into a fn that expects a
@@ -158,7 +162,7 @@ applied filter."
                                   ;; Ignore pipes and allow escaped doublequotes inside doublequotes
                                   (re-seq #"(?:[^|\"]|\"[^\"]*\")+"))
          accessor (split-filter-val val)
-         filters (map filter-str->fn filter-strs)]
+         filters  (map filter-str->fn filter-strs)]
      (if (literal? val)
        (fn [context-map]
          (apply-filters
