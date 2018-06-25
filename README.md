@@ -840,6 +840,8 @@ safe tag will prevent escaping of any content inside it:
 
 `(render "{% safe %}{{foo|upper}}{% endsafe %}" {:foo "<foo>"})` => `<FOO>`
 
+Note, the escaping of variables can also be controlled through the dynamic binding of `selmer.util/*escape-variables`.
+
 #### script
 
 The script tag will generate an HTML script tag and prepend the value of the `servlet-context` key
