@@ -1128,8 +1128,35 @@ but this can be overwritten so filters are evaluated for missing values:
 
 Although for most use cases, this will not make sense.
 
+## Internationalization
 
+While there is no built in support for internationalization, it can be added via a custom tag.
+The following example uses the [tongue](https://github.com/tonsky/tongue) library to implement
+the `i18n` tag:
 
+```clojure
+(require '[tongue.core :as tongue]
+         '[selmer.parser :as parser])
+
+(def translate
+  ;; [locale key & args] => string
+  (tongue/build-translate
+    {:en {:animals
+          {:dog "dog"
+           :cat "cat"}}
+     :fr {:animals
+          {:dog "chien"
+           :cat "chat"}}}))
+
+(parser/add-tag! :i18n
+  (fn [[k] context]
+    (->> k (keyword) (translate (or (:i18n/locale context) :en)))))
+
+(parser/render "{% i18n animals/dog %}" {})
+;=> "dog" 
+(parser/render "{% i18n animals/dog %}" {:i18n/locale :fr})
+;=> "chien"
+```
 
 [**Back To Top ⇧**](#selmer)
 
