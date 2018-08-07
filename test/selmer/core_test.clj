@@ -579,6 +579,20 @@
 (deftest filter-upper
   (is (= "FOO" (render "{{f|upper}}" {:f "foo"}))))
 
+(deftest filter-email
+  (is (= "<a href='mailto:foo@bar.baz'>foo@bar.baz</a>"
+         (render "{{e|email}}" {:e "foo@bar.baz"})))
+  (is (= "<a href='mailto:foo@bar'>foo@bar</a>"
+         (render "{{e|email:false}}" {:e "foo@bar"})))
+  (is (thrown? Exception (render "{{e|email}}" {:e "foo@bar"}))))
+
+(deftest filter-phone
+  (is (= "<a href='tel:07768-130255'>07768 130255</a>"
+         (render "{{p|phone}}" {:p "07768 130255"})))
+  (is (= "<a href='tel:abc-07768-13025'>abc 07768 13025</a>"
+         (render "{{p|phone:false}}" {:p "abc 07768 13025"})))
+  (is (thrown? Exception (render "{{p|phone}}" {:p "abc 07768 13025"}))))
+
 (deftest filter-subs
   (is (= "FOO ..." (render "{{f|subs:0:3:\" ...\"}}" {:f "FOO BAR"}))))
 
