@@ -579,6 +579,33 @@
 (deftest filter-upper
   (is (= "FOO" (render "{{f|upper}}" {:f "foo"}))))
 
+(deftest filter-email
+  (is (= "<a href='mailto:foo@bar.baz'>foo@bar.baz</a>"
+         (render "{{e|email}}" {:e "foo@bar.baz"})))
+  (is (= "<a href='mailto:foo@bar'>foo@bar</a>"
+         (render "{{e|email:false}}" {:e "foo@bar"})))
+  (is (thrown? Exception (render "{{e|email}}" {:e "foo@bar"}))))
+
+(deftest filter-01234
+  (is (= "<a href='tel:01234-567890'>01234 567890</a>"
+         (render "{{p|phone}}" {:p "01234 567890"})))
+  (is (= "<a href='tel:+44-1234-567890'>01234 567890</a>"
+         (render "{{p|phone:44}}" {:p "01234 567890"})))
+  (is (= "<a href='tel:01234-567890'>01234 567890</a>"
+         (render "{{p|phone:false}}" {:p "01234 567890"})))
+  (is (= "<a href='tel:+44-1234-567890'>01234 567890</a>"
+         (render "{{p|phone:44:true}}" {:p "01234 567890"})))
+  (is (= "<a href='tel:+44-1234-567890'>01234 567890</a>"
+         (render "{{p|phone:44:false}}" {:p "01234 567890"})))
+  (is (= "<a href='tel:01234-567890'>01234 567890</a>"
+         (render "{{p|phone}}" {:p "01234 567890"})))
+  (is (= "<a href='tel:abc-01234-56789'>abc 01234 56789</a>"
+         (render "{{p|phone:false}}" {:p "abc 01234 56789"})))
+  (is (thrown? Exception (render "{{p|phone}}" {:p "abc 01234 56789"})))
+  ;; if an international dialing prefix is supplied which doesn't appear
+  ;; to be valid (and we're validating), we ought to get an exception.
+  (is (thrown? Exception (render "{{p|phone:true:abc}}" {:p "01234 56789"}))))
+
 (deftest filter-subs
   (is (= "FOO ..." (render "{{f|subs:0:3:\" ...\"}}" {:f "FOO BAR"}))))
 

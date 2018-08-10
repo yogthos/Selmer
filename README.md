@@ -1,7 +1,7 @@
 Selmer
 ======
 
-[![Continuous Integration status](https://secure.travis-ci.org/yogthos/Selmer.png)](http://travis-ci.org/yogthos/Selmer) 
+[![Continuous Integration status](https://secure.travis-ci.org/yogthos/Selmer.png)](http://travis-ci.org/yogthos/Selmer)
 A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) inspired template system for Clojure.
 
 ## Installation
@@ -33,6 +33,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [default](#default)
 [default-if-empty](#default-if-empty)
 [double-format](#double-format)
+[email](#email)
 [empty?](#empty)
 [not-empty](#not-empty)
 [first](#first)
@@ -51,6 +52,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [linenumbers](#linenumbers)
 [lower](#lower)
 [name](#name)
+[phone](#phone)
 [pluralize](#pluralize)
 [rand-nth](#rand-nth)
 [remove](#remove)
@@ -429,6 +431,17 @@ An ISO 639 2-letter language code can be added as a locale.
 `(render "{{tis-a-number|double-format:2}}" {:tis-a-number 10.00001})` => `10.00`
 `(render "{{tis-a-number|double-format}}" {:tis-a-number 10.00001})` => `10.0`
 
+#### email
+Renders an email address as a selectable link.
+
+`(render "{{address|email}}" {:address "mickey@disney.com"})` => `<a href="mickey@disney.com">mickey@disney.com</a>`
+
+Nota bene, the email filter takes an optional `validate?` argument. If it is present and equal to `false`, the email filter will process any argument as above:
+
+`(render "{{address|email:false}}" {:address "this.is.not.an.email.address"})` => `<a href="this.is.not.an.email.address">this.is.not.an.email.address</a>`
+
+However, if it is not present or is present but not equal to `false`, an obviously invalid email address will cause an exception to be thrown. Validation is done by a simple regular expression; it will not catch all invalid email addresses.
+
 #### empty?
 `(render "{% if xs|empty? %}foo{% endif %}" {:xs []})` => `"foo"`
 
@@ -513,6 +526,25 @@ Displays text with line numbers.
 An ISO 639 2-letter language code can be added as a locale.
 
 `(render "{{amount|number-format:%.3f:de}}" {:amount 123.04455})` => `"123,045"`
+
+#### phone
+Renders a phone number as a selectable link, for use with telephony systems (including mobile phones).
+
+`(render "{{number|phone}}" {:number "01234 567890"})` => `"<a href='tel:01234-567890'>01234 567890</a>"`
+
+The `phone` filter takes two optional positional arguments:
+
+* `national-prefix` The [ITU-T E.123](https://en.wikipedia.org/wiki/E.123) [international subscriber dialing prefix](https://en.wikipedia.org/wiki/List_of_country_calling_codes) to prepend in place of a leading zero. Default is do not prepend.
+* `validate?` if present and equal to "false", do not throw exception if number appears invalid. Default behaviour is do throw an exception.
+
+Both arguments are optional, but because they are positional the `national-prefix` must come before `validate?` when
+both arguments are supplied.
+
+Thus:
+
+`(render "{{number|phone:44:true}}" {:number "01234 567890"})` => `"<a href='tel:+44-1234-567890'>01234 567890</a>"`
+
+Validation is done by a simple regular expression; it will not catch all invalid phone numbers.
 
 #### pluralize
 Returns the correct (English) pluralization based on the variable. This works with many words, but certainly not all (eg. foot/feet, mouse/mice, etc.)
@@ -1153,7 +1185,7 @@ the `i18n` tag:
     (->> k (keyword) (translate (or (:i18n/locale context) :en)))))
 
 (parser/render "{% i18n animals/dog %}" {})
-;=> "dog" 
+;=> "dog"
 (parser/render "{% i18n animals/dog %}" {:i18n/locale :fr})
 ;=> "chien"
 ```

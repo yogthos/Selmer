@@ -80,8 +80,8 @@ map. The rest of the arguments are optional and are always strings."
             ;;; Like the subs, only adds rest if s is modified
             :subs
             (fn [s start end & rest]
-              (let [start (parse-number start)
-                    end (parse-number end)
+              (let [start  (parse-number start)
+                    end    (parse-number end)
                     result (subs s start end)]
                 (if (and rest (not= (count s) (count result)))
                   (str result (apply str rest))
@@ -103,22 +103,22 @@ map. The rest of the arguments are optional and are always strings."
             (fn abbreviate
               ([s max-width] (abbreviate s max-width max-width))
               ([s max-width abbreviated-width]
-               (let [max-width (parse-number max-width)
+               (let [max-width         (parse-number max-width)
                      abbreviated-width (parse-number abbreviated-width)
-                     ellipsis (:abbr-ellipsis s "...")
-                     position (:abbr-position s :right)
-                     ellipsis-length (count ellipsis)
-                     effective-width (- abbreviated-width ellipsis-length)
-                     s (:s s s)         ; Extract string from map if it's not already a string
-                     width (count s)]
+                     ellipsis          (:abbr-ellipsis s "...")
+                     position          (:abbr-position s :right)
+                     ellipsis-length   (count ellipsis)
+                     effective-width   (- abbreviated-width ellipsis-length)
+                     s                 (:s s s)             ; Extract string from map if it's not already a string
+                     width             (count s)]
                  (if (< max-width abbreviated-width)
                    (throw (IllegalArgumentException.
-                           (format "Maximum width %d can't be shorter than abbreviated width %d"
-                                   max-width abbreviated-width))))
+                            (format "Maximum width %d can't be shorter than abbreviated width %d"
+                                    max-width abbreviated-width))))
                  (if (< abbreviated-width ellipsis-length)
                    (throw (IllegalArgumentException.
-                           (format "Length %d of ellipsis '%s' can't be bigger than abbreviated width %d"
-                                   ellipsis-length ellipsis abbreviated-width))))
+                            (format "Length %d of ellipsis '%s' can't be bigger than abbreviated width %d"
+                                    ellipsis-length ellipsis abbreviated-width))))
                  (if (> width max-width)
                    (case position
                      :right (str (subs s 0 effective-width) ellipsis)
@@ -126,7 +126,7 @@ map. The rest of the arguments are optional and are always strings."
                      :middle (str (subs s 0 (/ effective-width 2)) ellipsis
                                   (subs s (- width (/ effective-width 2)))))
                    s))))
-            
+
             ;;; Try to add the arguments as numbers
             ;;; If it fails concatenate them as strings
             :add
@@ -465,6 +465,45 @@ map. The rest of the arguments are optional and are always strings."
                       (s/replace opening "")
                       (s/replace closing "")))))
 
+            :email
+            ;; the `email` filter takes one positional argument:
+            ;; * validate? if present and equal to "false", do not throw exception if email appears
+            ;;        invalid. Default behaviour is do throw an exception.
+            (fn [email & [validate?]]
+              (if (or (and validate? (false? (Boolean/parseBoolean validate?)))
+                      (re-matches #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$" email))
+                [:safe (str "<a href='mailto:" email "'>" email "</a>")]
+                (throw (Exception. (str email " does not appear to be a valid email address")))))
+
+            :phone
+            ;; The `phone` filter takes two optional positional arguments:
+            ;; * national-prefix The ITU-T E.123 international subscriber dialing prefix to prepend
+            ;;        in place of a leading zero. Default is do not prepend.
+            ;; * validate? if present and equal to "false", do not throw exception if number appears
+            ;;        invalid. Default behaviour is do throw an exception.
+            ;; Both arguments are optional, when a single argument is supplied and parses as a boolean
+            ;;        it is inferred as `validate?` otherwise as `national-prefix`
+            (fn [phone & [arg1 arg2]]
+              (let [[national-prefix validate?] (cond
+                                                  ;both national-prefix and validate? flags are supplied
+                                                  (and arg1 arg2) [arg1 (case arg2 "false" false "true" true)]
+                                                  ;neither national-prefix or validate? flags are supplied
+                                                  (and (nil? arg1) (nil? arg2)) [nil true]
+                                                  ;one of the flags is supplied, if it parses as a boolean assume it's validate?
+                                                  (= arg1 "false") [nil false]
+                                                  (= arg1 "true") [nil true]
+                                                  :else [arg1 true])
+                    number (if
+                             national-prefix
+                             (s/replace
+                               phone
+                               #"^0"
+                               (str "+" national-prefix "-"))
+                             phone)]
+                (if (or (false? validate?)
+                        (re-matches #"[0-9 +-]*" number))
+                  [:safe (str "<a href='tel:" (s/replace number #"\s+" "-") "'>" phone "</a>")]
+                  (throw (Exception. (str number " does not appear to be a valid phone number"))))))
 
             :name
             name}))
