@@ -466,6 +466,9 @@ map. The rest of the arguments are optional and are always strings."
                       (s/replace closing "")))))
 
             :email
+            ;; the `email` filter takes one positional argument:
+            ;; * validate? if present and equal to "false", do not throw exception if email appears
+            ;;        invalid. Default behaviour is do throw an exception.
             (fn [email & [validate?]]
               (if (or (and validate? (false? (Boolean/parseBoolean validate?)))
                       (re-matches #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$" email))
@@ -473,14 +476,28 @@ map. The rest of the arguments are optional and are always strings."
                 (throw (Exception. (str email " does not appear to be a valid email address")))))
 
             :phone
-            (fn [phone & [validate?]]
-              (if (or (and validate? (false? (Boolean/parseBoolean validate?)))
-                      (re-matches #"[0-9 +-]*" phone))
-                [:safe (str "<a href='tel:" (s/replace phone #"\s+" "-") "'>" phone "</a>")]
-                (throw (Exception. (str phone " does not appear to be a valid phone number")))))
+            ;; The `phone` filter takes two optional positional arguments:
+            ;; * validate? if present and equal to "false", do not throw exception if number appears
+            ;;        invalid. Default behaviour is do throw an exception.
+            ;; * national-prefix The ITU-T E.123 international subscriber dialing prefix to prepend
+            ;;        in place of a leading zero. Default is do not prepend.
+            ;; Both arguments are optional, but because they are positional the `national-prefix`
+            ;; argument cannot be used unless a value for `validate?` is supplied.
+            (fn [phone & [validate? national-prefix]]
+              (let [number (if
+                             national-prefix
+                             (s/replace
+                              phone
+                              #"^0"
+                              (str "+" national-prefix "-"))
+                             phone)]
+                (if (or (and validate? (false? (Boolean/parseBoolean validate?)))
+                        (re-matches #"[0-9 +-]*" number))
+                  [:safe (str "<a href='tel:" (s/replace number #"\s+" "-") "'>" phone "</a>")]
+                  (throw (Exception. (str number " does not appear to be a valid phone number"))))))
 
-            :name
-            name}))
+              :name
+              name}))
 
 
 (defn get-filter
