@@ -1,14 +1,14 @@
-(defproject selmer "1.11.8"
+(defproject selmer "1.11.9"
   :description "Django style templates for Clojure"
   :url "https://github.com/yogthos/Selmer"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [criterium "0.4.4" :scope "test"]
-                 [joda-time "2.9.6"]
-                 [commons-codec "1.10"]
-                 [json-html "0.4.0"]
-                 [cheshire "5.6.3"]]
+                 [joda-time "2.10"]
+                 [commons-codec "1.11"]
+                 [json-html "0.4.4"]
+                 [cheshire "5.8.0"]]
 
   :aot [selmer.node]
   :javac-options ["-target" "1.6"]
