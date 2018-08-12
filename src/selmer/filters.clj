@@ -466,14 +466,15 @@ map. The rest of the arguments are optional and are always strings."
                       (s/replace closing "")))))
 
             :email
-            ;; the `email` filter takes one positional argument:
-            ;; * pp2 if present and equal to "false", do not throw exception if email appears
+            ;; the `email` filter takes one optional argument:
+            ;; * validate? if present and equal to "false", do not throw exception if email appears
             ;;        invalid. Default behaviour is do throw an exception.
             (fn [email & [validate?]]
-              (if (or (and validate? (false? (Boolean/parseBoolean validate?)))
-                      (re-matches #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$" email))
+              (if (re-matches #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$" email)
                 [:safe (str "<a href='mailto:" email "'>" email "</a>")]
-                (throw (Exception. (str email " does not appear to be a valid email address")))))
+                (if (or (nil? validate?) (Boolean/parseBoolean validate?))
+                  (throw (Exception. (str email " does not appear to be a valid email address")))
+                  email)))
 
             :phone
             ;; The `phone` filter takes two optional arguments:

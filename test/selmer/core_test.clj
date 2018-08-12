@@ -582,7 +582,7 @@
 (deftest filter-email
   (is (= "<a href='mailto:foo@bar.baz'>foo@bar.baz</a>"
          (render "{{e|email}}" {:e "foo@bar.baz"})))
-  (is (= "<a href='mailto:foo@bar'>foo@bar</a>"
+  (is (= "foo@bar"
          (render "{{e|email:false}}" {:e "foo@bar"})))
   (is (thrown? Exception (render "{{e|email}}" {:e "foo@bar"}))))
 
