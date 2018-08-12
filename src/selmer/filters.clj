@@ -467,7 +467,7 @@ map. The rest of the arguments are optional and are always strings."
 
             :email
             ;; the `email` filter takes one positional argument:
-            ;; * validate? if present and equal to "false", do not throw exception if email appears
+            ;; * pp2 if present and equal to "false", do not throw exception if email appears
             ;;        invalid. Default behaviour is do throw an exception.
             (fn [email & [validate?]]
               (if (or (and validate? (false? (Boolean/parseBoolean validate?)))
@@ -476,25 +476,42 @@ map. The rest of the arguments are optional and are always strings."
                 (throw (Exception. (str email " does not appear to be a valid email address")))))
 
             :phone
-            ;; The `phone` filter takes two optional positional arguments:
+            ;; The `phone` filter takes two optional arguments:
             ;; * validate? if present and equal to "false", do not throw exception if number appears
             ;;        invalid. Default behaviour is do throw an exception.
             ;; * national-prefix The ITU-T E.123 international subscriber dialing prefix to prepend
             ;;        in place of a leading zero. Default is do not prepend.
-            ;; Both arguments are optional, but because they are positional the `national-prefix`
-            ;; argument cannot be used unless a value for `validate?` is supplied.
-            (fn [phone & [validate? national-prefix]]
-              (let [number (if
+            ;; The arguments may be supplied in any order.
+            (fn [phone & [pp1 pp2]]
+              (let [validate?
+                    ;; if either positional parameter is equal to "true", and neither is
+                    ;; equal to "false", we validate.
+                    (or
+                     (try (= (s/lower-case pp1) "true") (catch Exception _ nil))
+                     (try (= (s/lower-case pp2) "true") (catch Exception _ nil))
+                     (and
+                      (try (not (= (s/lower-case pp1) "false")) (catch Exception _ true))
+                      (try (not (= (s/lower-case pp2) "false")) (catch Exception _ true))))
+                    ;; if the first positional parameter is neither "true" nor "false", treat that
+                    ;; as `national-prefix`, otherwise the second. The reason for doing this rather
+                    ;; than parsing an integer is that an invalid `national-prefix` should, if
+                    ;; `validate?` is true, cause an exception to be thrown.
+                    national-prefix
+                    (if (#{"true" "false"} pp1) pp2 pp1)
+                    number (if
                              national-prefix
                              (s/replace
                               phone
                               #"^0"
                               (str "+" national-prefix "-"))
                              phone)]
-                (if (or (and validate? (false? (Boolean/parseBoolean validate?)))
-                        (re-matches #"[0-9 +-]*" number))
+                (if (re-matches #"[0-9 +-]*" number)
                   [:safe (str "<a href='tel:" (s/replace number #"\s+" "-") "'>" phone "</a>")]
-                  (throw (Exception. (str number " does not appear to be a valid phone number"))))))
+                  (if validate?
+                    (throw (Exception. (str number " does not appear to be a valid phone number")))
+                    ;; if it isn't a valid number, even if we're not validating we shouldn't create
+                    ;; a selectable link which won't work.
+                    phone))))
 
               :name
               name}))
