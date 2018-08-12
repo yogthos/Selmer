@@ -52,13 +52,13 @@ map. The rest of the arguments are optional and are always strings."
 (defn throw-when-expecting-seqable
   "Throws an exception with the given msg when (seq x) will fail (excluding nil)"
   [x & [msg]]
-  (let [is-seqable (and (not (nil? x))
-                        (or (seq? x)
-                            (instance? clojure.lang.Seqable x)
-                            (string? x)
-                            (instance? Iterable x)
-                            (-> ^Object x .getClass .isArray)
-                            (instance? java.util.Map x)))
+  (let [is-seqable  (and (not (nil? x))
+                         (or (seq? x)
+                             (instance? clojure.lang.Seqable x)
+                             (string? x)
+                             (instance? Iterable x)
+                             (-> ^Object x .getClass .isArray)
+                             (instance? java.util.Map x)))
         ^String msg (if msg msg (str "Expected '" (if (nil? x) "nil" (str x)) "' to be a collection of some sort."))]
     (when-not is-seqable
       (exception msg))))
@@ -80,8 +80,8 @@ map. The rest of the arguments are optional and are always strings."
             ;;; Like the subs, only adds rest if s is modified
             :subs
             (fn [s start end & rest]
-              (let [start (parse-number start)
-                    end (parse-number end)
+              (let [start  (parse-number start)
+                    end    (parse-number end)
                     result (subs s start end)]
                 (if (and rest (not= (count s) (count result)))
                   (str result (apply str rest))
@@ -103,14 +103,14 @@ map. The rest of the arguments are optional and are always strings."
             (fn abbreviate
               ([s max-width] (abbreviate s max-width max-width))
               ([s max-width abbreviated-width]
-               (let [max-width (parse-number max-width)
+               (let [max-width         (parse-number max-width)
                      abbreviated-width (parse-number abbreviated-width)
-                     ellipsis (:abbr-ellipsis s "...")
-                     position (:abbr-position s :right)
-                     ellipsis-length (count ellipsis)
-                     effective-width (- abbreviated-width ellipsis-length)
-                     s (:s s s)                             ; Extract string from map if it's not already a string
-                     width (count s)]
+                     ellipsis          (:abbr-ellipsis s "...")
+                     position          (:abbr-position s :right)
+                     ellipsis-length   (count ellipsis)
+                     effective-width   (- abbreviated-width ellipsis-length)
+                     s                 (:s s s)             ; Extract string from map if it's not already a string
+                     width             (count s)]
                  (if (< max-width abbreviated-width)
                    (throw (IllegalArgumentException.
                             (format "Maximum width %d can't be shorter than abbreviated width %d"
@@ -179,11 +179,11 @@ map. The rest of the arguments are optional and are always strings."
             :currency-format
             (fn [n & [locale country]]
               (throw-when-expecting-number n)
-              (let [n (double n)
-                    locale (cond
-                             (and locale country) (Locale. locale country)
-                             locale (Locale. locale)
-                             :else (Locale/getDefault))
+              (let [n               (double n)
+                    locale          (cond
+                                      (and locale country) (Locale. locale country)
+                                      locale (Locale. locale)
+                                      :else (Locale/getDefault))
                     currency-format (java.text.NumberFormat/getCurrencyInstance locale)]
                 (.format ^NumberFormat currency-format n)))
 
@@ -204,9 +204,9 @@ map. The rest of the arguments are optional and are always strings."
             :date
             (fn [d fmt & [locale]]
               (when d
-                (let [fixed-date (fix-date d)
-                      locale (if locale (java.util.Locale. locale)
-                                        (Locale/getDefault))
+                (let [fixed-date             (fix-date d)
+                      locale                 (if locale (java.util.Locale. locale)
+                                                        (Locale/getDefault))
                       ^DateTimeFormatter fmt (.withLocale
                                                (or ^DateTimeFormatter (valid-date-formats fmt)
                                                    ^DateTimeFormatter (DateTimeFormat/forPattern fmt)) locale)]
@@ -262,8 +262,8 @@ map. The rest of the arguments are optional and are always strings."
             :get-digit
             (fn [n i]
               (let [nv (vec (str n))
-                    i (Long/valueOf ^String i)
-                    i (- (count nv) i)]
+                    i  (Long/valueOf ^String i)
+                    i  (- (count nv) i)]
                 (if (or (< i 0) (>= i (count nv)))
                   n
                   (let [d (nv i)]
@@ -339,10 +339,10 @@ map. The rest of the arguments are optional and are always strings."
             ;;; Single newlines become <br />, double newlines mean new paragraph
             :linebreaks
             (fn [s]
-              (let [s (str s)
+              (let [s  (str s)
                     br (s/replace s #"\n" "<br />")
-                    p (s/replace br #"<br /><br />" "</p><p>")
-                    c (s/replace p #"<p>$" "")]
+                    p  (s/replace br #"<br /><br />" "</p><p>")
+                    c  (s/replace p #"<p>$" "")]
                 (if (re-seq #"</p>$" c)
                   (str "<p>" c)
                   (str "<p>" c "</p>"))))
@@ -371,7 +371,7 @@ map. The rest of the arguments are optional and are always strings."
             ;;; That are removed from the context string
             :remove
             (fn [s to-remove]
-              (let [s (str s)
+              (let [s         (str s)
                     to-remove (set to-remove)]
                 (apply str (remove to-remove s))))
 
@@ -381,13 +381,13 @@ map. The rest of the arguments are optional and are always strings."
             ;;; You have {{ num-messages }} message{{ num-messages|pluralize }}
             :pluralize
             (fn [n-or-coll & opts]
-              (let [n (if (number? n-or-coll) n-or-coll
-                                              (do (throw-when-expecting-seqable n-or-coll)
-                                                  (count n-or-coll)))
-                    plural (case (count opts)
-                             0 "s"
-                             1 (first opts)
-                             2 (second opts))
+              (let [n        (if (number? n-or-coll) n-or-coll
+                                                     (do (throw-when-expecting-seqable n-or-coll)
+                                                         (count n-or-coll)))
+                    plural   (case (count opts)
+                               0 "s"
+                               1 (first opts)
+                               2 (second opts))
                     singular (case (count opts)
                                (list 0 1) ""
                                2 (first opts))]
@@ -441,8 +441,8 @@ map. The rest of the arguments are optional and are always strings."
             :between?
             (fn [val x y]
               (let [val (parse-number val)
-                    x (parse-number x)
-                    y (parse-number y)]
+                    x   (parse-number x)
+                    y   (parse-number y)]
                 [:safe (if (<= x y)
                          (<= x val y)
                          (<= y val x))]))
@@ -457,8 +457,8 @@ map. The rest of the arguments are optional and are always strings."
             (fn [s & tags]
               (if-not tags
                 s
-                (let [s (str s)
-                      tags (str "(" (s/join "|" tags) ")")
+                (let [s       (str s)
+                      tags    (str "(" (s/join "|" tags) ")")
                       opening (re-pattern (str "(?i)<" tags "(/?>|(\\s+[^>]*>))"))
                       closing (re-pattern (str "(?i)</" tags ">"))]
                   (-> s
@@ -467,7 +467,7 @@ map. The rest of the arguments are optional and are always strings."
 
             :email
             ;; the `email` filter takes one positional argument:
-            ;; * pp2 if present and equal to "false", do not throw exception if email appears
+            ;; * validate? if present and equal to "false", do not throw exception if email appears
             ;;        invalid. Default behaviour is do throw an exception.
             (fn [email & [validate?]]
               (if (or (and validate? (false? (Boolean/parseBoolean validate?)))
@@ -476,7 +476,7 @@ map. The rest of the arguments are optional and are always strings."
                 (throw (Exception. (str email " does not appear to be a valid email address")))))
 
             :phone
-            ;; The `phone` filter takes two optional arguments:
+<           ;; The `phone` filter takes two optional arguments:
             ;; * validate? if present and equal to "false", do not throw exception if number appears
             ;;        invalid. Default behaviour is do throw an exception.
             ;; * national-prefix The ITU-T E.123 international subscriber dialing prefix to prepend
@@ -515,7 +515,6 @@ map. The rest of the arguments are optional and are always strings."
 
               :name
               name}))
-
 
 (defn get-filter
   [name]
