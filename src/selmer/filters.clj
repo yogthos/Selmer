@@ -477,7 +477,7 @@ map. The rest of the arguments are optional and are always strings."
                   email)))
 
             :phone
-<           ;; The `phone` filter takes two optional arguments:
+            ;; The `phone` filter takes two optional arguments:
             ;; * validate? if present and equal to "false", do not throw exception if number appears
             ;;        invalid. Default behaviour is do throw an exception.
             ;; * national-prefix The ITU-T E.123 international subscriber dialing prefix to prepend
