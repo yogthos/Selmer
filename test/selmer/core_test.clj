@@ -582,29 +582,42 @@
 (deftest filter-email
   (is (= "<a href='mailto:foo@bar.baz'>foo@bar.baz</a>"
          (render "{{e|email}}" {:e "foo@bar.baz"})))
-  (is (= "<a href='mailto:foo@bar'>foo@bar</a>"
+  (is (= "foo@bar"
          (render "{{e|email:false}}" {:e "foo@bar"})))
   (is (thrown? Exception (render "{{e|email}}" {:e "foo@bar"}))))
 
-(deftest filter-01234
+(deftest filter-phone
   (is (= "<a href='tel:01234-567890'>01234 567890</a>"
          (render "{{p|phone}}" {:p "01234 567890"})))
+  ;; just the prefix...
   (is (= "<a href='tel:+44-1234-567890'>01234 567890</a>"
          (render "{{p|phone:44}}" {:p "01234 567890"})))
-  (is (= "<a href='tel:01234-567890'>01234 567890</a>"
-         (render "{{p|phone:false}}" {:p "01234 567890"})))
+  ;; prefix and 'true' in either order should return the same
+  (is (= "<a href='tel:+44-1234-567890'>01234 567890</a>"
+         (render "{{p|phone:true:44}}" {:p "01234 567890"})))
   (is (= "<a href='tel:+44-1234-567890'>01234 567890</a>"
          (render "{{p|phone:44:true}}" {:p "01234 567890"})))
+  ;; prefix and 'false' in either order should return the same
+  (is (= "<a href='tel:+44-1234-567890'>01234 567890</a>"
+         (render "{{p|phone:false:44}}" {:p "01234 567890"})))
   (is (= "<a href='tel:+44-1234-567890'>01234 567890</a>"
          (render "{{p|phone:44:false}}" {:p "01234 567890"})))
-  (is (= "<a href='tel:01234-567890'>01234 567890</a>"
-         (render "{{p|phone}}" {:p "01234 567890"})))
-  (is (= "<a href='tel:abc-01234-56789'>abc 01234 56789</a>"
+  (is (= "abc 01234 56789"
          (render "{{p|phone:false}}" {:p "abc 01234 56789"})))
   (is (thrown? Exception (render "{{p|phone}}" {:p "abc 01234 56789"})))
-  ;; if an international dialing prefix is supplied which doesn't appear
-  ;; to be valid (and we're validating), we ought to get an exception.
-  (is (thrown? Exception (render "{{p|phone:true:abc}}" {:p "01234 56789"}))))
+  ;; two boolean values should cause exception to be thrown, if the either is true.
+  (is (thrown? Exception (render "{{p|phone:true:true}}" {:p "01234 56789"})))
+  (is (thrown? Exception (render "{{p|phone:true:false}}" {:p "01234 56789"})))
+  (is (thrown? Exception (render "{{p|phone:false:true}}" {:p "01234 56789"})))
+  ;; but not if both are false
+  (is (= "01234 56789"
+         (render "{{p|phone:false:false}}" {:p "01234 56789"})))
+  ;; An argument which is neither boolean nor numeric should cause an exception
+  ;; to be thrown, if either is true.
+  (is (thrown? Exception
+               (render "{{p|phone:true:abc}}" {:p "01234 56789"})))
+  (is (thrown? Exception
+               (render "{{p|phone:abc:true}}" {:p "01234 56789"}))))
 
 (deftest filter-subs
   (is (= "FOO ..." (render "{{f|subs:0:3:\" ...\"}}" {:f "FOO BAR"}))))

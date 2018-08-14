@@ -466,48 +466,56 @@ map. The rest of the arguments are optional and are always strings."
                       (s/replace closing "")))))
 
             :email
-            ;; the `email` filter takes one positional argument:
+            ;; the `email` filter takes one optional argument:
             ;; * validate? if present and equal to "false", do not throw exception if email appears
             ;;        invalid. Default behaviour is do throw an exception.
             (fn [email & [validate?]]
-              (if (or (and validate? (false? (Boolean/parseBoolean validate?)))
-                      (re-matches #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$" email))
+              (if (re-matches #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}$" email)
                 [:safe (str "<a href='mailto:" email "'>" email "</a>")]
-                (throw (Exception. (str email " does not appear to be a valid email address")))))
+                (if (or (nil? validate?) (Boolean/parseBoolean validate?))
+                  (throw (Exception. (str email " does not appear to be a valid email address")))
+                  email)))
 
             :phone
-            ;; The `phone` filter takes two optional positional arguments:
-            ;; * national-prefix The ITU-T E.123 international subscriber dialing prefix to prepend
-            ;;        in place of a leading zero. Default is do not prepend.
+            ;; The `phone` filter takes two optional arguments:
             ;; * validate? if present and equal to "false", do not throw exception if number appears
             ;;        invalid. Default behaviour is do throw an exception.
-            ;; Both arguments are optional, when a single argument is supplied and parses as a boolean
-            ;;        it is inferred as `validate?` otherwise as `national-prefix`
-            (fn [phone & [arg1 arg2]]
-              (let [[national-prefix validate?] (cond
-                                                  ;both national-prefix and validate? flags are supplied
-                                                  (and arg1 arg2) [arg1 (case arg2 "false" false "true" true)]
-                                                  ;neither national-prefix or validate? flags are supplied
-                                                  (and (nil? arg1) (nil? arg2)) [nil true]
-                                                  ;one of the flags is supplied, if it parses as a boolean assume it's validate?
-                                                  (= arg1 "false") [nil false]
-                                                  (= arg1 "true") [nil true]
-                                                  :else [arg1 true])
+            ;; * national-prefix The ITU-T E.123 international subscriber dialing prefix to prepend
+            ;;        in place of a leading zero. Default is do not prepend.
+            ;; The arguments may be supplied in any order.
+            (fn [phone & [pp1 pp2]]
+              (let [validate?
+                    ;; if either positional parameter is equal to "true", and neither is
+                    ;; equal to "false", we validate.
+                    (or
+                     (try (= (s/lower-case pp1) "true") (catch Exception _ nil))
+                     (try (= (s/lower-case pp2) "true") (catch Exception _ nil))
+                     (and
+                      (try (not (= (s/lower-case pp1) "false")) (catch Exception _ true))
+                      (try (not (= (s/lower-case pp2) "false")) (catch Exception _ true))))
+                    ;; if the first positional parameter is neither "true" nor "false", treat that
+                    ;; as `national-prefix`, otherwise the second. The reason for doing this rather
+                    ;; than parsing an integer is that an invalid `national-prefix` should, if
+                    ;; `validate?` is true, cause an exception to be thrown.
+                    national-prefix
+                    (if (#{"true" "false"} pp1) pp2 pp1)
                     number (if
                              national-prefix
                              (s/replace
-                               phone
-                               #"^0"
-                               (str "+" national-prefix "-"))
+                              phone
+                              #"^0"
+                              (str "+" national-prefix "-"))
                              phone)]
-                (if (or (false? validate?)
-                        (re-matches #"[0-9 +-]*" number))
+                (if (re-matches #"[0-9 +-]*" number)
                   [:safe (str "<a href='tel:" (s/replace number #"\s+" "-") "'>" phone "</a>")]
-                  (throw (Exception. (str number " does not appear to be a valid phone number"))))))
+                  (if validate?
+                    (throw (Exception. (str number " does not appear to be a valid phone number")))
+                    ;; if it isn't a valid number, even if we're not validating we shouldn't create
+                    ;; a selectable link which won't work.
+                    phone))))
 
-            :name
-            name}))
-
+              :name
+              name}))
 
 (defn get-filter
   [name]

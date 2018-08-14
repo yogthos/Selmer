@@ -532,19 +532,22 @@ Renders a phone number as a selectable link, for use with telephony systems (inc
 
 `(render "{{number|phone}}" {:number "01234 567890"})` => `"<a href='tel:01234-567890'>01234 567890</a>"`
 
-The `phone` filter takes two optional positional arguments:
+The `phone` filter takes two optional arguments:
 
-* `national-prefix` The [ITU-T E.123](https://en.wikipedia.org/wiki/E.123) [international subscriber dialing prefix](https://en.wikipedia.org/wiki/List_of_country_calling_codes) to prepend in place of a leading zero. Default is do not prepend.
 * `validate?` if present and equal to "false", do not throw exception if number appears invalid. Default behaviour is do throw an exception.
+* `national-prefix` The [ITU-T E.123](https://en.wikipedia.org/wiki/E.123) [international subscriber dialing prefix](https://en.wikipedia.org/wiki/List_of_country_calling_codes) to prepend in place of a leading zero. Default is do not prepend.
 
-Both arguments are optional, but because they are positional the `national-prefix` must come before `validate?` when
-both arguments are supplied.
+The arguments are both optional, and may be supplied in either order.
 
 Thus:
 
-`(render "{{number|phone:44:true}}" {:number "01234 567890"})` => `"<a href='tel:+44-1234-567890'>01234 567890</a>"`
+`(render "{{number|phone:true:44}}" {:number "01234 567890"})` => `"<a href='tel:+44-1234-567890'>01234 567890</a>"`
 
-Validation is done by a simple regular expression; it will not catch all invalid phone numbers.
+Validation is done by a simple regular expression; it will not catch all invalid phone numbers. **Note that**, if `validate?` is supplied and is equal to false, an obviously invalid number will nevertheless not be formatted as a selectable link.
+
+Thus
+
+`(render "{{number|phone:false:44}}" {:number "not-a-number"})` => `"not-a-number"`
 
 #### pluralize
 Returns the correct (English) pluralization based on the variable. This works with many words, but certainly not all (eg. foot/feet, mouse/mice, etc.)
