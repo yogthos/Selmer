@@ -214,7 +214,6 @@
   (let [content (get-in (tag-content rdr :block :endblock) [:block :content])]
     (fn [context-map] (render content context-map))))
 
-
 (defn sum-handler [args _ _ _]
   (fn [context-map]
     (reduce + (map (fn [val]
@@ -277,9 +276,9 @@
 (defn- build-uri-for-script-or-style-tag
   "Accepts `uri` passed in as first argument to {% script %} or {% style %} tag
   and context map. Returns string - new URI built with value of
-  `servlet-context` context parameter in mind. `uri` can be a string literal or
+  `selmer/context` context parameter in mind. `uri` can be a string literal or
   name of context parameter (filters also supported)."
-  [^String uri {:keys [servlet-context] :as context-map}]
+  [^String uri {context :selmer/context :as context-map}]
   (let [literal? (and (.startsWith uri "\"") (.endsWith uri "\""))
         uri
         (if literal?
@@ -287,13 +286,13 @@
           (-> uri                    ; case of {% style context-param|some-filter:arg1:arg2 %}
               (compile-filter-body)
               (apply [context-map])))]
-    (-> servlet-context (str uri) (.replace "//" "/"))))
+    (-> context (str uri) (.replace "//" "/"))))
 
 (defn script-handler
   "Returns function that renders HTML `<SCRIPT/>` tag. Accepts `uri` that would
   be used to build value for 'src' attribute of generated tag and variable
   number of optional arguments. Value for 'src' attribute is built accounting
-  value of `servlet-context` context parameter and `uri` can be a string literal
+  value of `selmer/context` context parameter and `uri` can be a string literal
   or name of context parameter (filters also supported). Optional arguments are:
   * `async` - when evaluates to logical true then 'async' attribute would be
     added to generated tag."
@@ -303,7 +302,7 @@
              (mapcat #(.split ^String % "="))
              (remove #{"="})
              (compile-args))]
-    (fn [{:keys [servlet-context] :as context-map}]
+    (fn [context-map]
       (let [args
             (reduce
              (fn [context-map [k v]]
@@ -317,11 +316,11 @@
 (defn style-handler
   "Returns function that renders HTML `<LINK/>` tag. Accepts `uri` that would
   be used to build value for 'href' attribute of generated tag. Value for 'href'
-  attribute is built accounting value of `servlet-context` context parameter and
+  attribute is built accounting value of `selmer/context` context parameter and
   `uri` can be a string literal or name of context parameter (filters also
   supported)."
   [[^String uri] _ _ _]
-  (fn [{:keys [servlet-context] :as context-map}]
+  (fn [context-map]
     (let [href-attr-val (build-uri-for-script-or-style-tag uri context-map)]
       (str "<link href=\"" href-attr-val "\" rel=\"stylesheet\" type=\"text/css\" />"))))
 

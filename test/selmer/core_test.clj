@@ -299,22 +299,22 @@
       (render "{% script \"/js/site.js\" %}" {})))
   (is
    (= "<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
-      (render "{% script \"/js/site.js\" %}" {:servlet-context "/myapp"})))
+      (render "{% script \"/js/site.js\" %}" {:selmer/context "/myapp"})))
   (is
    (= "<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
-      (render "{% script path %}" {:servlet-context "/myapp" :path "/js/site.js"})))
+      (render "{% script path %}" {:selmer/context "/myapp" :path "/js/site.js"})))
   (is
    (= "<script src=\"/myapp/JS/SITE.JS\" type=\"text/javascript\"></script>"
-      (render "{% script path|upper %}" {:servlet-context "/myapp" :path "/js/site.js"})))
+      (render "{% script path|upper %}" {:selmer/context "/myapp" :path "/js/site.js"})))
   (is
    (= "<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
-      (render "{% style \"/css/screen.css\" %}" {:servlet-context "/myapp"})))
+      (render "{% style \"/css/screen.css\" %}" {:selmer/context "/myapp"})))
   (is
    (= "<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
-      (render "{% style path %}" {:servlet-context "/myapp" :path "/css/screen.css"})))
+      (render "{% style path %}" {:selmer/context "/myapp" :path "/css/screen.css"})))
   (is
    (= "<link href=\"/myapp/CSS/SCREEN.CSS\" rel=\"stylesheet\" type=\"text/css\" />"
-      (render "{% style path|upper %}" {:servlet-context "/myapp" :path "/css/screen.css"}))))
+      (render "{% style path|upper %}" {:selmer/context "/myapp" :path "/css/screen.css"}))))
 
 (deftest script-async
   (is

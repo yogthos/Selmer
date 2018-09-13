@@ -876,43 +876,43 @@ Note, the escaping of variables can also be controlled through the dynamic bindi
 
 #### script
 
-The script tag will generate an HTML script tag and prepend the value of the `servlet-context` key
-to the URI. When `servlet-context` key is not present then the original URI is set.
+The script tag will generate an HTML script tag and prepend the value of the `selmer/context` key
+to the URI. When `selmer/context` key is not present then the original URI is set.
 
-`(render "{% script \"/js/site.js\" %}" {:servlet-context "/myapp"})` =>
+`(render "{% script \"/js/site.js\" %}" {:selmer/context "/myapp"})` =>
 ```
 "<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
 ```
 
 Since 1.11.1 URI can be a name of context parameter with optional filters.
 
-`(render "{% script path %}" {:servlet-context "/myapp" :path "/js/site.js"})` =>
+`(render "{% script path %}" {:selmer/context "/myapp" :path "/js/site.js"})` =>
 ```
 "<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
 ```
 
-`(render "{% script path|upper %}" {:servlet-context "/myapp" :path "/js/site.js"})` =>
+`(render "{% script path|upper %}" {:selmer/context "/myapp" :path "/js/site.js"})` =>
 ```
 "<script src=\"/myapp/JS/SITE.JS\" type=\"text/javascript\"></script>"
 ```
 #### style
 
-The style tag will generate an HTML style tag and prepend the value of the `servlet-context` key
-to the URI. When `servlet-context` key is not present then the original URI is set.
+The style tag will generate an HTML style tag and prepend the value of the `selmer/context` key
+to the URI. When `selmer/context` key is not present then the original URI is set.
 
-`(render "{% style \"/css/screen.css\" %}" {:servlet-context "/myapp"})` =>
+`(render "{% style \"/css/screen.css\" %}" {:selmer/context "/myapp"})` =>
 ```
 "<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
 ```
 
 Since 1.11.1 URI can be a name of context parameter with optional filters.
 
-`(render "{% style path %}" {:servlet-context "/myapp" :path "/css/screen.css"})` =>
+`(render "{% style path %}" {:selmer/context "/myapp" :path "/css/screen.css"})` =>
 ```
 "<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
 ```
 
-`(render "{% style path|upper %}" {:servlet-context "/myapp" :path "/css/screen.css"})` =>
+`(render "{% style path|upper %}" {:selmer/context "/myapp" :path "/css/screen.css"})` =>
 ```
 "<link href=\"/myapp/CSS/SCREEN.CSS\" rel=\"stylesheet\" type=\"text/css\" />"
 ```
