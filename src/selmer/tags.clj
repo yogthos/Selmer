@@ -96,10 +96,11 @@
     false false
     true))
 
-(defn if-default-handler [[condition1 condition2] if-tags else-tags render]
+(defn if-default-handler
   " Handler of if-condition tags. Expects conditions, enclosed
   tag-content, render boolean. Returns anonymous fn that will expect
   runtime context-map. (Separate from compile-time) "
+  [[condition1 condition2] if-tags else-tags render]
   (let [not?      (and condition1 condition2 (= condition1 "not"))
         condition (compile-filter-body (or condition2 condition1))]
     (fn [context-map]

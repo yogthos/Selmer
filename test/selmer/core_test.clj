@@ -337,9 +337,9 @@
                {:range (range 5)}))))
 
 (deftest render-test
-  (= "<ul><li>0</li><li>1</li><li>2</li><li>3</li><li>4</li></ul>"
-     (render-template (parse parse-input (java.io.StringReader. "<ul>{% for item in items %}<li>{{item}}</li>{% endfor %}</ul>"))
-                      {:items (range 5)})))
+  (is (= "<ul><li>0</li><li>1</li><li>2</li><li>3</li><li>4</li></ul>"
+         (render-template (parse parse-input (java.io.StringReader. "<ul>{% for item in items %}<li>{{item}}</li>{% endfor %}</ul>"))
+                          {:items (range 5)}))))
 
 (deftest nested-forloop-first
   (is (= (render (str "{% for x in list1 %}"
@@ -412,7 +412,8 @@
        (render "{% if x > 2 %}bigger{% endif %}" {:v 3})))
   (is
     (= "ok"
-       (render "{% if x = 2.0 %}ok{% endif %}" {:x 2}))
+       (render "{% if x = 2.0 %}ok{% endif %}" {:x 2})))
+  (is
     (= "ok"
        (render "{% if x|length = 5 %}ok{% endif %}" {:x (range 5)})))
   (is
@@ -497,14 +498,14 @@
          "before bar foo & bar are true after bar")))
 
 (deftest ifequal-tag-test
-  (= "\n<h1>equal!</h1>\n\n\n\n<p>not equal</p>\n"
-     (render-template (parse parse-input (str path "ifequal.html")) {:foo "bar"}))
-  (= "\n\n<h1>equal!</h1>\n\n\n<p>not equal</p>\n"
-     (render-template (parse parse-input (str path "ifequal.html")) {:foo "baz" :bar "baz"}))
-  (= "\n\n<h1>equal!</h1>\n\n\n<h1>equal!</h1>\n"
-     (render-template (parse parse-input (str path "ifequal.html")) {:baz "test"}))
-  (= "\n\n<h1>equal!</h1>\n\n\n<p>not equal</p>\n"
-     (render-template (parse parse-input (str path "ifequal.html")) {:baz "fail"}))
+  (is (= "\n<h1>equal!</h1>\n\n\n\n\n\n<p>not equal</p>\n\n"
+         (render-template (parse parse-input (str path "ifequal.html")) {:foo "bar"})))
+  (is (= "\n\n\n<h1>equal!</h1>\n\n\n\n<p>not equal</p>\n\n"
+         (render-template (parse parse-input (str path "ifequal.html")) {:foo "baz" :bar "baz"})))
+  (is (= "\n\n\n<h1>equal!</h1>\n\n\n\n<h1>equal!</h1>\n\n"
+         (render-template (parse parse-input (str path "ifequal.html")) {:baz "test"})))
+  (is (= "\n\n\n<h1>equal!</h1>\n\n\n\n<p>not equal</p>\n\n"
+         (render-template (parse parse-input (str path "ifequal.html")) {:baz "fail"})))
 
   (is (= (render "{% ifequal foo|upper \"FOO\" %}yez{% endifequal %}" {:foo "foo"})
          "yez"))
@@ -779,7 +780,7 @@
   (is (= "ACBD18DB4CC2F85CEDEF654FCCC4A4D8"
          (render "{{f|hash:\"md5\"|upper}}" {:f "foo"}))))
 
-(deftest filter-add
+(deftest filter-add-2
   (testing "Adds numbers"
     (is (= "40"
            (render "{{seed|add:1:2:3}}" {:seed 34})))
@@ -803,7 +804,7 @@
   (is (= "bar bar test bar ..."
          (render "{{foo|replace:foo:bar}}" {:foo "foo foo test foo ..."}))))
 
-(deftest filter-add
+(deftest filter-add-3
   (is (= "5.1"
          (render "{{foo|add:2.1}}" {:foo 3})))
   (is (= "4.66"
@@ -883,7 +884,7 @@
          (render "{{name|default:@foo.bar.baz}}" {:name nil :foo {:bar {:baz "quux"}}}))))
 
 (deftest custom-resource-path-setting
-  (is nil? *custom-resource-path*)
+  (is (nil? *custom-resource-path*))
   (do
     (set-resource-path! "/some/path")
     (is (= "file:////some/path/" *custom-resource-path*)))
@@ -892,7 +893,7 @@
   (do (set-resource-path! "file:////any/other/path/")
     (is (= "file:////any/other/path/" *custom-resource-path*)))
   (set-resource-path! nil)
-  (is nil? *custom-resource-path*))
+  (is (nil? *custom-resource-path*)))
 
 (deftest custom-resource-path-setting-url
   (set-resource-path! (clojure.java.io/resource "templates/inheritance"))
@@ -1022,8 +1023,8 @@
                                             (str "<missing value: " (:tag-value tag) ">")
                                             (str "<missing value: " (:tag-name tag) ">")))
               *filter-missing-values* false]
-      (is (= "Hi <missing value: name>" (render "Hi {{name}}" {}))
-          (= "Hi mr. <missing value: name.lastname>" (render "Hi mr. {{name.lastname}}" {})))
+      (is (= "Hi <missing value: name>" (render "Hi {{name}}" {})))
+      (is (= "Hi mr. <missing value: name.lastname>" (render "Hi mr. {{name.lastname}}" {})))
 
       (let [custom-tag-handler (tag-handler
                                  (fn [_ context-map]

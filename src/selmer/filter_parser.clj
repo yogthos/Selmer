@@ -18,8 +18,8 @@ arguments."
 
 ;;; More Utils
 (defn escape-html*
-  [^String s]
   "HTML-escapes the given string. Escapes the same characters as django's escape."
+  [^String s]
   ;; This method is "Java in Clojure" for serious speedups.
   ;; Stolen from davidsantiago/quoin and modified.
   (if *escape-variables*
@@ -141,8 +141,9 @@ applied filter."
   (let [v (get m k)]
     (if (instance? Boolean v) (str v) v)))
 
-(defn get-accessor [m k]
+(defn get-accessor
   "Returns the value of `k` from map `m`, either as a keyword or string lookup."
+  [m k]
   (or (get-val m k)
       (when (keyword? k)
         (if-let [n (namespace k)]
