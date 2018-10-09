@@ -7,7 +7,7 @@
                  [criterium "0.4.4" :scope "test"]
                  [joda-time "2.10"]
                  [commons-codec "1.11"]
-                 [json-html "0.4.4"]
+                 [json-html "0.4.4" :exclusions [hiccups]]
                  [cheshire "5.8.0"]]
 
   :aot [selmer.node]
