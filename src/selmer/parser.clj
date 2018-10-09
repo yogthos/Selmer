@@ -91,8 +91,9 @@
 ;; render-template renders at runtime, accepts
 ;; post-parsing vectors of INode elements.
 
-(defn render-template [template context-map]
+(defn render-template
   " vector of ^selmer.node.INodes and a context map."
+  [template context-map]
   (let [buf (StringBuilder.)]
     (doseq [^selmer.node.INode element template]
         (if-let [value (.render-node element context-map)]
@@ -100,8 +101,9 @@
           (.append buf (*missing-value-formatter* (:tag (meta element)) context-map))))
     (.toString buf)))
 
-(defn render [s context-map & [opts]]
+(defn render
   " render takes the string, the context-map and possibly also opts. "
+  [s context-map & [opts]]
   (render-template (parse parse-input (java.io.StringReader. s) opts) context-map))
 
 
@@ -111,13 +113,14 @@
 ;; map and potentially opts. Smart (last-modified timestamp)
 ;; auto-memoization of compiler output.
 
-(defn render-file [filename-or-url context-map & [{:keys [cache custom-resource-path]
-                                            :or  {cache @cache?
-                                                  custom-resource-path *custom-resource-path*}
-                                            :as opts}]]
+(defn render-file
   " Parses files if there isn't a memoized post-parse vector ready to go,
   renders post-parse vector with passed context-map regardless. Double-checks
   last-modified on files. Uses classpath for filename-or-url path "
+  [filename-or-url context-map & [{:keys [cache custom-resource-path]
+                                   :or  {cache @cache?
+                                         custom-resource-path *custom-resource-path*}
+                                   :as opts}]]
   (binding [*custom-resource-path* (make-resource-path custom-resource-path)]
     (if-let [resource (resource-path filename-or-url)]
       (let [{:keys [template last-modified]} (get @templates resource)
@@ -150,8 +153,9 @@
 ;; (-> {:data-var "woohoo"} upper safe) => "WOOHOO"
 ;; Happens at compile-time.
 
-(defn filter-tag [{:keys [tag-value]}]
+(defn filter-tag
   " Compile-time parser of var tag filters. "
+  [{:keys [tag-value]}]
   (compile-filter-body tag-value))
 
 ;; Generally either a filter tag, if tag, ifequal,
