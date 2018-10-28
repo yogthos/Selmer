@@ -552,7 +552,7 @@
   ;; .render-node should return an integer as add is defined as a safe filter
   (is (= 48 (-> (parse parse-input
                          (StringReader. "{{seed|add:1:2:3}}"))
-                  first
+                  ^selmer.node.INode first
                   (.render-node {:seed 42})))))
 
 (deftest filter-tag-test
