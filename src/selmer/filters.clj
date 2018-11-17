@@ -6,33 +6,54 @@ map. The rest of the arguments are optional and are always strings."
             [cheshire.core :as json :only [generate-string]]
             [selmer.util :refer [exception]])
   (:import java.util.Locale
-           org.joda.time.DateTime
+           [java.time Instant
+                      LocalTime
+                      LocalDate
+                      LocalDateTime
+                      ZonedDateTime
+                      ZoneId]
+           java.time.format.DateTimeFormatter
            java.text.NumberFormat
-           [org.joda.time.format DateTimeFormat DateTimeFormatter]
            [org.apache.commons.codec.digest DigestUtils]))
 
 (def valid-date-formats
-  {"shortDate"      (DateTimeFormat/shortDate)
-   "shortTime"      (DateTimeFormat/shortTime)
-   "shortDateTime"  (DateTimeFormat/shortDateTime)
-   "mediumDate"     (DateTimeFormat/mediumDate)
-   "mediumTime"     (DateTimeFormat/mediumTime)
-   "mediumDateTime" (DateTimeFormat/mediumDateTime)
-   "longDate"       (DateTimeFormat/longDate)
-   "longTime"       (DateTimeFormat/longTime)
-   "longDateTime"   (DateTimeFormat/longDateTime)
-   "fullDate"       (DateTimeFormat/fullDate)
-   "fullTime"       (DateTimeFormat/fullTime)
-   "fullDateTime"   (DateTimeFormat/fullDateTime)
-   })
+  {"shortTime" (DateTimeFormatter/ofPattern "HH:mm")
+   "shortDate" (DateTimeFormatter/ofPattern "dd/MM/yy")
+   "shortDateTime" (DateTimeFormatter/ofPattern "dd/MM/yy HH:mm")
+   "mediumDate" (DateTimeFormatter/ofPattern "dd-MMM-yy")
+   "mediumTime" (DateTimeFormatter/ofPattern "HH:mm:ss")
+   "mediumDateTime" (DateTimeFormatter/ofPattern "dd-MMM-yy HH:mm:ss")
+   "longDate" (DateTimeFormatter/ofPattern "MMMM dd, yyyy")
+   "longTime" (DateTimeFormatter/ofPattern "HH:mm:ss z")
+   "longDateTime" (DateTimeFormatter/ofPattern "MMMM dd, yyyy HH:mm:ss z")
+   "fullDate" (DateTimeFormatter/ofPattern "EEEE, MMMM dd, yyyy")
+   "fullTime" (DateTimeFormatter/ofPattern "HH:mm:ss 'o''clock' z")
+   "fullDateTime" (DateTimeFormatter/ofPattern "EEEE, MMMM dd, yyyy HH:mm:ss 'o''clock' z")})
 
-(defn ^DateTime fix-date [d]
-  (cond (instance? DateTime d) d
-        (instance? java.util.Date d) (DateTime. d)
+(defn fix-date [d]
+  (cond (or (instance? LocalTime d)
+            (instance? LocalDate d)
+            (instance? LocalDateTime d)
+            (instance? ZonedDateTime d))
+        d
+
+        (instance? java.sql.Time d)
+        (-> (.getTime ^java.sql.Time d)
+            (Instant/ofEpochMilli)
+            (LocalDateTime/ofInstant (ZoneId/systemDefault)))
+
+        (instance? java.sql.Timestamp d)
+        (-> (.getTime ^java.sql.Timestamp d)
+            (Instant/ofEpochMilli)
+            (LocalDateTime/ofInstant (ZoneId/systemDefault)))
+
+        (instance? java.util.Date d)
+        (-> (.toInstant ^java.util.Date d)
+            (.atZone (ZoneId/systemDefault))
+            (.toLocalDateTime))
+
         :else
-        (try (DateTime. d)
-             (catch Exception _
-               (throw (IllegalArgumentException. (str d " is not a valid date format.")))))))
+        (throw (IllegalArgumentException. (str d " is not a valid date format.")))))
 
 (defn parse-number
   "Parses a number to Long or Double. Throws NumberFormatException if value cannot be converted to Long or Double."
@@ -209,8 +230,8 @@ map. The rest of the arguments are optional and are always strings."
                                                         (Locale/getDefault))
                       ^DateTimeFormatter fmt (.withLocale
                                                (or ^DateTimeFormatter (valid-date-formats fmt)
-                                                   ^DateTimeFormatter (DateTimeFormat/forPattern fmt)) locale)]
-                  (.print fmt fixed-date))))
+                                                   ^DateTimeFormatter (DateTimeFormatter/ofPattern fmt)) locale)]
+                  (.format fmt fixed-date))))
 
             ;;; Default if x is falsey
             :default
