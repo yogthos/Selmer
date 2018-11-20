@@ -47,6 +47,9 @@ map. The rest of the arguments are optional and are always strings."
             (Instant/ofEpochMilli)
             (LocalDateTime/ofInstant (ZoneId/systemDefault)))
 
+        (instance? java.sql.Date d)
+        (.toLocalDate ^java.sql.Date d)
+
         (instance? java.util.Date d)
         (-> (.toInstant ^java.util.Date d)
             (.atZone (ZoneId/systemDefault))
