@@ -398,21 +398,21 @@ Additionally, the locale can be followed by the country code.
 `"{{amount|currency-format:de:DE}}" {:amount 123})` => `"€ 123,00"`
 
 #### date
-Valid predefined date, time formats: `shortDate` `shortTime` `shortDateTime` `mediumDate` `mediumTime` `mediumDateTime` `longDate` `longTime` `longDateTime` `fullDate` `fullTime` `fullDateTime`
+Format a date. Supports a number of predefined formats, whose output may differ according to the current locale and / or JVM version. Valid formats are: `shortDate`, `shortTime`, `shortDateTime`, `mediumDate`, `mediumTime`, `mediumDateTime`, `longDate`, `longTime`, `longDateTime`, `fullDate`, `fullTime`, and `fullDateTime`.
 
-`(render "{{d|date:\"yyyy-MM-dd\"}}" {:d nil})` => `""`
+`(render "{{d|date:shortDate}}" {:d (java.util.Date.)})` => `"8/3/13"`
 
-for current time use the [now](#now) tag
+`(render "{{d|date:shortDate}}" {:d nil})` => `""`
 
-`(render "{{creation-time|date:\"yyyy-MM-dd_HH:mm:ss\"}}" {:creation-time (java.util.Date.)})` => `"2013-07-28_20:51:48"`
+To more precisely control the output format, pass a format string:
 
-`(render "{{today|date:shortDate}}" {:today (java.util.Date.)})` => `"8/3/13"`
+`(render "{{d|date:\"yyyy-MM-dd\"}}" {:d (java.util.Date.)})` => `"2013-08-03"`
 
-`(render "{{now|date:shortDateTime}}" {:now (java.util.Date.)})` => `"8/3/13 2:08 PM"`
-
-An ISO 639 2-letter language code can be added as a locale.
+An ISO 639 2-letter language code can be added to force a particular locale:
 
 `(render "{{now|date:\"MMMM\":fr}}" {:now (java.util.Date.)})` => `"mars"`
+
+To conveniently render the current date, see the [now](#now) tag.
 
 #### default
 `(render "{{name|default:"I <3 ponies"}}" {:name "yogthos"})` => `"yogthos"`
