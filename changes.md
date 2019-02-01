@@ -1,4 +1,5 @@
-* 1.12.4 - added java.sql.Date formatter
+* 1.12.6 - render dates in locale-aware fashion, [PR 190](https://github.com/yogthos/Selmer/pull/190)
+* 1.12.5 - added java.sql.Date formatter
 * 1.12.4 - switched to use native Java time API instead of Joda time, time filters now default to 24 hour format
 * 1.12.1 - renamed `:servlet-context` to `:selmer/context`
 * 1.11.1 - Added support of context parameter as first argument of {% script %} and {% style %} tags
