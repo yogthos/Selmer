@@ -3,7 +3,7 @@
 The first argument to the fn is always the value obtained from the context
 map. The rest of the arguments are optional and are always strings."
   (:require [clojure.string :as s]
-            [cheshire.core :as json :only [generate-string]]
+            [cheshire.core :as json]
             [selmer.util :refer [exception]])
   (:import java.util.Locale
            [java.time Instant
@@ -12,23 +12,23 @@ map. The rest of the arguments are optional and are always strings."
                       LocalDateTime
                       ZonedDateTime
                       ZoneId]
-           java.time.format.DateTimeFormatter
+           [java.time.format DateTimeFormatter FormatStyle]
            java.text.NumberFormat
            [org.apache.commons.codec.digest DigestUtils]))
 
 (def valid-date-formats
-  {"shortTime" (DateTimeFormatter/ofPattern "HH:mm")
-   "shortDate" (DateTimeFormatter/ofPattern "dd/MM/yy")
-   "shortDateTime" (DateTimeFormatter/ofPattern "dd/MM/yy HH:mm")
-   "mediumDate" (DateTimeFormatter/ofPattern "dd-MMM-yy")
-   "mediumTime" (DateTimeFormatter/ofPattern "HH:mm:ss")
-   "mediumDateTime" (DateTimeFormatter/ofPattern "dd-MMM-yy HH:mm:ss")
-   "longDate" (DateTimeFormatter/ofPattern "MMMM dd, yyyy")
-   "longTime" (DateTimeFormatter/ofPattern "HH:mm:ss z")
-   "longDateTime" (DateTimeFormatter/ofPattern "MMMM dd, yyyy HH:mm:ss z")
-   "fullDate" (DateTimeFormatter/ofPattern "EEEE, MMMM dd, yyyy")
-   "fullTime" (DateTimeFormatter/ofPattern "HH:mm:ss 'o''clock' z")
-   "fullDateTime" (DateTimeFormatter/ofPattern "EEEE, MMMM dd, yyyy HH:mm:ss 'o''clock' z")})
+  {"shortTime"      (DateTimeFormatter/ofLocalizedTime FormatStyle/SHORT)
+   "shortDate"      (DateTimeFormatter/ofLocalizedDate FormatStyle/SHORT)
+   "shortDateTime"  (DateTimeFormatter/ofLocalizedDateTime FormatStyle/SHORT)
+   "mediumDate"     (DateTimeFormatter/ofLocalizedDate FormatStyle/MEDIUM)
+   "mediumTime"     (DateTimeFormatter/ofLocalizedTime FormatStyle/MEDIUM)
+   "mediumDateTime" (DateTimeFormatter/ofLocalizedDateTime FormatStyle/MEDIUM)
+   "longDate"       (DateTimeFormatter/ofLocalizedDate FormatStyle/LONG)
+   "longTime"       (DateTimeFormatter/ofLocalizedTime FormatStyle/LONG)
+   "longDateTime"   (DateTimeFormatter/ofLocalizedDateTime FormatStyle/LONG)
+   "fullDate"       (DateTimeFormatter/ofLocalizedDate FormatStyle/FULL)
+   "fullTime"       (DateTimeFormatter/ofLocalizedTime FormatStyle/FULL)
+   "fullDateTime"   (DateTimeFormatter/ofLocalizedDateTime FormatStyle/FULL)})
 
 (defn fix-date [d]
   (cond (or (instance? LocalTime d)
