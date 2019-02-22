@@ -23,8 +23,8 @@ arguments."
   ;; This method is "Java in Clojure" for serious speedups.
   ;; Stolen from davidsantiago/quoin and modified.
   (if *escape-variables*
-    (let [sb (StringBuilder.)
-          slength (count s)]
+    (let [slength (count s)
+          sb (StringBuilder. slength)]
       (loop [idx 0]
         (if (>= idx slength)
           (.toString sb)
