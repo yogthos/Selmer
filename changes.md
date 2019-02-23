@@ -1,3 +1,5 @@
+* 1.12.8 - add async support in middleware
+* 1.12.7 - improved performance by setting the size in StringBuilder explicitly
 * 1.12.6 - render dates in locale-aware fashion, [PR 190](https://github.com/yogthos/Selmer/pull/190)
 * 1.12.5 - added java.sql.Date formatter
 * 1.12.4 - switched to use native Java time API instead of Joda time, time filters now default to 24 hour format

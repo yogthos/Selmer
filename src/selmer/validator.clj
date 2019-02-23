@@ -31,7 +31,7 @@
   ([long-error short-error line error-tags template]
    (throw
      (ex-info long-error
-              {:type           :selmer-validation-error
+              {:type           :selmer/validation-error
                :error          short-error
                :error-template error-template
                :line           line
@@ -87,10 +87,10 @@
   (if (= :verbatim (:tag-name tag-info))
     (loop [ch (read-char rdr)]
       (if ch
-        (if-not (and 
+        (if-not (and
                  (open-tag? ch rdr)
-                 (= :endverbatim (:tag-name (read-tag-info rdr))))          
-          (recur (read-char rdr)))))    
+                 (= :endverbatim (:tag-name (read-tag-info rdr))))
+          (recur (read-char rdr)))))
     tag-info))
 
 (defn read-tag [rdr line template]
@@ -104,7 +104,7 @@
     (loop [tags [], ch (read-char rdr), line 1]
       (if ch
         (if (open-tag? ch rdr)
-          (if-let [tag-info (read-tag rdr line template)]            
+          (if-let [tag-info (read-tag rdr line template)]
             (recur (valide-tag template line tags tag-info) (read-char rdr) line)
             (recur tags (read-char rdr) line))
           (recur tags (read-char rdr) (if (= \newline ch) (inc line) line)))
