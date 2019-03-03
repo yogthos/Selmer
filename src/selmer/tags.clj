@@ -1,6 +1,6 @@
 (ns selmer.tags
   (:require selmer.node
-            [selmer.filter-parser :refer [split-filter-val safe-filter compile-filter-body fix-accessor get-accessor]]
+            [selmer.filter-parser :refer [safe-filter compile-filter-body get-accessor]]
             [selmer.filters :refer [filters]]
             [selmer.util :refer :all]
             [json-html.core :refer [edn->html]])
@@ -9,9 +9,6 @@
 ;; A tag can modify the context map for its body
 ;; It has full control of its body which means that it has to
 ;; take care of its compilation.
-(defn parse-arg [^String arg]
-  (fix-accessor (map (fn [s] (clojure.string/replace s ".." "."))
-                     (clojure.string/split arg #"(?<!\.)\.(?!\.)"))))
 
 (defn create-value-mappings [context-map ids value]
   (if (= 1 (count ids))
@@ -42,10 +39,10 @@
         for-content   (get-in content [:for :content])
         empty-content (get-in content [:empty :content])
         [ids [_ items]] (aggregate-args args)
-        ids           (map parse-arg ids)
+        ids           (map parse-accessor ids)
         [items & filter-names] (if items (.split ^String items "\\|"))
         filters       (compile-filters items filter-names)
-        item-keys     (parse-arg items)]
+        item-keys     (parse-accessor items)]
     (fn [context-map]
       (let [buf    (StringBuilder.)
             unfiltered-items (reduce get-accessor context-map item-keys)]
@@ -219,7 +216,7 @@
 (defn sum-handler [args _ _ _]
   (fn [context-map]
     (reduce + (map (fn [val]
-                     (let [accessor (split-filter-val val)]
+                     (let [accessor (parse-accessor val)]
                        (get-in context-map accessor))) args))))
 
 (defn now-handler [args _ _ _]

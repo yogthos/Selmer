@@ -204,3 +204,22 @@
   [missing-value-fn & {:keys [filter-missing-values] :or {filter-missing-values false}}]
   (alter-var-root #'*missing-value-formatter* (constantly missing-value-fn))
   (alter-var-root #'*filter-missing-values* (constantly filter-missing-values)))
+
+(defn fix-accessor
+  "Turns strings into keywords and strings like \"0\" into Longs
+so it can access vectors as well as maps."
+  [ks]
+  (mapv (fn [^String s]
+          (try (Long/valueOf s)
+               (catch NumberFormatException _
+                 (keyword s))))
+        ks))
+
+(defn parse-accessor
+  "Split accessors like foo.bar.baz by the dot.
+   But if there is a double dot '..' then it will leave it"
+  [^String accessor]
+  (->> (clojure.string/split accessor #"(?<!\.)\.(?!\.)")
+       (map (fn [s] (clojure.string/replace s ".." ".")))
+       (fix-accessor)))
+

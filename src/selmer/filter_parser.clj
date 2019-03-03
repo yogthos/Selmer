@@ -13,7 +13,7 @@ You can escape doublequotes inside doublequotes. And you can put colons
 inside doublequotes which will be ignored for the purpose of separating
 arguments."
   (:require [selmer.filters :refer [get-filter]]
-            [selmer.util :refer [exception *escape-variables*]]
+            [selmer.util :refer [exception *escape-variables* fix-accessor parse-accessor]]
             [clojure.string :as s]))
 
 ;;; More Utils
@@ -61,24 +61,6 @@ arguments."
       (escape-html* s))))
 
 ;;; Compile filters
-(defn fix-accessor
-  "Turns strings into keywords and strings like \"0\" into Longs
-so it can access vectors as well as maps."
-  [ks]
-  (mapv (fn [^String s]
-          (try (Long/valueOf s)
-               (catch NumberFormatException _
-                 (keyword s))))
-        ks))
-
-(defn split-filter-val
-  "Split accessors like foo.bar.baz by the dot.
-   But if there is a double dot '..' then it will leave it"
-  [s]
-  (let [ks (clojure.string/split s #"(?<!\.)\.(?!\.)")
-        kss (map
-              (fn [s] (clojure.string/replace s ".." ".")) ks)] ;we remove the double dot here
-    (fix-accessor kss)))
 
 (defn fix-filter-args
   "Map any sort of needed fixes to the arguments before passing them
@@ -96,7 +78,7 @@ to the filters. Only strips enclosing doublequotes for now."
   [context-map]
   (fn [^String arg]
     (if (and (> (count arg) 1) (.startsWith arg "@"))
-      (let [accessor (split-filter-val (subs arg 1))]
+      (let [accessor (parse-accessor (subs arg 1))]
         (get-in context-map accessor arg))
       arg)))
 
@@ -165,7 +147,7 @@ applied filter."
   ([s] (compile-filter-body s true))
   ([s escape?]
    (let [[val & filter-strs] (split-value s)
-         accessor (split-filter-val val)
+         accessor (parse-accessor val)
          filters (map filter-str->fn filter-strs)]
      (if (literal? val)
        (fn [context-map]
