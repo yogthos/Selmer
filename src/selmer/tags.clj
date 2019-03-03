@@ -10,7 +10,8 @@
 ;; It has full control of its body which means that it has to
 ;; take care of its compilation.
 (defn parse-arg [^String arg]
-  (fix-accessor (.split arg "\\.")))
+  (fix-accessor (map (fn [s] (clojure.string/replace s ".." "."))
+                     (clojure.string/split arg #"(?<!\.)\.(?!\.)"))))
 
 (defn create-value-mappings [context-map ids value]
   (if (= 1 (count ids))

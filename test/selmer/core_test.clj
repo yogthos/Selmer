@@ -271,7 +271,10 @@
   (is (= (render "{% for ele in foo %}{{ele.bar}} {% endfor %}"
                  {"foo" [{:bar "bar"}
                          {:bar "bar"}]})
-         "bar bar ")))
+         "bar bar "))
+  (is (= (render "{% for i in some..namespace/keyword %}{{i}} {% endfor %}"
+                 {:some.namespace/keyword [1 2 3 4]})
+         "1 2 3 4 ")))
 
 (deftest for-filter-test
   (is
