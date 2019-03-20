@@ -1,3 +1,4 @@
+* 1.12.10 - updated `add` filter to return the value without wrapping it with `[:safe ]`
 * 1.12.9 - Fix for tag accepts qualified keywords [PR 194](https://github.com/yogthos/Selmer/pull/194/files)
 * 1.12.8 - add async support in middleware
 * 1.12.7 - improved performance by setting the size in StringBuilder explicitly

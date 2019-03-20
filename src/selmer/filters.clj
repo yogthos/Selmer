@@ -156,10 +156,10 @@ map. The rest of the arguments are optional and are always strings."
             :add
             (fn [x y & rest]
               (let [args (conj rest y (str x))]
-                (try [:safe (apply +
-                                   (map parse-number args))]
-                     (catch NumberFormatException _
-                       (apply str args)))))
+                (try
+                  (apply + (map parse-number args))
+                  (catch NumberFormatException _
+                    (apply str args)))))
 
             :multiply
             (fn [x y]
