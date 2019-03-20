@@ -174,7 +174,7 @@ map. The rest of the arguments are optional and are always strings."
 
             :round
             (fn [x]
-              [:safe (Math/round ^Double (parse-number x))])
+              (Math/round ^Double (parse-number x)))
 
             ;;; Add backslashes to quotes
             :addslashes
