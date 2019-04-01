@@ -119,18 +119,16 @@ applied filter."
     val
     (map vector filter-strs filters)))
 
-(defn get-val [m k]
-  (let [v (get m k)]
-    (if (instance? Boolean v) (str v) v)))
-
 (defn get-accessor
   "Returns the value of `k` from map `m`, either as a keyword or string lookup."
   [m k]
-  (or (get-val m k)
+  (let [v (get m k)]
+    (if (nil? v)
       (when (keyword? k)
         (if-let [n (namespace k)]
-          (get-val m (str n "/" (name k)))
-          (get-val m (name k))))))
+          (get m (str n "/" (name k)))
+          (get m (name k))))
+      v)))
 
 (defn split-value [s]
   (->> s
@@ -159,7 +157,7 @@ applied filter."
            context-map))
        (fn [context-map]
          (let [val (reduce get-accessor context-map accessor)]
-           (when (or val (and selmer.util/*filter-missing-values* (seq filters)))
+           (when (or (not (nil? val)) (and selmer.util/*filter-missing-values* (seq filters)))
              (let [x (apply-filters
                        val
                        s
