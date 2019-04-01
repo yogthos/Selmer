@@ -52,6 +52,12 @@
                                  {:custom-filters
                                   {:embiginate (fn [^String s] (.toUpperCase s))}}) {:bar "bar"}))))
 
+(deftest boolean-filter-test
+  (is (= "0"
+         (render-template (parse parse-input (java.io.StringReader. "{{bar|bit}}")
+                                 {:custom-filters
+                                  {:bit (fn [^Boolean b] (if (true? b) 1 0))}}) {:bar false}))))
+
 (deftest passthrough
   (let [s "a b c d"]
     (is (= s (render s {}))))
