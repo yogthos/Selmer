@@ -328,7 +328,7 @@ the string. You can easily change that with the `abbr-ellipsis` filter:
 
 `(render "{{f|abbr-ellipsis:\"… etc. pp.\"|abbreviate:19}}" {:f "an abbreviate example text"}) => "an abbrev… etc. pp."`
 
-`(render "{{f|abbr-ellipsis:\"\"abbreviate:19}}" {:f "an abbreviate example text"}) => "an abbreviate examp"`
+`(render "{{f|abbr-ellipsis:\"\"|abbreviate:19}}" {:f "an abbreviate example text"}) => "an abbreviate examp"`
 
 Note that the ellipsis can't be longer than the abbreviated width.
 
