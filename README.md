@@ -1133,6 +1133,7 @@ or you can throw an exception:
 (selmer.util/set-missing-value-formatter! missing-value-fn)
 
 (selmer.parser/render "{{not-here}}" {}) => Exception: Nope
+```
 
 When you set a custom missing value handler, by default filters are bypassed for missing values:
 
