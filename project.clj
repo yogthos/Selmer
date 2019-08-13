@@ -1,11 +1,11 @@
-(defproject selmer "1.12.12"
+(defproject selmer "1.12.13"
   :description "Django style templates for Clojure"
   :url "https://github.com/yogthos/Selmer"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0"]
                  [commons-codec "1.11"]
-                 [json-html "0.4.4" :exclusions [hiccups]]
+                 [json-html "0.4.6"]
                  [cheshire "5.8.1"]
                  [criterium "0.4.4" :scope "test"]]
 
