@@ -634,8 +634,7 @@ values are neither Long nor Double.
 
 #### replace
 
-Multiplies the value with the given number. Throws error if one of the both
-values are neither Long nor Double.
+Replaces all occurrences of the first string with the second string. 
 
 `(render "{{foo|replace:foo:bar}}" {:foo "foo test foo ..."})` =\> `"bar test
 bar ..."`
