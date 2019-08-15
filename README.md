@@ -634,7 +634,7 @@ values are neither Long nor Double.
 
 #### replace
 
-Replace all occurrences of the first string with the second string. 
+Replaces all occurrences of the first string with the second string. 
 
 `(render "{{foo|replace:foo:bar}}" {:foo "foo test foo ..."})` =\> `"bar test
 bar ..."`
