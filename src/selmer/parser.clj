@@ -51,14 +51,11 @@
     (instance? java.net.URL path)
       (append-slash (str path))
     :else
-      (if (or (.startsWith ^java.lang.String path "/")
-              (.startsWith ^java.lang.String path "file:/"))
-        (append-slash
-         (try
-           (str (java.net.URL. path))
-           (catch java.net.MalformedURLException err
-             (str "file:///" path))))
-        (append-slash path))))
+      (append-slash
+       (try
+         (str (java.net.URL. path))
+         (catch java.net.MalformedURLException err
+           (str "file:///" path))))))
 
 (defn set-resource-path!
   "set custom location, where templates are being searched for. path
