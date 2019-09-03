@@ -1,4 +1,5 @@
 (ns selmer.util
+  (:require [clojure.java.io :as io])
   (:import java.io.StringReader
            java.util.regex.Pattern))
 
@@ -158,21 +159,29 @@
           (recur items (read-char rdr) open?))))))
 
 (defn get-resource [resource]
-  (-> (Thread/currentThread)
-      (.getContextClassLoader)
-      (.getResource resource)))
+  ;; (-> (Thread/currentThread)
+  ;;     (.getContextClassLoader)
+  ;;     (.getResource resource))
+  (io/resource resource))
 
 (defn resource-path [template]
   (if (instance? java.net.URL template)
     template
     (if-let [path *custom-resource-path*]
-      (java.net.URL. (str path template))
+      (let [f (str path template)]
+        (cond
+          (.startsWith f "/") (.toURL (io/file f))
+          (.startsWith f "file:/") (java.net.URL. f)
+          (.startsWith f "jar:file:/") (java.net.URL. f)
+          :else (get-resource f)))
       (get-resource template))))
 
-(defn resource-last-modified [^java.net.URL resource]
-  (let [path (.getPath resource)]
+(defn resource-last-modified [resource]
+  (let [path (if (string? resource)
+               resource
+               (.getPath resource))]
     (try
-      (.lastModified (java.io.File. ^String path))
+      (.lastModified (io/file path))
       (catch NullPointerException _ -1))))
 
 (defn check-template-exists [^java.net.URL resource]
