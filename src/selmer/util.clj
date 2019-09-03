@@ -172,6 +172,7 @@
         (cond
           (.startsWith f "/") (.toURL (io/file f))
           (.startsWith f "file:/") (java.net.URL. f)
+          (.startsWith f "jar:file:/") (java.net.URL. f)
           :else (get-resource f)))
       (get-resource template))))
 
