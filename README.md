@@ -124,6 +124,13 @@ To render a file we can call `render-file` instead:
 (render-file "home.html" {:name "Yogthos"})
 ```
 
+To list the declared variables in the template:
+
+```clojure
+(known-variables "{{name}}")
+=>#{:name}
+```
+
 #### \*\*Important\*\*
 
 When rendering files Selmer will cache the compiled template. A recompile will be triggered if the last
