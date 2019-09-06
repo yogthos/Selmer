@@ -1065,3 +1065,54 @@
       (is (= "XXX" (render "{{missing}}" {})))
       (is (= "XXX" (render "{{missing.too}}" {})))
       (is (= "0" (render "{{missing|count}}" {}))))))
+
+(deftest testing-known-variables
+  (testing "Basic variables"
+    (is (= #{:name} (known-variables "{{name}}")))
+    (is (= #{:name} (known-variables "{{name|capitalize}}")))
+    (is (= #{:person} (known-variables "{{person.name|capitalize}}"))))
+
+  (testing "If statements"
+    (is (= #{:foo :bar :baz} (known-variables "{% if any foo bar baz %}hello{% endif %}")))
+    (is (= #{:foo :bar :baz} (known-variables "{% if not any foo bar baz %}hello{% endif %}")))
+    (is (= #{:foo :bar} (known-variables "{% if all foo bar %}hello{% endif %}")))
+    (is (= #{:x} (known-variables "{% if 6 >= x %}yes!{% endif %}")))
+    (is (= #{:x :y} (known-variables "{% if x <= y %}yes!{% endif %}")))
+    (is (= #{:x} (known-variables "{% if x > 5 %}yes!{% else %}no!{% endif %}")))
+    (is (= #{:vals} (known-variables "{% if vals|length <= 3 %}yes!{% else %}no!{% endif %}"))))
+
+  (testing "ifequal"
+    (is (= #{:foo :bar} (known-variables "{% ifequal foo bar %}yes!{% endifequal %}")))
+    (is (= #{:foo :bar} (known-variables "{% ifequal foo bar %}yes!{% else %}no!{% endifequal %}")))
+    (is (= #{:foo} (known-variables "{% ifequal foo \"this also works\" %}yes!{% endifequal %}"))))
+
+  (testing "ifunequal"
+    (is (= #{:foo :bar} (known-variables "{% ifunequal foo bar %}yes!{% endifunequal %}"))))
+
+  (testing "for"
+    (is (= #{:some-list} (known-variables "{% for x in some-list %}element: {{x}} first? {{forloop.first}} last? {{forloop.last}}{% endfor %}")))
+    (is (= #{:items} (known-variables "{% for item in items %} <tr><td>{{item.name}}</td><td>{{item.age}}</td></tr> {% endfor %}")))
+    (is (= #{:items} (known-variables "{% for x,y in items %}{{x}},{{y}}{% endfor %}"))))
+
+  (testing "sum"
+    (is (= #{:foo :bar :baz} (known-variables "{% sum foo bar baz %}"))))
+
+  (testing "now"
+    (is (= #{} (known-variables "{% now \"dd MM yyyy\" %}"))))
+
+  (testing "firstof"
+    (is (= #{:var1 :var2 :var3} (known-variables "{% firstof var1 var2 var3 %}"))))
+
+  (testing "verbatim"
+    (is (= #{} (known-variables "{% verbatim %}{{if dying}}Still alive.{{/if}}{% endverbatim %}"))))
+
+
+  (testing "nesting"
+    (is (= #{:x :y :z} (known-variables "{% if x <= y %}{% if z = 2 %}yes!{% else %}not!{% endif %}{% endif %}")))
+    (is (= #{:items :foo} (known-variables "{% for item,idx in items|sort %}
+                                              <tr><td>{{item.name}}</td>
+                                              <td>{{item.age}}</td></tr>
+                                              {% ifequal item.middeName foo %}
+                                                BOOM
+                                              {% endifequal %}
+                                            {% endfor %}")))))

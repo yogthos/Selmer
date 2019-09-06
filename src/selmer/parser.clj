@@ -7,9 +7,11 @@
   value injection is a runtime dispatch fn. Compile-time here
   means the first time we see a template *at runtime*, not the
   implementation's compile-time. "
-  (:require [selmer.template-parser :refer [preprocess-template]]
+  (:require [clojure.set :as set]
+            [clojure.string :as string]
+            [selmer.template-parser :refer [preprocess-template]]
             [selmer.filters :refer [filters]]
-            [selmer.filter-parser :refer [compile-filter-body]]
+            [selmer.filter-parser :refer [compile-filter-body literal? split-value]]
             [selmer.tags :refer :all]
             [selmer.util :refer :all]
             [selmer.validator :refer [validation-error]]
@@ -296,5 +298,58 @@
             *extends-pattern*      (pattern "\\" tag-open "\\" tag-second "\\s*extends.*")
             *block-pattern*        (pattern "\\" tag-open "\\" tag-second "\\s*block.*")
             *block-super-pattern*  (pattern "\\" tag-open "\\" filter-open "\\s*block.super\\s*\\" filter-close "\\" tag-close)
-            *endblock-pattern*     (pattern "\\" tag-open "\\" tag-second "\\s*endblock.*")]
-    (parse-fn input params)))
+            *endblock-pattern*     (pattern "\\" tag-open "\\" tag-second "\\s*endblock.*")
+            *tags*                 (atom [])]
+    (with-meta
+      (parse-fn input params)
+      {:all-tags @*tags*})))
+
+;; List of variables in a template file
+(defn ^:private parse-variables [tags]
+  (let [clean-variable (fn clean-variable [arg]
+                         (some-> arg
+                                 split-value
+                                 first
+                                 parse-accessor
+                                 first))]
+    (loop [vars #{}
+           nested-keys #{}
+           tags tags]
+      (if-let [{:keys [tag-type tag-name tag-value args] :as tag} (first tags)]
+        (cond
+          (= tag-type :filter) (let [v (clean-variable tag-value)]
+                                 (recur (cond-> vars
+                                          (not (contains? nested-keys v)) (conj v))
+                                        nested-keys
+                                        (rest tags)))
+          (= :for tag-name) (let [[ids [_ items]] (aggregate-args args)]
+                              (recur (conj vars (clean-variable items))
+                                     (conj (set (map keyword ids)) :forloop)
+                                     (rest tags)))
+
+          (= :with tag-name) (let [[id value] (string/split (first args) #"=")]
+                               (recur (conj vars (clean-variable value))
+                                      #{(keyword id)}
+                                      (rest tags)))
+
+          (contains? #{:endfor :endwith} tag-name) (recur vars #{} (rest tags))
+
+          :else
+          (recur (set/union
+                   vars
+                   (->> args
+                        (filter (complement literal?))
+                        (map clean-variable)
+                        (remove nested-keys)
+                        (remove #{nil :not :all :any :< :> := :<= :>=})
+                        set))
+                 nested-keys
+                 (rest tags)))
+        vars))))
+
+(defn known-variables [input]
+  (let  [nodes (atom '())]
+    (->> (parse parse-input (java.io.StringReader. input) {})
+         meta
+         :all-tags
+         parse-variables)))

@@ -71,6 +71,8 @@
 (def ^:dynamic ^Pattern *block-super-pattern* nil)
 (def ^:dynamic ^Pattern *endblock-pattern* nil)
 
+(def ^:dynamic *tags* nil)
+
 (defn check-tag-args [args]
   (if (even? (count (filter #{\"} args)))
     args (exception "malformed tag arguments in " args)))
@@ -89,12 +91,15 @@
                        (check-tag-args)
                        (re-seq #"(?:[^\s\"]|\"[^\"]*\")+")
                        (remove empty?)
-                       (map (fn [^String s] (.trim s))))]
-      (merge {:tag-type tag-type}
-             (if (= :filter tag-type)
-               {:tag-value (first content)}
-               {:tag-name (keyword (first content))
-                :args     (next content)})))))
+                       (map (fn [^String s] (.trim s))))
+          tag-info (merge {:tag-type tag-type}
+                          (if (= :filter tag-type)
+                            {:tag-value (first content)}
+                            {:tag-name (keyword (first content))
+                             :args     (next content)}))]
+          (when *tags*
+            (swap! *tags* conj tag-info))
+          tag-info)))
 
 (defn peek-rdr [^java.io.Reader rdr]
   (.mark rdr 1)

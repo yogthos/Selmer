@@ -99,7 +99,7 @@ applied filter."
 
 (def safe-filter ::selmer-safe-filter)
 
-(defn- literal? [^String val]
+(defn literal? [^String val]
   (or
     (and (.startsWith val "\"") (.endsWith val "\""))
     (re-matches #"[0-9]+" val)))
