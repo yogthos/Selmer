@@ -163,12 +163,6 @@
           (.append buf ch)
           (recur items (read-char rdr) open?))))))
 
-(defn get-resource [resource]
-  ;; (-> (Thread/currentThread)
-  ;;     (.getContextClassLoader)
-  ;;     (.getResource resource))
-  (io/resource resource))
-
 (defn resource-path [template]
   (if (instance? java.net.URL template)
     template
@@ -178,13 +172,11 @@
           (.startsWith f "/") (.toURL (io/file f))
           (.startsWith f "file:/") (java.net.URL. f)
           (.startsWith f "jar:file:/") (java.net.URL. f)
-          :else (get-resource f)))
-      (get-resource template))))
+          :else (io/resource f)))
+      (io/resource template))))
 
-(defn resource-last-modified [resource]
-  (let [path (if (string? resource)
-               resource
-               (.getPath resource))]
+(defn resource-last-modified [^java.net.URL resource]
+  (let [path (.getPath resource)]
     (try
       (.lastModified (io/file path))
       (catch NullPointerException _ -1))))

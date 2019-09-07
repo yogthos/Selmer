@@ -2,19 +2,21 @@
   "To create a filter use the function add-filter! which takes a name and a fn.
 The first argument to the fn is always the value obtained from the context
 map. The rest of the arguments are optional and are always strings."
-  (:require [clojure.string :as s]
-            [cheshire.core :as json]
-            [selmer.util :refer [exception]])
-  (:import java.util.Locale
-           [java.time Instant
-                      LocalTime
-                      LocalDate
-                      LocalDateTime
-                      ZonedDateTime
-                      ZoneId]
-           [java.time.format DateTimeFormatter FormatStyle]
-           java.text.NumberFormat
-           [org.apache.commons.codec.digest DigestUtils]))
+  (:require
+    [clojure.string :as s]
+    [cheshire.core :as json]
+    [selmer.util :refer [exception]])
+  (:import
+    java.util.Locale
+    [java.time Instant
+               LocalTime
+               LocalDate
+               LocalDateTime
+               ZonedDateTime
+               ZoneId]
+    [java.time.format DateTimeFormatter FormatStyle]
+    java.text.NumberFormat
+    [org.apache.commons.codec.digest DigestUtils]))
 
 (def valid-date-formats
   {"shortTime"      (DateTimeFormatter/ofLocalizedTime FormatStyle/SHORT)

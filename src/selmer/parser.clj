@@ -7,15 +7,16 @@
   value injection is a runtime dispatch fn. Compile-time here
   means the first time we see a template *at runtime*, not the
   implementation's compile-time. "
-  (:require [clojure.set :as set]
-            [clojure.string :as string]
-            [selmer.template-parser :refer [preprocess-template]]
-            [selmer.filters :refer [filters]]
-            [selmer.filter-parser :refer [compile-filter-body literal? split-value]]
-            [selmer.tags :refer :all]
-            [selmer.util :refer :all]
-            [selmer.validator :refer [validation-error]]
-            selmer.node)
+  (:require
+    [clojure.set :as set]
+    [clojure.string :as string]
+    [selmer.template-parser :refer [preprocess-template]]
+    [selmer.filters :refer [filters]]
+    [selmer.filter-parser :refer [compile-filter-body literal? split-value]]
+    [selmer.tags :refer :all]
+    [selmer.util :refer :all]
+    [selmer.validator :refer [validation-error]]
+    selmer.node)
   (:import [selmer.node INode TextNode FunctionNode]))
 
 ;; Ahead decl because some fns call into each other.
@@ -49,18 +50,18 @@
   [path]
   (cond
     (nil? path)
-      nil
+    nil
     (instance? java.net.URL path)
-      (append-slash (str path))
+    (append-slash (str path))
     :else
-      (if (or (.startsWith ^java.lang.String path "/")
-              (.startsWith ^java.lang.String path "file:/"))
-        (append-slash
-         (try
-           (str (java.net.URL. path))
-           (catch java.net.MalformedURLException err
-             (str "file:///" path))))
-        (append-slash path))))
+    (if (or (.startsWith ^java.lang.String path "/")
+            (.startsWith ^java.lang.String path "file:/"))
+      (append-slash
+        (try
+          (str (java.net.URL. path))
+          (catch java.net.MalformedURLException err
+            (str "file:///" path))))
+      (append-slash path))))
 
 (defn set-resource-path!
   "set custom location, where templates are being searched for. path
@@ -101,9 +102,9 @@
   [template context-map]
   (let [buf (StringBuilder.)]
     (doseq [^selmer.node.INode element template]
-        (if-let [value (.render-node element context-map)]
-          (.append buf value)
-          (.append buf (*missing-value-formatter* (:tag (meta element)) context-map))))
+      (if-let [value (.render-node element context-map)]
+        (.append buf value)
+        (.append buf (*missing-value-formatter* (:tag (meta element)) context-map))))
     (.toString buf)))
 
 (defn render
@@ -123,9 +124,9 @@
   renders post-parse vector with passed context-map regardless. Double-checks
   last-modified on files. Uses classpath for filename-or-url path "
   [filename-or-url context-map & [{:keys [cache custom-resource-path]
-                                   :or  {cache @cache?
-                                         custom-resource-path *custom-resource-path*}
-                                   :as opts}]]
+                                   :or   {cache                @cache?
+                                          custom-resource-path *custom-resource-path*}
+                                   :as   opts}]]
   (binding [*custom-resource-path* (make-resource-path custom-resource-path)]
     (if-let [resource (resource-path filename-or-url)]
       (let [{:keys [template last-modified]} (get @templates resource)
@@ -137,12 +138,12 @@
         (if (and cache last-modified (= last-modified last-modified-time))
           (render-template template context-map)
           (let [template (parse parse-file filename-or-url opts)]
-            (swap! templates assoc resource {:template template
+            (swap! templates assoc resource {:template      template
                                              :last-modified last-modified-time})
             (render-template template context-map))))
       (validation-error
-       (str "resource-path for " filename-or-url " returned nil, typically means the file doesn't exist in your classpath.")
-       nil nil nil))))
+        (str "resource-path for " filename-or-url " returned nil, typically means the file doesn't exist in your classpath.")
+        nil nil nil))))
 
 ;; For a given tag, get the fn handler for the tag type,
 ;; pass it the arguments, tag-content, render-template fn,
@@ -179,13 +180,13 @@
 
 (defn append-node [content tag ^StringBuilder buf rdr]
   (-> content
-    (conj (TextNode. (.toString buf)))
-    (conj (FunctionNode. (parse-tag tag rdr)))))
+      (conj (TextNode. (.toString buf)))
+      (conj (FunctionNode. (parse-tag tag rdr)))))
 
 (defn update-tags [tag tags content args ^StringBuilder buf]
   (assoc tags tag
-         {:args args
-          :content (conj content (TextNode. (.toString buf)))}))
+              {:args    args
+               :content (conj content (TextNode. (.toString buf)))}))
 
 (defn tag-content [rdr start-tag & end-tags]
   (let [buf (StringBuilder.)]
@@ -201,14 +202,14 @@
         tags
         (open-tag? ch rdr)
         (let [{:keys [tag-name args] :as tag} (read-tag-info rdr)]
-          (if-let [open-tag  (and tag-name (some #{tag-name} end-tags))]
-              (let [tags     (update-tags cur-tag tags content args buf)
-                    end-tags (next (drop-while #(not= tag-name %) end-tags))]
-                (.setLength buf 0)
-                (recur (when-not (empty? end-tags) (read-char rdr)) tags [] open-tag end-tags))
-              (let [content (append-node content tag buf rdr)]
-                (.setLength buf 0)
-                (recur (read-char rdr) tags content cur-tag end-tags))))
+          (if-let [open-tag (and tag-name (some #{tag-name} end-tags))]
+            (let [tags     (update-tags cur-tag tags content args buf)
+                  end-tags (next (drop-while #(not= tag-name %) end-tags))]
+              (.setLength buf 0)
+              (recur (when-not (empty? end-tags) (read-char rdr)) tags [] open-tag end-tags))
+            (let [content (append-node content tag buf rdr)]
+              (.setLength buf 0)
+              (recur (read-char rdr) tags content cur-tag end-tags))))
         :else
         (do
           (.append buf ch)
@@ -236,29 +237,29 @@
 
 (defn parse* [input]
   (with-open [rdr (clojure.java.io/reader input)]
-      (let [buf      (StringBuilder.)]
-        (loop [template (transient [])
-               ch (read-char rdr)]
-          (if ch
-            (cond
-              ;; We hit a tag so we append the buffer content to the template
-              ;; and empty the buffer, then we proceed to parse the tag
-              (and (open-tag? ch rdr) (contains? #{*tag-second* *filter-open*} (peek-rdr rdr)))
-              (recur (add-node template buf rdr) (read-char rdr))
+    (let [buf (StringBuilder.)]
+      (loop [template (transient [])
+             ch       (read-char rdr)]
+        (if ch
+          (cond
+            ;; We hit a tag so we append the buffer content to the template
+            ;; and empty the buffer, then we proceed to parse the tag
+            (and (open-tag? ch rdr) (contains? #{*tag-second* *filter-open*} (peek-rdr rdr)))
+            (recur (add-node template buf rdr) (read-char rdr))
 
-              ;; Short comment tags are dropped
-              (open-short-comment? ch rdr)
-              (recur (skip-short-comment-tag template rdr) (read-char rdr))
+            ;; Short comment tags are dropped
+            (open-short-comment? ch rdr)
+            (recur (skip-short-comment-tag template rdr) (read-char rdr))
 
-              ;; Default case, here we append the character and
-              ;; read the next char
-              :else
-              (do
-                (.append buf ch)
-                (recur template (read-char rdr))))
+            ;; Default case, here we append the character and
+            ;; read the next char
+            :else
+            (do
+              (.append buf ch)
+              (recur template (read-char rdr))))
 
-            ;; Add the leftover content of the buffer and return the template
-            (->> buf (.toString) (TextNode.) (conj! template) persistent!))))))
+          ;; Add the leftover content of the buffer and return the template
+          (->> buf (.toString) (TextNode.) (conj! template) persistent!))))))
 
 ;; Primary compile-time parse routine. Work we don't want happening after
 ;; first template render. Vector output from parse* gets memoized by render-file.
@@ -292,7 +293,7 @@
             *filter-close-pattern* (pattern "\\s*\\" filter-close "\\" tag-close)
             *filter-pattern*       (pattern "\\" tag-open "\\" filter-open "\\s*.*\\s*\\" filter-close "\\" tag-close)
             *tag-open-pattern*     (pattern "\\" tag-open "\\" tag-second "\\s*")
-            *tag-close-pattern*    (pattern "\\s*\\" tag-second "\\"  tag-close)
+            *tag-close-pattern*    (pattern "\\s*\\" tag-second "\\" tag-close)
             *tag-pattern*          (pattern "\\" tag-open "\\" tag-second "\\s*.*\\s*\\" tag-second "\\" tag-close)
             *include-pattern*      (pattern "\\" tag-open "\\" tag-second "\\s*include.*")
             *extends-pattern*      (pattern "\\" tag-open "\\" tag-second "\\s*extends.*")
@@ -312,14 +313,14 @@
                                  first
                                  parse-accessor
                                  first))]
-    (loop [vars #{}
+    (loop [vars        #{}
            nested-keys #{}
-           tags tags]
+           tags        tags]
       (if-let [{:keys [tag-type tag-name tag-value args] :as tag} (first tags)]
         (cond
           (= tag-type :filter) (let [v (clean-variable tag-value)]
                                  (recur (cond-> vars
-                                          (not (contains? nested-keys v)) (conj v))
+                                                (not (contains? nested-keys v)) (conj v))
                                         nested-keys
                                         (rest tags)))
           (= :for tag-name) (let [[ids [_ items]] (aggregate-args args)]
@@ -348,7 +349,7 @@
         vars))))
 
 (defn known-variables [input]
-  (let  [nodes (atom '())]
+  (let [nodes (atom '())]
     (->> (parse parse-input (java.io.StringReader. input) {})
          meta
          :all-tags

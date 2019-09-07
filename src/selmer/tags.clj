@@ -1,9 +1,10 @@
 (ns selmer.tags
-  (:require selmer.node
-            [selmer.filter-parser :refer [safe-filter compile-filter-body get-accessor]]
-            [selmer.filters :refer [filters]]
-            [selmer.util :refer :all]
-            [json-html.core :refer [edn->html]])
+  (:require
+    selmer.node
+    [selmer.filter-parser :refer [safe-filter compile-filter-body get-accessor]]
+    [selmer.filters :refer [filters]]
+    [selmer.util :refer :all]
+    [json-html.core :refer [edn->html]])
   (:import [selmer.node INode TextNode FunctionNode]))
 
 ;; A tag can modify the context map for its body
@@ -30,8 +31,8 @@
   (reduce
     (fn [value filter]
       (filter (assoc context-map
-                     (keyword items) value
-                     (name items) value)))
+                (keyword items) value
+                (name items) value)))
     item filters))
 
 (defn for-handler [args tag-content render rdr]
@@ -44,7 +45,7 @@
         filters       (compile-filters items filter-names)
         item-keys     (parse-accessor items)]
     (fn [context-map]
-      (let [buf    (StringBuilder.)
+      (let [buf              (StringBuilder.)
             unfiltered-items (reduce get-accessor context-map item-keys)]
 
         (if (and (nil? unfiltered-items) (not empty-content))
@@ -280,11 +281,11 @@
   [^String uri {context :selmer/context :as context-map}]
   (let [literal? (and (.startsWith uri "\"") (.endsWith uri "\""))
         uri
-        (if literal?
-          (.replace uri "\"" "")     ; case of {% style "/css/foo.css" %}
-          (-> uri                    ; case of {% style context-param|some-filter:arg1:arg2 %}
-              (compile-filter-body)
-              (apply [context-map])))]
+                 (if literal?
+                   (.replace uri "\"" "")                   ; case of {% style "/css/foo.css" %}
+                   (-> uri                                  ; case of {% style context-param|some-filter:arg1:arg2 %}
+                       (compile-filter-body)
+                       (apply [context-map])))]
     (-> context (str uri) (.replace "//" "/"))))
 
 (defn script-handler
@@ -303,12 +304,12 @@
              (compile-args))]
     (fn [context-map]
       (let [args
-            (reduce
-             (fn [context-map [k v]]
-               (assoc context-map k (v context-map)))
-             context-map
-             args)
-            async-attr (when (:async args) "async ")
+                         (reduce
+                           (fn [context-map [k v]]
+                             (assoc context-map k (v context-map)))
+                           context-map
+                           args)
+            async-attr   (when (:async args) "async ")
             src-attr-val (build-uri-for-script-or-style-tag uri context-map)]
         (str "<script " async-attr "src=\"" src-attr-val "\" type=\"text/javascript\"></script>")))))
 

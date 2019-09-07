@@ -3,10 +3,11 @@
   These are presumed to be static and we only aggregate them on the first
   template render. The compile-time tag parsing routines happen on a flat string
   composed from the result of `extends` inheritance and `include` mixins. "
-  (:require [clojure.java.io :refer [reader] :as io]
-            [selmer.util :refer :all]
-            [clojure.string :as s :refer [split trim]]
-            [selmer.validator :as validator])
+  (:require
+    [clojure.java.io :refer [reader] :as io]
+    [selmer.util :refer :all]
+    [clojure.string :as s :refer [split trim]]
+    [selmer.validator :as validator])
   (:import java.io.StringReader))
 
 (declare consume-block preprocess-template)
@@ -67,7 +68,7 @@
 
 (defn consume-block [rdr & [^StringBuilder buf blocks omit-close-tag?]]
   (loop [blocks-to-close 1
-         has-super? false]
+         has-super?      false]
     (if (and (pos? blocks-to-close) (peek-rdr rdr))
       (let [ch (read-char rdr)]
         (if (open-tag? ch rdr)
@@ -117,8 +118,8 @@
             parent-content (StringBuilder.)
             has-super?     (consume-block rdr parent-content blocks true)]
         (assoc blocks block-name
-               {:super has-super?
-                :content (rewrite-super child-content (.toString parent-content))}))
+                      {:super   has-super?
+                       :content (rewrite-super child-content (.toString parent-content))}))
 
       ;;we've got a child block without a super tag, the parent will be replaced
       existing-block
@@ -130,8 +131,8 @@
       (let [buf        (doto (StringBuilder.) (.append block-tag))
             has-super? (consume-block rdr buf blocks)]
         (assoc blocks block-name
-               {:super has-super?
-                :content (.toString buf)})))))
+                      {:super   has-super?
+                       :content (.toString buf)})))))
 
 (defn process-block [rdr buf block-tag blocks]
   (let [block-name (get-tag-params "block" block-tag)]
@@ -161,8 +162,8 @@
 
 (defn to-expression-string [tag-name args]
   (let [tag-name' (name tag-name)
-        args' (clojure.string/join \space args)
-        joined (if (seq args) (str tag-name' \space args') tag-name')]
+        args'     (clojure.string/join \space args)
+        joined    (if (seq args) (str tag-name' \space args') tag-name')]
     (wrap-in-expression-tag joined)))
 
 (defn add-default [identifier default]
@@ -182,7 +183,7 @@
                       ;; NOTE: we add a character here since read-tag-info
                       ;; consumes the first character before parsing.
                       (str *tag-second*))
-        {:keys [tag-name args]} (read-tag-info (string->reader tag-str')) ]
+        {:keys [tag-name args]} (read-tag-info (string->reader tag-str'))]
     (to-expression-string tag-name (map #(try-add-default % defaults) args))))
 
 (defn get-template-path [template]

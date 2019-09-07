@@ -12,9 +12,10 @@ spaces you can enclose it with doublequotes or colons: {{ foo|join:\", \" }}.
 You can escape doublequotes inside doublequotes. And you can put colons
 inside doublequotes which will be ignored for the purpose of separating
 arguments."
-  (:require [selmer.filters :refer [get-filter]]
-            [selmer.util :refer [exception *escape-variables* fix-accessor parse-accessor]]
-            [clojure.string :as s]))
+  (:require
+    [selmer.filters :refer [get-filter]]
+    [selmer.util :refer [exception *escape-variables* fix-accessor parse-accessor]]
+    [clojure.string :as s]))
 
 ;;; More Utils
 (defn escape-html*
@@ -24,7 +25,7 @@ arguments."
   ;; Stolen from davidsantiago/quoin and modified.
   (if *escape-variables*
     (let [slength (count s)
-          sb (StringBuilder. slength)]
+          sb      (StringBuilder. slength)]
       (loop [idx 0]
         (if (>= idx slength)
           (.toString sb)
@@ -90,7 +91,7 @@ applied filter."
   (let [[filter-name & args]
         ;; Ignore colons inside doublequotes
         (re-seq #"(?:[^:\"]|\"[^\"]*\")+" s)
-        args (fix-filter-args args)
+        args   (fix-filter-args args)
         filter (get-filter filter-name)]
     (if filter
       (fn [x context-map]
@@ -146,7 +147,7 @@ applied filter."
   ([s escape?]
    (let [[val & filter-strs] (split-value s)
          accessor (parse-accessor val)
-         filters (map filter-str->fn filter-strs)]
+         filters  (map filter-str->fn filter-strs)]
      (if (literal? val)
        (fn [context-map]
          (apply-filters

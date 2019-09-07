@@ -1,12 +1,13 @@
 (ns selmer.validator
- (:use selmer.tags
-       selmer.filters
-       selmer.util
-       [clojure.set :only [difference]]
-       [clojure.java.io :only [reader]]))
+  (:require
+    [selmer.tags :refer :all]
+    [selmer.filters :refer :all]
+    [selmer.util :refer :all]
+    [clojure.set :refer [difference]]
+    [clojure.java.io :as io]))
 
 (def error-template
-  (slurp (get-resource "selmer-error-template.html")))
+  (slurp (io/resource "selmer-error-template.html")))
 
 (def validate? (atom true))
 
@@ -37,13 +38,13 @@
                :line           line
                :template       template
                :validation-errors
-               (for [error error-tags]
-                 (update-in error [:tag] format-tag))}))))
+                               (for [error error-tags]
+                                 (update-in error [:tag] format-tag))}))))
 
 (defn validate-filters [template line {:keys [tag-value] :as tag}]
   (let [tag-filters (map
-                  #(-> ^String % (.split ":") first keyword)
-                  (-> tag-value name (.split "\\|") rest))]
+                      #(-> ^String % (.split ":") first keyword)
+                      (-> tag-value name (.split "\\|") rest))]
     (if-not (empty? (difference (set tag-filters) (set (keys @filters))))
       (validation-error (str "Unrecognized filter " tag-value " found inside the tag") tag line template))))
 
@@ -51,45 +52,45 @@
   (apply concat (vals @closing-tags)))
 
 (defn valide-tag [template line tags {:keys [tag-name args tag-value tag-type] :as tag}]
- (condp = tag-type
-   :expr
-   (let [last-tag (last tags)
-         end-tags (get @closing-tags (:tag-name last-tag))]
-     (doseq [arg args] (validate-filters template line (assoc tag :tag-value arg)))
-     (cond
-       (nil? tag-name)
-       (validation-error "No tag name supplied for the tag" tag line template)
+  (condp = tag-type
+    :expr
+    (let [last-tag (last tags)
+          end-tags (get @closing-tags (:tag-name last-tag))]
+      (doseq [arg args] (validate-filters template line (assoc tag :tag-value arg)))
+      (cond
+        (nil? tag-name)
+        (validation-error "No tag name supplied for the tag" tag line template)
 
-       (not-any? #{tag-name} (concat (close-tags) (keys @expr-tags)))
-       (validation-error "Unrecognized tag found" tag line template)
+        (not-any? #{tag-name} (concat (close-tags) (keys @expr-tags)))
+        (validation-error "Unrecognized tag found" tag line template)
 
-       ;; check if we have closing tag
-       ;; handle the case where it's an intermediate tag
-       ;; throw an exception if it doesn't belong to the last open tag
-       (some #{tag-name} (close-tags))
-       (let [tags (vec (butlast tags))]
-         (if (some #{tag-name} end-tags)
-           (if (not-empty (get @closing-tags tag-name))
-             (conj tags (assoc tag :line line)) tags)
-           (validation-error "No closing tag found for the tag" last-tag (:line last-tag) template)))
+        ;; check if we have closing tag
+        ;; handle the case where it's an intermediate tag
+        ;; throw an exception if it doesn't belong to the last open tag
+        (some #{tag-name} (close-tags))
+        (let [tags (vec (butlast tags))]
+          (if (some #{tag-name} end-tags)
+            (if (not-empty (get @closing-tags tag-name))
+              (conj tags (assoc tag :line line)) tags)
+            (validation-error "No closing tag found for the tag" last-tag (:line last-tag) template)))
 
-       (not-empty (get @closing-tags tag-name))
-       (conj tags (assoc tag :line line))
+        (not-empty (get @closing-tags tag-name))
+        (conj tags (assoc tag :line line))
 
-       (some #{tag-name} (close-tags))
-       (validation-error "Found an orphan closing tag" tag line template)
+        (some #{tag-name} (close-tags))
+        (validation-error "Found an orphan closing tag" tag line template)
 
-       :else tags))
-   :filter
-   (do (validate-filters template line tag) tags)))
+        :else tags))
+    :filter
+    (do (validate-filters template line tag) tags)))
 
 (defn skip-verbatim-tags [tag-info rdr line template]
   (if (= :verbatim (:tag-name tag-info))
     (loop [ch (read-char rdr)]
       (if ch
         (if-not (and
-                 (open-tag? ch rdr)
-                 (= :endverbatim (:tag-name (read-tag-info rdr))))
+                  (open-tag? ch rdr)
+                  (= :endverbatim (:tag-name (read-tag-info rdr))))
           (recur (read-char rdr)))))
     tag-info))
 
@@ -100,7 +101,7 @@
       (validation-error (str "Error parsing the tag: " (.getMessage ex)) nil line template))))
 
 (defn validate-tags [template]
-  (with-open [rdr (reader template)]
+  (with-open [rdr (io/reader template)]
     (loop [tags [], ch (read-char rdr), line 1]
       (if ch
         (if (open-tag? ch rdr)
