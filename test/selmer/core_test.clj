@@ -219,7 +219,10 @@
   (is
     (= "foocorp"
        (render "{% with name=business.name %}{{name}}{% endwith %}"
-               {:business {:name "foocorp"}}))))
+               {:business {:name "foocorp"}})))
+  (is
+    (= "1+1=2"
+       (render "{% with math=\"1+1=2\" %}{{ math }}{% endwith %}" {}))))
 
 
 (deftest test-for
