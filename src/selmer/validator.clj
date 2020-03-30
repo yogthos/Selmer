@@ -51,7 +51,7 @@
 (defn close-tags []
   (apply concat (vals @closing-tags)))
 
-(defn valide-tag [template line tags {:keys [tag-name args tag-value tag-type] :as tag}]
+(defn validate-tag [template line tags {:keys [tag-name args tag-value tag-type] :as tag}]
   (condp = tag-type
     :expr
     (let [last-tag (last tags)
@@ -106,7 +106,7 @@
       (if ch
         (if (open-tag? ch rdr)
           (if-let [tag-info (read-tag rdr line template)]
-            (recur (valide-tag template line tags tag-info) (read-char rdr) line)
+            (recur (validate-tag template line tags tag-info) (read-char rdr) line)
             (recur tags (read-char rdr) line))
           (recur tags (read-char rdr) (if (= \newline ch) (inc line) line)))
         tags))))
