@@ -1,3 +1,4 @@
+* 1.12.19 - [fix](https://github.com/yogthos/Selmer/pull/218) for resolving path on Windows
 * 1.12.11 - updated `round` filter to return the value without wrapping it with `[:safe ]`
 * 1.12.10 - updated `add` filter to return the value without wrapping it with `[:safe ]`
 * 1.12.9 - Fix for tag accepts qualified keywords [PR 194](https://github.com/yogthos/Selmer/pull/194/files)
