@@ -153,7 +153,9 @@
                     {:foo "bar" :bar "foo"}
                     {:custom-resource-path (-> (io/resource "templates/")
                                                io/as-file
-                                               .getAbsolutePath)}))))
+                                               .getAbsoluteFile
+                                               .toURI
+                                               .toURL)}))))
 
 (deftest custom-tags
   (is
@@ -295,7 +297,7 @@
 
 (deftest nested-for-test
   (is
-    (= "<html>\n<body>\n<ul>\n\n\t<li>\n\t\n\ttest\n\t\n\t</li>\n\n\t<li>\n\t\n\ttest1\n\t\n\t</li>\n \n</ul>\n</body>\n</html>"
+    (= (fix-line-sep "<html>\n<body>\n<ul>\n\n\t<li>\n\t\n\ttest\n\t\n\t</li>\n\n\t<li>\n\t\n\ttest1\n\t\n\t</li>\n \n</ul>\n</body>\n</html>")
        (render-template (parse parse-input (str path "nested-for.html"))
                         {:name "Bob" :users [[{:name "test"}] [{:name "test1"}]]}))))
 
@@ -510,13 +512,13 @@
          "before bar foo & bar are true after bar")))
 
 (deftest ifequal-tag-test
-  (is (= "\n<h1>equal!</h1>\n\n\n\n\n\n<p>not equal</p>\n\n"
+  (is (= (fix-line-sep "\n<h1>equal!</h1>\n\n\n\n\n\n<p>not equal</p>\n\n")
          (render-template (parse parse-input (str path "ifequal.html")) {:foo "bar"})))
-  (is (= "\n\n\n<h1>equal!</h1>\n\n\n\n<p>not equal</p>\n\n"
+  (is (= (fix-line-sep "\n\n\n<h1>equal!</h1>\n\n\n\n<p>not equal</p>\n\n")
          (render-template (parse parse-input (str path "ifequal.html")) {:foo "baz" :bar "baz"})))
-  (is (= "\n\n\n<h1>equal!</h1>\n\n\n\n<h1>equal!</h1>\n\n"
+  (is (= (fix-line-sep "\n\n\n<h1>equal!</h1>\n\n\n\n<h1>equal!</h1>\n\n")
          (render-template (parse parse-input (str path "ifequal.html")) {:baz "test"})))
-  (is (= "\n\n\n<h1>equal!</h1>\n\n\n\n<p>not equal</p>\n\n"
+  (is (= (fix-line-sep "\n\n\n<h1>equal!</h1>\n\n\n\n<p>not equal</p>\n\n")
          (render-template (parse parse-input (str path "ifequal.html")) {:baz "fail"})))
 
   (is (= (render "{% ifequal foo|upper \"FOO\" %}yez{% endifequal %}" {:foo "foo"})

@@ -169,7 +169,7 @@
     (if-let [path *custom-resource-path*]
       (let [f (str path template)]
         (cond
-          (.startsWith f "/") (.toURL (io/file f))
+          (.startsWith f "/") (.toURL (.toURI (io/file f)))
           (.startsWith f "file:/") (java.net.URL. f)
           (.startsWith f "jar:file:/") (java.net.URL. f)
           :else (io/resource f)))
