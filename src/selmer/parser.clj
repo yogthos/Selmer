@@ -188,6 +188,19 @@
               {:args    args
                :content (conj content (TextNode. (.toString buf)))}))
 
+(defn skip-short-comment-tag [rdr]
+  (loop [ch1 (read-char rdr)
+         ch2 (read-char rdr)]
+    (cond
+      (nil? ch2)
+      (exception "short-form comment tag was not closed")
+
+      (and (= *short-comment-second* ch1) (= *tag-close* ch2))
+      nil
+
+      :else
+      (recur ch2 (read-char rdr)))))
+
 (defn tag-content [rdr start-tag & end-tags]
   (let [buf (StringBuilder.)]
     (loop [ch       (read-char rdr)
@@ -198,8 +211,15 @@
       (cond
         (and (nil? ch) (not-empty end-tags))
         (exception "No closing tag found for " start-tag)
+
         (nil? ch)
         tags
+
+        ; Skip any short form comments
+        (open-short-comment? ch rdr)
+        (do (skip-short-comment-tag rdr)
+            (recur (read-char rdr) tags content cur-tag end-tags))
+
         (open-tag? ch rdr)
         (let [{:keys [tag-name args] :as tag} (read-tag-info rdr)]
           (if-let [open-tag (and tag-name (some #{tag-name} end-tags))]
@@ -210,20 +230,11 @@
             (let [content (append-node content tag buf rdr)]
               (.setLength buf 0)
               (recur (read-char rdr) tags content cur-tag end-tags))))
+
         :else
         (do
           (.append buf ch)
           (recur (read-char rdr) tags content cur-tag end-tags))))))
-
-(defn skip-short-comment-tag [template rdr]
-  (loop [ch1 (read-char rdr)
-         ch2 (read-char rdr)]
-    (cond
-      (nil? ch2)
-      (exception "short-form comment tag was not closed")
-      (and (= *short-comment-second* ch1) (= *tag-close* ch2))
-      template
-      :else (recur ch2 (read-char rdr)))))
 
 ;; Compile-time parsing of tags. Accumulates a transient vector
 ;; before returning the persistent vector of INodes (TextNode, FunctionNode)
@@ -249,7 +260,9 @@
 
             ;; Short comment tags are dropped
             (open-short-comment? ch rdr)
-            (recur (skip-short-comment-tag template rdr) (read-char rdr))
+            (do
+              (skip-short-comment-tag rdr)
+              (recur template (read-char rdr)))
 
             ;; Default case, here we append the character and
             ;; read the next char
