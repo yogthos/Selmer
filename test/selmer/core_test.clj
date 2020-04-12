@@ -164,16 +164,17 @@
                {:foo [1 2 3]}
                {:tag-open  \[
                 :tag-close \]})))
-
   (is
     (= (fix-line-sep "Base template.\n\n\t\n<p></p>\n\n\n")
        (render-file "templates/child-custom.html"
                     {}
-                    {:tag-open     \[
-                     :tag-close    \]
-                     :filter-open  \(
-                     :filter-close \)
-                     :tag-second   \#}))))
+                    {:tag-open             \[
+                     :tag-close            \]
+                     :filter-open          \(
+                     :filter-close         \)
+                     :tag-second           \#
+                     :short-comment-second \%}))))
+
 
 (deftest no-tag
   (is (= "{" (render-file "templates/no_tag.html" {}))))
@@ -194,6 +195,9 @@
   (is
     (= "foo bar  blah"
        (render "foo bar {% comment %} baz{% if x %}nonono{%endif%} test {{x}} {% endcomment %} blah" {})))
+  (is
+    (= "foo if blah"
+       (render "foo {% if x %}if{# nonono #}{%endif%} blah" {:x true})))
   (is
     (= "foo bar  blah"
        (render "foo bar {# baz test {{x}} #} blah" {}))))
