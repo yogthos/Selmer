@@ -5,7 +5,7 @@
     [selmer.filters :refer [filters]]
     [selmer.util :refer :all]
     [json-html.core :refer [edn->html]])
-  (:import [selmer.node INode TextNode FunctionNode]))
+  (:import [selmer.node TextNode]))
 
 ;; A tag can modify the context map for its body
 ;; It has full control of its body which means that it has to
@@ -95,17 +95,6 @@
     false false
     true))
 
-(defn if-default-handler
-  " Handler of if-condition tags. Expects conditions, enclosed
-  tag-content, render boolean. Returns anonymous fn that will expect
-  runtime context-map. (Separate from compile-time) "
-  [[condition1 condition2] if-tags else-tags render]
-  (let [not?      (and condition1 condition2 (= condition1 "not"))
-        condition (compile-filter-body (or condition2 condition1))]
-    (fn [context-map]
-      (let [condition (if-result (condition context-map))]
-        (render-if render context-map (if not? (not condition) condition) if-tags else-tags)))))
-
 (defn match-comparator [op]
   (condp = op ">" > "<" < "=" == ">=" >= "<=" <=
               (exception "Unrecognized operator in 'if' statement: " op)))
@@ -121,13 +110,15 @@
     (cond
       (and (not (num? p1)) (not (num? p2)))
       [#(comparator (parse-double %1) (parse-double %2)) p1 p2]
+
       (num? p1)
       [#(comparator (parse-double p1) (parse-double %)) nil p2]
+
       (num? p2)
       [#(comparator (parse-double %) (parse-double p2)) p1 nil])))
 
-(defn render-if-numeric [render negate? [comparator context-key1 context-key2] context-map if-tags else-tags]
-  (render
+(defn numeric-expression-evaluation [[comparator context-key1 context-key2]]
+  (fn [context-map]
     (let [[value1 value2]
           (cond
             (and context-key1 context-key2)
@@ -136,52 +127,75 @@
             context-key1
             [(not-empty ((compile-filter-body context-key1) context-map))]
             context-key2
-            [(not-empty ((compile-filter-body context-key2) context-map))])
-          result (cond
-                   (and value1 value2)
-                   (comparator value1 value2)
-                   value1
-                   (comparator value1)
-                   value2
-                   (comparator value2))]
-      (or (:content (if (if negate? (not result) result) if-tags else-tags))
-          [(TextNode. "")]))
-    context-map))
+            [(not-empty ((compile-filter-body context-key2) context-map))])]
+      (cond
+        (and value1 value2)
+        (comparator value1 value2)
+        value1
+        (comparator value1)
+        value2
+        (comparator value2)))))
 
-(defn if-numeric-handler [[p1 p2 p3 p4 :as params] if-tags else-tags render]
-  (cond
-    (and p4 (not= p1 "not"))
-    (exception "invalid params for if-tag: " params)
-
-    (= "not" p1)
-    #(render-if-numeric render true (parse-numeric-params p2 p3 p4) % if-tags else-tags)
-
-    :else
-    #(render-if-numeric render false (parse-numeric-params p1 p2 p3) % if-tags else-tags)))
-
-(defn render-if-any-all [not? op params if-tags else-tags render]
+(defn if-any-all-fn [op params]
   (let [filters (map compile-filter-body params)]
     (fn [context-map]
-      (render-if
-        render
-        context-map
-        (let [test (op #{true} (map #(if-result (% context-map)) filters))]
-          (if not? (not test) test))
-        if-tags else-tags))))
+      (op #{true} (map #(if-result (% context-map)) filters)))))
+
+(defn if-condition-fn
+  "Compiles an if form into a function that takes a context-map, and returns true or false."
+  [params]
+  (let [negate   (= "not" (first params))
+        params   (if negate (rest params)
+                            params)
+        eval-fn  (cond
+                   ; just a normal, single argument if.
+                   (= (count params) 1)
+                   (compile-filter-body (first params))
+
+                   ; the any/all version, like {% if any a b c %}
+                   (#{"any" "all"} (first params))
+                   (let [op     (first params)
+                         params (rest params)]
+                     (if-any-all-fn (if (= "any" op) some every?) params))
+
+                   ; it has to be a numeric expression like 1 > 2
+                   (= 3 (count params))
+                   (let [[p1 p2 p3] params]
+                     (numeric-expression-evaluation (parse-numeric-params p1 p2 p3))))]
+    (if negate
+      (fn if-cond-fn-negated [context-map] (not (if-result (eval-fn context-map))))
+      (fn if-cond-fn [context-map] (if-result (eval-fn context-map))))))
+
 
 (defn if-handler [params tag-content render rdr]
-  (let [{if-tags :if else-tags :else} (tag-content rdr :if :else :endif)]
-    (cond
-      (some #{"any" "all"} (take 2 params))
-      (let [[not? op] (if (= "not" (first params))
-                        [true (second params)]
-                        [false (first params)])
-            params (if not? (drop 2 params) (rest params))]
-        (render-if-any-all not? (if (= "any" op) some every?) params if-tags else-tags render))
-      (< (count params) 3)
-      (if-default-handler params if-tags else-tags render)
-      :else
-      (if-numeric-handler params if-tags else-tags render))))
+  ; The main idea of this function is to genreate a list of test conditions and corresponding contetn,
+  ; then going though them in order until a test is successful, and then returning the contents belonging to
+  ; that test.
+
+  ; tag-content is key here as it's in charge of parsing the template.
+  ; The rest just renders out based on what it generates
+  (let [{if-tags :if elif-tags-list :elif else-tags :else} (tag-content rdr :if :elif :else :endif)
+        ; Conditions is a list of tests with their corresponding content.
+                        ; First comes the if clause
+        conditions (->> [{:args params :content (:content if-tags)}
+                         ; then any elifs
+                         elif-tags-list
+                         ; then the else clause. The "test" of the else clause just always returns true.
+                         (when else-tags (assoc else-tags :args ["\"true\""]))]
+                        ; Remove a hole created if there is no else clause.
+                        (filter identity)
+                        ; Unnest the elifs
+                        (flatten)
+                        ; Compile the args into a test function
+                        (map (fn [{args :args content :content}]
+                               {:test    (if-condition-fn args)
+                                :content content})))]
+
+    ; Returns anonymous fn that will expect runtime context-map. (Separate from compile-time).
+    (fn render-if [context-map]
+      (let [content-to-use (:content (ffind (fn [{test :test}] (test context-map))
+                                            conditions))]
+        (render content-to-use context-map)))))
 
 (defn compare-tag [args comparator render success failure]
   (fn [context-map]
@@ -372,8 +386,10 @@
                 :extends   nil
                 :include   nil}))
 
+; For each tag, does it have any follow-up tags that are part of the same tag construct? If so it goes here.
 (defonce closing-tags
-         (atom {:if        [:else :endif]
+         (atom {:if        [:else :elif :endif]
+                :elif      [:else :endif]
                 :else      [:endif :endifequal :endifunequal]
                 :ifequal   [:else :endifequal]
                 :ifunequal [:else :endifunequal]

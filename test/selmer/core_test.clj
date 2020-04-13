@@ -6,7 +6,8 @@
             [selmer.parser :refer :all]
             [selmer.template-parser :refer :all]
             [selmer.util :refer :all]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [clojure.string :as string])
   (:import java.util.Locale
            java.io.File
            (java.io StringReader)))
@@ -138,9 +139,9 @@
 
 (deftest include-in-path-name
   (is
-    (= "main template foo body" (render-file "templates/my-include.html" {:foo "foo"}))
-    )
-  )
+    (= "main template foo body" (render-file "templates/my-include.html" {:foo "foo"}))))
+
+
 
 (deftest render-file-accepts-resource-URL
   (is
@@ -398,8 +399,8 @@
        (render "{% sum foo bar baz %}" {:foo 3 :bar 2 :baz 1})))
   (is
     (= "6"
-       (render "{% sum foo bar.baz %}" {:foo 3 :bar {:baz 3}})))
-  )
+       (render "{% sum foo bar.baz %}" {:foo 3 :bar {:baz 3}}))))
+
 
 (deftest tag-info-test
   (is
@@ -491,6 +492,58 @@
     (is (= (render-template template {:foo false :bar true :baz true})
            " foo is false\n                  but baz is true \n                  ")))
   (is (thrown? Exception (render "foo {% else %} bar" {}))))
+
+(deftest elif
+  (is (= "bar!"
+         (string/trim (render "{% if foo %}   foo!
+                               {% elif bar %} bar!
+                               {% elif baz %} baz!
+                               {% else %}     else!
+                               {% endif %}"
+                              {:foo false
+                               :bar true
+                               :baz true}))))
+  (is (= "baz!"
+         (string/trim (render "{% if foo %}   foo!
+                               {% elif bar %} bar!
+                               {% elif baz %} baz!
+                               {% else %}     else!
+                               {% endif %}"
+                              {:foo false
+                               :bar false
+                               :baz true}))))
+  (is (= "else!"
+         (string/trim (render "{% if foo %}   foo!
+                               {% elif bar %} bar!
+                               {% elif baz %} baz!
+                               {% else %}     else!
+                               {% endif %}"
+                              {:foo false
+                               :bar false
+                               :baz false}))))
+  (is (= ""
+         (string/trim (render "{% if foo %}   foo!
+                               {% elif bar %} bar!
+                               {% elif baz %} baz!
+                               {% endif %}"
+                              {:foo false
+                               :bar false
+                               :baz false}))))
+  (is (= "bar!"
+         (string/trim (render "{% if foo > 3 %}       foo!
+                               {% elif not bar = 3 %} bar!
+                               {% elif baz %}         baz!
+                               {% endif %}"
+                              {:foo 2
+                               :bar 4
+                               :baz false}))))
+  (is (= "potato"
+         (string/trim (render "{% if foo > 3 %}       foo!
+                               {% elif any bar baz %} potato
+                               {% endif %}"
+                              {:foo 2
+                               :bar false
+                               :baz true})))))
 
 (deftest for-respects-missing-value-formatter
   ;; Using bindings instead of set-missing-value-formatter! to avoid cleanup
@@ -642,8 +695,8 @@
     "this is a text to tes" "{{f|abbr-ellipsis:\"\"|abbreviate:21}}"
     "this is a...t to test" "{{f|abbr-middle|abbreviate:21}}"
     "this is a//xt to test" "{{f|abbr-ellipsis://|abbr-middle|abbreviate:21}}"
-    "this is a …xt to test" "{{f|abbr-ellipsis:…|abbr-middle|abbreviate:21}}"
-    )
+    "this is a …xt to test" "{{f|abbr-ellipsis:…|abbr-middle|abbreviate:21}}")
+
   (are [expected input] (= expected (render input {:f "1234567890*0987654321"}))
     "123456 [...] 7654321" "{{f|abbr-middle|abbr-ellipsis:\" [...] \"|abbreviate:20}}"
     "1234567 [..] 7654321" "{{f|abbr-middle|abbr-ellipsis:\" [..] \"|abbreviate:20}}"
@@ -653,13 +706,13 @@
     "123456 [..] 7654321" "{{f|abbr-middle|abbr-ellipsis:\" [..] \"|abbreviate:19}}"
     "1234567 [.] 7654321" "{{f|abbr-middle|abbr-ellipsis:\" [.] \"|abbreviate:19}}"
     "...67890*098765..." "{{f|abbr-left|abbreviate:19|abbreviate:18}}"
-    "...567890*09876..." "{{f|abbreviate:19|abbr-left|abbreviate:18}}"
-    )
+    "...567890*09876..." "{{f|abbreviate:19|abbr-left|abbreviate:18}}")
+
   (is (thrown-with-msg? Exception #"15 .* 14"
                         (render "{{f|abbr-ellipsis:\"a long ellipsis\"|abbreviate:14}}" {:f "short text"})))
   (is (thrown-with-msg? Exception #"14 .* 15"
-                        (render "{{f|abbreviate:14:15}}" {:f "short text"})))
-  )
+                        (render "{{f|abbreviate:14:15}}" {:f "short text"}))))
+
 
 
 (deftest filter-take

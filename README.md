@@ -830,6 +830,22 @@ filters work for the conditions:
   {:files []})
 ```
 
+You can have elif (else if) clauses if you want:
+
+```clojure
+(render "{% if pl > 9000 %}
+              it's over 9000!
+         {% elif pl > 100 %}
+              it's in a middle zone
+         {% elif ok %}
+              still pretty ok
+         {% else %}
+              lower than 10... not ok
+         {% endif %}"
+  {:pl 14 :ok true}) 
+=> "still pretty ok"
+```
+
 #### ifequal
 Only render the body if the two args are equal (according to clojure.core/=).
 

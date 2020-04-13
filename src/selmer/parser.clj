@@ -17,7 +17,7 @@
     [selmer.util :refer :all]
     [selmer.validator :refer [validation-error]]
     selmer.node)
-  (:import [selmer.node INode TextNode FunctionNode]))
+  (:import [selmer.node TextNode FunctionNode]))
 
 ;; Ahead decl because some fns call into each other.
 
@@ -149,7 +149,7 @@
 ;; pass it the arguments, tag-content, render-template fn,
 ;; and reader.
 
-(defn expr-tag [{:keys [tag-name args] :as tag} rdr]
+(defn expr-tag [{:keys [tag-name args]} rdr]
   (if-let [handler (tag-name @expr-tags)]
     (handler args tag-content render-template rdr)
     (exception "unrecognized tag: " tag-name " - did you forget to close a tag?")))
@@ -183,10 +183,26 @@
       (conj (TextNode. (.toString buf)))
       (conj (FunctionNode. (parse-tag tag rdr)))))
 
-(defn update-tags [tag tags content args ^StringBuilder buf]
-  (assoc tags tag
-              {:args    args
-               :content (conj content (TextNode. (.toString buf)))}))
+(defn ensure-list
+  "Turns the argument into a list if it isn't a list already."
+  [list-maybe]
+  (if (sequential? list-maybe)
+    list-maybe
+    (if (nil? list-maybe)
+      []
+      [list-maybe])))
+
+(defn update-tags
+  "Assocs in the passed tag to the tags map."
+  [tag tags content args ^StringBuilder buf]
+  (let [content {:args    args
+                 :content (conj content (TextNode. (.toString buf)))}]
+    (if-let [tag-already-there (tags tag)]
+      ; if the tag is already in there, it's elif which can be duplicated.
+      ; in this case, we want to make a list and put it in there, as we need all the elif tags later.
+      (assoc tags tag (conj (ensure-list tag-already-there)
+                            content))
+      (assoc tags tag content))))
 
 (defn skip-short-comment-tag [rdr]
   (loop [ch1 (read-char rdr)
@@ -201,40 +217,63 @@
       :else
       (recur ch2 (read-char rdr)))))
 
-(defn tag-content [rdr start-tag & end-tags]
+(defn tag-content
+  "Parses the content of a tag.
+   Returns a map of tag-name -> args & content, which can then be interpreted by the calling function."
+  [rdr start-tag & end-tags]
   (let [buf (StringBuilder.)]
     (loop [ch       (read-char rdr)
            tags     {}
            content  []
-           cur-tag  start-tag
-           end-tags end-tags]
+           cur-tag  start-tag ; for example, if
+           end-tags end-tags ; for example, [elif, else, endif]
+           cur-args nil]
       (cond
         (and (nil? ch) (not-empty end-tags))
         (exception "No closing tag found for " start-tag)
 
+        ; We're done with this tag so return.
         (nil? ch)
         tags
 
         ; Skip any short form comments
         (open-short-comment? ch rdr)
         (do (skip-short-comment-tag rdr)
-            (recur (read-char rdr) tags content cur-tag end-tags))
+            (recur (read-char rdr) tags content cur-tag end-tags cur-args))
 
+        ; A tag was found inside this tag
         (open-tag? ch rdr)
         (let [{:keys [tag-name args] :as tag} (read-tag-info rdr)]
+          ; Determine if the tag belongs to the opening tag on this level
           (if-let [open-tag (and tag-name (some #{tag-name} end-tags))]
-            (let [tags     (update-tags cur-tag tags content args buf)
-                  end-tags (next (drop-while #(not= tag-name %) end-tags))]
+            ; This tag is part of the already open tag, like how else or endif belongs to the if tag.
+            ; Since we have reached the end of this cluse we empty the contents of the buffer into the tags list.
+            (let [tags     (update-tags cur-tag tags content cur-args buf)
+                  ; special case to allow an arbitrary number of elif tags
+                  end-tags (if (= open-tag :elif)
+                             end-tags
+                             ; but non-elif tags can only used once, so remove from the possible options
+                             (next (drop-while #(not= tag-name %) end-tags)))]
+              ; clear the buffer - it's been written inside update-tags
               (.setLength buf 0)
-              (recur (when-not (empty? end-tags) (read-char rdr)) tags [] open-tag end-tags))
+              (recur (when-not (empty? end-tags) (read-char rdr))
+                     tags
+                     []
+                     open-tag
+                     end-tags
+                     args))
+
+            ; The detected tag is not part of the open tag.
+            ; Recursively reading the new tag and adding it to content.
             (let [content (append-node content tag buf rdr)]
               (.setLength buf 0)
-              (recur (read-char rdr) tags content cur-tag end-tags))))
+              (recur (read-char rdr) tags content cur-tag end-tags cur-args))))
 
+        ; Just a normal letter
         :else
         (do
           (.append buf ch)
-          (recur (read-char rdr) tags content cur-tag end-tags))))))
+          (recur (read-char rdr) tags content cur-tag end-tags cur-args))))))
 
 ;; Compile-time parsing of tags. Accumulates a transient vector
 ;; before returning the persistent vector of INodes (TextNode, FunctionNode)
