@@ -141,31 +141,65 @@
     (fn [context-map]
       (op #{true} (map #(if-result (% context-map)) filters)))))
 
+(defn parse-eq-arg [arg-string]
+  (cond
+    (= \" (first arg-string))
+    (.substring arg-string 1 (dec (.length arg-string)))
+
+    (= \: (first arg-string))
+    arg-string
+
+    (num? arg-string)
+    arg-string
+
+    :else
+    (compile-filter-body arg-string)))
+
 (defn if-condition-fn
   "Compiles an if form into a function that takes a context-map, and returns true or false."
   [params]
-  (let [negate   (= "not" (first params))
-        params   (if negate (rest params)
-                            params)
-        eval-fn  (cond
-                   ; just a normal, single argument if.
-                   (= (count params) 1)
-                   (compile-filter-body (first params))
+  (let [negate  (= "not" (first params))
+        params  (if negate (rest params)
+                           params)
+        eval-fn (cond
+                  ; just a normal, single argument if.
+                  (= (count params) 1)
+                  (compile-filter-body (first params))
 
-                   ; the any/all version, like {% if any a b c %}
-                   (#{"any" "all"} (first params))
-                   (let [op     (first params)
-                         params (rest params)]
-                     (if-any-all-fn (if (= "any" op) some every?) params))
+                  ; the any/all version, like {% if any a b c %}
+                  (#{"any" "all"} (first params))
+                  (let [op     (first params)
+                        params (rest params)]
+                    (if-any-all-fn (if (= "any" op) some every?) params))
 
-                   ; it has to be a numeric expression like 1 > 2
-                   (= 3 (count params))
-                   (let [[p1 p2 p3] params]
-                     (numeric-expression-evaluation (parse-numeric-params p1 p2 p3))))]
+                  ; Do an equals comparison, for instance with a string comparison
+                  (and (= 3 (count params)) (= (second params) "="))
+                  (let [[p1 _ p3] params]
+                    (fn [context-map]
+                      (let [lookup-if-needed (fn [arg] (if (fn? arg)
+                                                         (arg context-map)
+                                                         arg))
+                            a                (lookup-if-needed (parse-eq-arg p1))
+                            b                (lookup-if-needed (parse-eq-arg p3))]
+                        (if (and (num? a) (num? b))
+                          ; Special case for when both are numbers -
+                          ; since we want 2 = 2.0 to be true and in clojure (= 2 2.0) => false
+                          (== (parse-double a)
+                              (parse-double b))
+                          (= a b)))))
+
+                  ; it has to be a numeric expression like 1 > 2
+                  (= 3 (count params))
+                  (let [[p1 p2 p3] params]
+                    (numeric-expression-evaluation (parse-numeric-params p1 p2 p3))))]
     (if negate
       (fn if-cond-fn-negated [context-map] (not (if-result (eval-fn context-map))))
       (fn if-cond-fn [context-map] (if-result (eval-fn context-map))))))
 
+(defn compare-tag [args comparator render success failure]
+  (fn [context-map]
+    (let [condition (apply comparator (map #(if (fn? %) (% context-map) %) args))]
+      (render-if render context-map condition success failure))))
 
 (defn if-handler [params tag-content render rdr]
   ; The main idea of this function is to genreate a list of test conditions and corresponding contetn,
@@ -176,7 +210,7 @@
   ; The rest just renders out based on what it generates
   (let [{if-tags :if elif-tags-list :elif else-tags :else} (tag-content rdr :if :elif :else :endif)
         ; Conditions is a list of tests with their corresponding content.
-                        ; First comes the if clause
+        ; First comes the if clause
         conditions (->> [{:args params :content (:content if-tags)}
                          ; then any elifs
                          elif-tags-list
@@ -197,22 +231,10 @@
                                             conditions))]
         (render content-to-use context-map)))))
 
-(defn compare-tag [args comparator render success failure]
-  (fn [context-map]
-    (let [condition (apply comparator (map #(if (fn? %) (% context-map) %) args))]
-      (render-if render context-map condition success failure))))
-
 (defn parse-eq-args [args]
   (for [^String arg args]
-    (cond
-      (= \" (first arg))
-      (.substring arg 1 (dec (.length arg)))
+    (parse-eq-arg arg)))
 
-      (= \: (first arg))
-      arg
-
-      :else
-      (compile-filter-body arg))))
 
 (defn ifequal-handler [args tag-content render rdr]
   (let [{:keys [ifequal else]} (tag-content rdr :ifequal :else :endifequal)
