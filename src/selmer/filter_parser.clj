@@ -156,7 +156,7 @@ applied filter."
            filter-strs
            filters
            context-map))
-       (fn [context-map]
+       (fn runtime-test [context-map]
          (let [val (reduce get-accessor context-map accessor)]
            (when (or (not (nil? val)) (and selmer.util/*filter-missing-values* (seq filters)))
              (let [x (apply-filters
