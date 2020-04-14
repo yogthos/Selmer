@@ -1,3 +1,5 @@
+* 1.12.22 - [Allow comparing strings and keywords in the if tag like so {% if x = :lol %}](https://github.com/yogthos/Selmer/pull/224)
+* 1.12.21 - [elif tag support](https://github.com/yogthos/Selmer/pull/223)
 * 1.12.20 - [fix](https://github.com/yogthos/Selmer/pull/222) for handling short form comments inside tags
 * 1.12.19 - [fix](https://github.com/yogthos/Selmer/pull/218) for resolving path on Windows
 * 1.12.11 - updated `round` filter to return the value without wrapping it with `[:safe ]`

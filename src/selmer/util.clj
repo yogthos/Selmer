@@ -229,8 +229,6 @@ so it can access vectors as well as maps."
        (map (fn [s] (clojure.string/replace s ".." ".")))
        (fix-accessor)))
 
-(def spy #(do (println "DEBUG:" %) %))
-
 (defn ffind
   "finds and returns the first element in a collection where function f evaluates to true."
   [f coll]
