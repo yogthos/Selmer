@@ -475,6 +475,9 @@
   (is (= (render "{% if foo %}foo is true{% else %}foo is false{% endif %}"
                  {:foo false})
          "foo is false"))
+  (is (= (render "{% if fruit = \"banana\"%}for monkey{% else %}not banana{% endif %}"
+                 {:fruit "banana"})
+         "for monkey"))
 
   (let [template
         (parse parse-input

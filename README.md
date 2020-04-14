@@ -821,6 +821,11 @@ numeric comparisons are also supported using the `=`, `<`, `>`, `<=` and `>=` op
 
 `(render "{% if vals|length <= 3 %}yes!{% else %}no!{% endif %}" {:vals (range 3)})`
 
+you can compare strings or keywords with `=` as well:
+
+`(render "{% if x = \"banana\" %}yellow{% endif %}" {:x "banana"})`
+
+`(render "{% if x = :banana %}yellow{% endif %}" {:x :banana})`
 
 filters work for the conditions:
 
@@ -837,12 +842,12 @@ You can have elif (else if) clauses if you want:
               it's over 9000!
          {% elif pl > 100 %}
               it's in a middle zone
-         {% elif ok %}
+         {% elif status = \"decent\" %}
               still pretty ok
          {% else %}
               lower than 10... not ok
          {% endif %}"
-  {:pl 14 :ok true}) 
+  {:pl 14 :status "decent"}) 
 => "still pretty ok"
 ```
 
