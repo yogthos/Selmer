@@ -1,3 +1,4 @@
+* 1.12.23 - [NPE fix](https://github.com/yogthos/Selmer/pull/226)
 * 1.12.22 - [Allow comparing strings and keywords in the if tag like so {% if x = :lol %}](https://github.com/yogthos/Selmer/pull/224)
 * 1.12.21 - [elif tag support](https://github.com/yogthos/Selmer/pull/223)
 * 1.12.20 - [fix](https://github.com/yogthos/Selmer/pull/222) for handling short form comments inside tags
