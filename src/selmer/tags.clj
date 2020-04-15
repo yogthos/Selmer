@@ -100,7 +100,7 @@
               (exception "Unrecognized operator in 'if' statement: " op)))
 
 (defn- num? [v]
-  (re-matches #"[0-9]*\.?[0-9]+" v))
+  (and v (re-matches #"[0-9]*\.?[0-9]+" v)))
 
 (defn- parse-double [v]
   (java.lang.Double/parseDouble v))

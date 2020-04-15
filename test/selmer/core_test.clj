@@ -433,6 +433,9 @@
     (= "ok"
        (render "{% if x = 2.0 %}ok{% endif %}" {:x 2})))
   (is
+    (= "doublenil"
+       (render "{% if x = y %}doublenil{% endif %}" {})))
+  (is
     (= "ok"
        (render "{% if x|length = 5 %}ok{% endif %}" {:x (range 5)})))
   (is
