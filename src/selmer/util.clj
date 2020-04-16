@@ -1,5 +1,7 @@
 (ns selmer.util
-  (:require [clojure.java.io :as io])
+  (:require
+    [clojure.java.io :as io]
+    [clojure.string :as string])
   (:import java.io.StringReader
            java.util.regex.Pattern))
 
@@ -35,7 +37,7 @@
      ~@body))
 
 (defn pattern [& content]
-  (re-pattern (clojure.string/join content)))
+  (re-pattern (string/join content)))
 
 (defn read-char [^java.io.Reader rdr]
   (let [ch (.read rdr)]
@@ -225,8 +227,8 @@ so it can access vectors as well as maps."
   "Split accessors like foo.bar.baz by the dot.
    But if there is a double dot '..' then it will leave it"
   [^String accessor]
-  (->> (clojure.string/split accessor #"(?<!\.)\.(?!\.)")
-       (map (fn [s] (clojure.string/replace s ".." ".")))
+  (->> (string/split accessor #"(?<!\.)\.(?!\.)")
+       (map (fn [s] (string/replace s ".." ".")))
        (fix-accessor)))
 
 (defn ffind
