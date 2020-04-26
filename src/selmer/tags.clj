@@ -294,7 +294,7 @@
   (when-not (even? (count args))
     (exception "invalid arguments passed to 'with' tag: " args))
   (for [[id value] (partition 2 args)]
-    [(keyword id) (compile-filter-body value false)]))
+    [(map keyword (clojure.string/split id #"\.")) (compile-filter-body value false)]))
 
 (defn with-handler [args tag-content render rdr]
   (let [content (get-in (tag-content rdr :with :endwith) [:with :content])
@@ -307,8 +307,8 @@
     (fn [context-map]
       (render content
               (reduce
-                (fn [context-map [k v]]
-                  (assoc context-map k (v context-map)))
+               (fn [context-map [k v]]
+                  (assoc-in context-map k (v context-map)))
                 context-map args)))))
 
 (defn- build-uri-for-script-or-style-tag
