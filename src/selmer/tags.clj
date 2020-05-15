@@ -349,7 +349,7 @@
                            args)
             async-attr   (when (:async args) "async ")
             src-attr-val (build-uri-for-script-or-style-tag uri context-map)]
-        (str "<script " async-attr "src=\"" src-attr-val "\" type=\"text/javascript\"></script>")))))
+        (str "<script " async-attr "src=\"" src-attr-val "\" type=\"application/javascript\"></script>")))))
 
 (defn style-handler
   "Returns function that renders HTML `<LINK/>` tag. Accepts `uri` that would

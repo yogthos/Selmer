@@ -314,16 +314,16 @@
 
 (deftest script-style
   (is
-   (= "<script src=\"/js/site.js\" type=\"text/javascript\"></script>"
+   (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
       (render "{% script \"/js/site.js\" %}" {})))
   (is
-   (= "<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
+   (= "<script src=\"/myapp/js/site.js\" type=\"application/javascript\"></script>"
       (render "{% script \"/js/site.js\" %}" {:selmer/context "/myapp"})))
   (is
-   (= "<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
+   (= "<script src=\"/myapp/js/site.js\" type=\"application/javascript\"></script>"
       (render "{% script path %}" {:selmer/context "/myapp" :path "/js/site.js"})))
   (is
-   (= "<script src=\"/myapp/JS/SITE.JS\" type=\"text/javascript\"></script>"
+   (= "<script src=\"/myapp/JS/SITE.JS\" type=\"application/javascript\"></script>"
       (render "{% script path|upper %}" {:selmer/context "/myapp" :path "/js/site.js"})))
   (is
    (= "<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
@@ -337,16 +337,16 @@
 
 (deftest script-async
   (is
-    (= "<script async src=\"/js/site.js\" type=\"text/javascript\"></script>"
+    (= "<script async src=\"/js/site.js\" type=\"application/javascript\"></script>"
       (render "{% script \"/js/site.js\" async=\"true\" %}" {})))
   (is
-    (= "<script async src=\"/js/site.js\" type=\"text/javascript\"></script>"
+    (= "<script async src=\"/js/site.js\" type=\"application/javascript\"></script>"
       (render "{% script \"/js/site.js\" async=1 %}" {})))
   (is
-    (= "<script async src=\"/js/site.js\" type=\"text/javascript\"></script>"
+    (= "<script async src=\"/js/site.js\" type=\"application/javascript\"></script>"
       (render "{% with var = 1 %}{% script \"/js/site.js\" async=var %}{% endwith %}" {})))
   (is
-    (= "<script src=\"/js/site.js\" type=\"text/javascript\"></script>"
+    (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
       (render "{% script \"/js/site.js\" async=nil %}" {}))))
 
 (deftest cycle-test
