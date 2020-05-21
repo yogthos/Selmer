@@ -410,8 +410,8 @@
 
 ; For each tag, does it have any follow-up tags that are part of the same tag construct? If so it goes here.
 (defonce closing-tags
-         (atom {:if        [:else :elif :endif]
-                :elif      [:else :endif]
+         (atom {:if        [:elif :else :endif]
+                :elif      [:elif :else :endif]
                 :else      [:endif :endifequal :endifunequal]
                 :ifequal   [:else :endifequal]
                 :ifunequal [:else :endifunequal]
