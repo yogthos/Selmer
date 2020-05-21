@@ -1,3 +1,4 @@
+* 1.12.25 - [fix for elif tags](https://github.com/yogthos/Selmer/pull/230)
 * 1.12.24 - updated text/javascript to application/javascript in the script tag
 * 1.12.23 - [NPE fix](https://github.com/yogthos/Selmer/pull/226)
 * 1.12.22 - [Allow comparing strings and keywords in the if tag like so {% if x = :lol %}](https://github.com/yogthos/Selmer/pull/224)
