@@ -54,7 +54,7 @@
     (instance? java.net.URL path)
     (append-slash (str path))
     :else
-    (if (or (.startsWith ^java.lang.String path "/")
+    (if (or (.startsWith ^java.lang.String path java.io.File/separator)
             (.startsWith ^java.lang.String path "file:/"))
       (append-slash
         (try
