@@ -1,3 +1,4 @@
+* 1.12.26 - [fix for file path resolution on Windows](https://github.com/yogthos/Selmer/pull/232)
 * 1.12.25 - [fix for elif tags](https://github.com/yogthos/Selmer/pull/230)
 * 1.12.24 - updated text/javascript to application/javascript in the script tag
 * 1.12.23 - [NPE fix](https://github.com/yogthos/Selmer/pull/226)
