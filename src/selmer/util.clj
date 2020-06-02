@@ -165,13 +165,28 @@
           (.append buf ch)
           (recur items (read-char rdr) open?))))))
 
+(defn on-windows?
+  "Do we seem to be running on Windows?"
+  []
+  (-> (System/getProperty "os.name")
+      clojure.string/lower-case
+      (clojure.string/includes? "windows")))
+
+(defn looks-like-absolute-file-path?
+  "Does the resource path seem to be an absolute file path, considering
+  the system file separator, and (when running on Windows) the
+  possibility of a drive letter prefix?"
+  [^java.lang.String path]
+  (or (.startsWith path java.io.File/separator)
+      (and (on-windows?) (re-matches #"[a-zA-Z]:.*" path))))
+
 (defn resource-path [template]
   (if (instance? java.net.URL template)
     template
     (if-let [path *custom-resource-path*]
       (let [f (str path template)]
         (cond
-          (.startsWith f "/") (.toURL (.toURI (io/file f)))
+          (looks-like-absolute-file-path? f) (.toURL (.toURI (io/file f)))
           (.startsWith f "file:/") (java.net.URL. f)
           (.startsWith f "jar:file:/") (java.net.URL. f)
           :else (io/resource f)))
