@@ -66,8 +66,7 @@
                        :first       (= counter 0)
                        :last        (= counter (dec length))}]
                   (->> (assoc (create-value-mappings context-map ids value)
-                         :forloop loop-info
-                         :parentloop loop-info)
+                         :forloop loop-info)
                        (render for-content)
                        (.append buf)))))))
         (.toString buf)))))
