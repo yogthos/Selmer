@@ -64,7 +64,8 @@
                        :revcounter  (- length (inc counter))
                        :revcounter0 (- length counter)
                        :first       (= counter 0)
-                       :last        (= counter (dec length))}]
+                       :last        (= counter (dec length))
+                       :parentloop  (:forloop context-map)}]
                   (->> (assoc (create-value-mappings context-map ids value)
                          :forloop loop-info)
                        (render for-content)

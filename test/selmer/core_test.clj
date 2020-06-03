@@ -176,7 +176,6 @@
                      :tag-second           \#
                      :short-comment-second \%}))))
 
-
 (deftest no-tag
   (is (= "{" (render-file "templates/no_tag.html" {}))))
 
@@ -290,7 +289,9 @@
          "bar bar "))
   (is (= (render "{% for i in some..namespace/keyword %}{{i}} {% endfor %}"
                  {:some.namespace/keyword [1 2 3 4]})
-         "1 2 3 4 ")))
+         "1 2 3 4 "))
+  (is (= (render "{% for i in x %}{% for j in i %}{{forloop.parentloop}}{% endfor %}{% endfor %}" {:x [[:a :b]]})
+         "{:length 1, :counter0 0, :counter 1, :revcounter 0, :revcounter0 1, :first true, :last true, :parentloop nil}{:length 1, :counter0 0, :counter 1, :revcounter 0, :revcounter0 1, :first true, :last true, :parentloop nil}")))
 
 (deftest for-filter-test
   (is
