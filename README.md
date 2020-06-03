@@ -877,6 +877,7 @@ Render the body one time for each element in the list. Each render will introduc
 * `forloop.revcounter`
 * `forloop.revcounter0`
 * `forloop.length`
+* `forloop.parentloop`
 
 `{% for x in some-list %}element: {{x}} first? {{forloop.first}} last? {{forloop.last}}{% endfor %}`
 
@@ -896,6 +897,7 @@ filters can be used inside the for loop:
 
 `(render "{% for x in foo.bar|sort %}{{x}}{% endfor %}" {:foo {:bar [1 4 3 5]}})` => `"1345"`
 
+`(render "{% for i in x %}{% for j in i %}{{j}}-{{forloop.parentloop.counter}}{% endfor %}{% endfor %}" {:x [[:a :b]]})` => `":a-1:b-1"`
 
 #### sum
 Sums multiple variables together
