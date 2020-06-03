@@ -1,4 +1,4 @@
-* 1.12.26 - code clean up to remove unused `:parentloop` key from the `for` tag implementation
+* 1.12.26 - fix for the `:parentloop` key for the `for` tag implementation to allow accessing parent loop context in nested loops
 * 1.12.26 - [fix for file path resolution on Windows](https://github.com/yogthos/Selmer/pull/232)
 * 1.12.25 - [fix for elif tags](https://github.com/yogthos/Selmer/pull/230)
 * 1.12.24 - updated text/javascript to application/javascript in the script tag
