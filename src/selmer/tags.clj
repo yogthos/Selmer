@@ -344,7 +344,7 @@
       (let [args
                          (reduce
                            (fn [context-map [k v]]
-                             (assoc context-map k (v context-map)))
+                             (assoc-in context-map k (v context-map)))
                            context-map
                            args)
             async-attr   (when (:async args) "async ")
