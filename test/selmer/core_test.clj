@@ -228,8 +228,10 @@
                {:business {:name "foocorp"}})))
   (is
     (= "1+1=2"
-       (render "{% with math=\"1+1=2\" %}{{ math }}{% endwith %}" {}))))
-
+       (render "{% with math=\"1+1=2\" %}{{ math }}{% endwith %}" {})))
+  (is
+   (= "1+1=2"
+      (render "{% with math.math=\"1+1=2\" %}{{ math.math }}{% endwith %}" {}))))
 
 (deftest test-for
   (is
