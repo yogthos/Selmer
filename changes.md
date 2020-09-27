@@ -1,3 +1,5 @@
+* 1.12.29 - [Process include tags with the context of the already observed blocks](https://github.com/yogthos/Selmer/pull/240)
+* 1.12.28 - [fix for async script tag](https://github.com/yogthos/Selmer/commit/d0525a94d61a149fe199147b49adb80f2f7affde)
 * 1.12.27 - fix for the `:parentloop` key for the `for` tag implementation to allow accessing parent loop context in nested loops
 * 1.12.26 - [fix for file path resolution on Windows](https://github.com/yogthos/Selmer/pull/232)
 * 1.12.25 - [fix for elif tags](https://github.com/yogthos/Selmer/pull/230)
