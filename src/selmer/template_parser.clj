@@ -32,28 +32,7 @@
 (defn string->reader [string]
   (reader (StringReader. string)))
 
-(defn insert-includes
-  "parse any included templates and splice them in replacing the include tags"
-  [template]
-  ;; We really need to split out the "gather all parent templates recursively"
-  ;; and separate that from the buffer appending so we can gather the template
-  ;; hierarchy for smarter cache invalidation - will eliminate almost all
-  ;; existing reasons for cache-off!
-  (->buf [buf]
-         (with-open [rdr (reader (StringReader. template))]
-           (loop [ch (read-char rdr)]
-             (when ch
-               (if (and (= *tag-open* ch) (= *tag-second* (peek-rdr rdr)))
-                 (let [tag-str (read-tag-content rdr)]
-                   (.append buf
-                            (if (re-matches *include-pattern* tag-str)
-                              (let [params   (split-include-tag tag-str)
-                                    source   (.replaceAll ^String (first params) "\"" "")
-                                    defaults (parse-defaults (nnext params))]
-                                (preprocess-template source {} defaults))
-                              tag-str)))
-                 (.append buf ch))
-               (recur (read-char rdr)))))))
+
 
 (defn get-parent [tag-str]
   (let [template (get-tag-params "extends" tag-str)]
@@ -74,9 +53,9 @@
         (if (open-tag? ch rdr)
           (let [tag-str        (read-tag-content rdr)
                 block?         (re-matches *block-pattern* tag-str)
-                block-name     (if block? (get-tag-params "block" tag-str))
+                block-name     (when block? (get-tag-params "block" tag-str))
                 super-tag?     (re-matches *block-super-pattern* tag-str)
-                existing-block (if block-name (get-in blocks [block-name :content]))]
+                existing-block (when block-name (get-in blocks [block-name :content]))]
             ;;check if we wish to write the closing tag for the block. If we're
             ;;injecting block.super, then we want to omit it
             (when (write-tag? buf super-tag? existing-block blocks-to-close omit-close-tag?)
@@ -219,6 +198,15 @@
                     (do (.append buf (add-defaults-to-expression-tag tag-str defaults))
                         (recur blocks (read-char rdr) parent))
 
+                    ;;if the template includes another, pre-process it and
+                    ;;add the contents to the front of the buffer.
+                    (re-matches *include-pattern* tag-str)
+                    (let [params   (split-include-tag tag-str)
+                          source   (.replaceAll ^String (first params) "\"" "")
+                          defaults (parse-defaults (nnext params))]
+                      (.append buf (preprocess-template source blocks defaults))
+                      (recur blocks (read-char rdr) parent))
+
                     ;;if the template extends another it's not the root
                     ;;this template is allowed to only contain blocks
                     (re-matches *extends-pattern* tag-str)
@@ -246,9 +234,11 @@
 
                 :else
                 (do
-                  (if (nil? parent) (.append buf ch))
+                  (when (nil? parent) (.append buf ch))
                   (recur blocks (read-char rdr) parent)))))]
-      (if parent (recur parent blocks defaults) (.toString buf)))))
+      (if parent
+        (recur parent blocks defaults)
+        (.toString buf)))))
 
 (defn preprocess-template [template & [blocks defaults]]
-  (insert-includes (read-template template blocks defaults)))
+  (read-template template blocks defaults))

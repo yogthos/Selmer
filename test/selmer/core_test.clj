@@ -70,7 +70,6 @@
   (let [s "{a b c} \nd"]
     (is (= s (render s {})))))
 
-
 (deftest inheritance
   (binding
     [*tag-second-pattern* (pattern *tag-second*)
@@ -106,6 +105,18 @@
     (is
       (= (fix-line-sep "start a\n{% block a %}\nstart b\n{% block b %}\nstart c\nstop c\n{% endblock %}\nstop b\n{% endblock %}\nstop a\n\n{% block content %}content{% endblock %}\n\nHello, {{name}}!\n")
          (preprocess-template "templates/inheritance/inherit-c.html")))
+    (is
+      (= (fix-line-sep "<head>{% block my-script %}<script src=\"my/C/script\" />{% endblock %}</head>\n\n<body>my-body</body>\n")
+         (preprocess-template "templates/inheritance/child-c.html")))
+    (is
+      (= (fix-line-sep "<head>{% block my-script %}<script src=\"my/D/script\" />{% endblock %}</head>\n\n<body>my-body</body>\n")
+         (preprocess-template "templates/inheritance/child-d.html")))
+    (is
+      (= (fix-line-sep "<head><script src=\"my/C/script\" /></head>\n\n<body>my-body</body>\n")
+         (render-file "templates/inheritance/child-c.html" {})))
+    (is
+      (= (fix-line-sep "<head><script src=\"my/D/script\" /></head>\n\n<body>my-body</body>\n")
+         (render-file "templates/inheritance/child-d.html" {})))
     (is
       (= (fix-line-sep "Base template.\n\n\t\n<p></p>\n\n\n")
          (render-file "templates/child.html" {})))
