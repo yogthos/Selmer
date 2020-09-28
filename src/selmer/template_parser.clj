@@ -32,8 +32,6 @@
 (defn string->reader [string]
   (reader (StringReader. string)))
 
-
-
 (defn get-parent [tag-str]
   (let [template (get-tag-params "extends" tag-str)]
     (.substring ^String template 1 (dec (.length ^String template)))))
@@ -45,6 +43,12 @@
              (not existing-block)
              (> blocks-to-close (if omit-close-tag? 1 0))))))
 
+(defn- process-includes [tag-str buf blocks]
+  (let [params   (split-include-tag tag-str)
+        source   (.replaceAll ^String (first params) "\"" "")
+        defaults (parse-defaults (nnext params))]
+    (preprocess-template source blocks defaults)))
+
 (defn consume-block [rdr & [^StringBuilder buf blocks omit-close-tag?]]
   (loop [blocks-to-close 1
          has-super?      false]
@@ -52,14 +56,20 @@
       (let [ch (read-char rdr)]
         (if (open-tag? ch rdr)
           (let [tag-str        (read-tag-content rdr)
+                includes?      (re-matches *include-pattern* tag-str)
                 block?         (re-matches *block-pattern* tag-str)
                 block-name     (when block? (get-tag-params "block" tag-str))
                 super-tag?     (re-matches *block-super-pattern* tag-str)
                 existing-block (when block-name (get-in blocks [block-name :content]))]
-            ;;check if we wish to write the closing tag for the block. If we're
-            ;;injecting block.super, then we want to omit it
-            (when (write-tag? buf super-tag? existing-block blocks-to-close omit-close-tag?)
+            (cond
+              includes?
+              (.append buf (process-includes tag-str buf blocks))
+
+              ;;check if we wish to write the closing tag for the block. If we're
+              ;;injecting block.super, then we want to omit it
+              (write-tag? buf super-tag? existing-block blocks-to-close omit-close-tag?)
               (.append buf tag-str))
+
             (recur
               (long
                 (cond
@@ -201,11 +211,8 @@
                     ;;if the template includes another, pre-process it and
                     ;;add the contents to the front of the buffer.
                     (re-matches *include-pattern* tag-str)
-                    (let [params   (split-include-tag tag-str)
-                          source   (.replaceAll ^String (first params) "\"" "")
-                          defaults (parse-defaults (nnext params))]
-                      (.append buf (preprocess-template source blocks defaults))
-                      (recur blocks (read-char rdr) parent))
+                    (do (.append buf (process-includes tag-str buf blocks))
+                        (recur blocks (read-char rdr) parent))
 
                     ;;if the template extends another it's not the root
                     ;;this template is allowed to only contain blocks
