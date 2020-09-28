@@ -118,10 +118,10 @@
       (= (fix-line-sep "<head><script src=\"my/D/script\" /></head>\n\n<body>my-body</body>\n")
          (render-file "templates/inheritance/child-d.html" {})))
     (is
-      (= (fix-line-sep "<head>{% block my-script %}\nhello\n{% endblock %}</head>\n")
+      (= (fix-line-sep "<div>{% block content %}\nhello\n{% endblock %}</div>\n")
          (preprocess-template "templates/inheritance/include-in-block.html" {})))
     (is
-      (= (fix-line-sep "<head>\nhello\n</head>\n")
+      (= (fix-line-sep "<div>\nhello\n</div>\n")
          (render-file "templates/inheritance/include-in-block.html" {})))
     (is
       (= (fix-line-sep "Base template.\n\n\t\n<p></p>\n\n\n")
