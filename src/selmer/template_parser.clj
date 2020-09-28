@@ -61,6 +61,7 @@
                 block-name     (when block? (get-tag-params "block" tag-str))
                 super-tag?     (re-matches *block-super-pattern* tag-str)
                 existing-block (when block-name (get-in blocks [block-name :content]))]
+
             (cond
               includes?
               (.append buf (process-includes tag-str buf blocks))
