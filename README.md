@@ -31,7 +31,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 #### tools.deps
 
 ```edn
-{selmer {:mvn/version "1.12.18"}}
+{selmer {:mvn/version "<version>"}}
 ```
 
 ## Marginalia documentation
