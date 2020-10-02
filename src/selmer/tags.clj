@@ -56,20 +56,23 @@
                 length (count items)]
             (if (and empty-content (empty? items))
               (.append buf (render empty-content context-map))
-              (doseq [[counter value] (map-indexed vector items)]
-                (let [loop-info
-                      {:length      length
-                       :counter0    counter
-                       :counter     (inc counter)
-                       :revcounter  (- length (inc counter))
-                       :revcounter0 (- length counter)
-                       :first       (= counter 0)
-                       :last        (= counter (dec length))
-                       :parentloop  (:forloop context-map)}]
-                  (->> (assoc (create-value-mappings context-map ids value)
-                         :forloop loop-info)
-                       (render for-content)
-                       (.append buf)))))))
+              (let [item-mappings (map #(create-value-mappings context-map ids %) items)]
+                (doseq [[counter [value previous]]
+                        (map-indexed vector
+                                     (map vector item-mappings (cons nil item-mappings)))]
+                  (let [loop-info
+                        {:length      length
+                         :counter0    counter
+                         :counter     (inc counter)
+                         :revcounter  (- length (inc counter))
+                         :revcounter0 (- length counter)
+                         :first       (= counter 0)
+                         :last        (= counter (dec length))
+                         :parentloop  (:forloop context-map)
+                         :previous    previous}]
+                    (->> (assoc value :forloop loop-info)
+                         (render for-content)
+                         (.append buf))))))))
         (.toString buf)))))
 
 (defn render-if [render context-map condition first-block second-block]

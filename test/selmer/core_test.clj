@@ -309,8 +309,11 @@
   (is (= (render "{% for i in some..namespace/keyword %}{{i}} {% endfor %}"
                  {:some.namespace/keyword [1 2 3 4]})
          "1 2 3 4 "))
-  (is (= (render "{% for i in x %}{% for j in i %}{{forloop.parentloop}}{% endfor %}{% endfor %}" {:x [[:a :b]]})
-         "{:length 1, :counter0 0, :counter 1, :revcounter 0, :revcounter0 1, :first true, :last true, :parentloop nil}{:length 1, :counter0 0, :counter 1, :revcounter 0, :revcounter0 1, :first true, :last true, :parentloop nil}")))
+  ;; now that forloop.parentloop has nine keys, it is no longer an array
+  ;; hash map so we can't rely on the ordering of the keys, so we need to
+  ;; explicitly render each field in a known order:
+  (is (= (render "{% for i in x %}{% for j in i %}{{forloop.parentloop.length}}-{{forloop.parentloop.counter0}}-{{forloop.parentloop.counter}}-{{forloop.parentloop.revcounter}}-{{forloop.parentloop.revcounter0}}-{{forloop.parentloop.first}}-{{forloop.parentloop.last}}-{{forloop.parentloop.parentloop}}-{{forloop.parentloop.previous}}:{% endfor %}{% endfor %}" {:x [[:a :b]]})
+         "1-0-1-0-1-true-true--:1-0-1-0-1-true-true--:")))
 
 (deftest for-filter-test
   (is
