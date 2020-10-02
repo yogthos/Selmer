@@ -878,6 +878,7 @@ Render the body one time for each element in the list. Each render will introduc
 * `forloop.revcounter0`
 * `forloop.length`
 * `forloop.parentloop`
+* `forloop.previous`
 
 `{% for x in some-list %}element: {{x}} first? {{forloop.first}} last? {{forloop.last}}{% endfor %}`
 
