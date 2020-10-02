@@ -144,7 +144,7 @@
     (fn [context-map]
       (op #{true} (map #(if-result (% context-map)) filters)))))
 
-(defn parse-eq-arg [arg-string]
+(defn parse-eq-arg [^String arg-string]
   (cond
     (= \" (first arg-string))
     (.substring arg-string 1 (dec (.length arg-string)))

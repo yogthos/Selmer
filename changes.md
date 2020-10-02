@@ -1,3 +1,4 @@
+* 1.12.31 - [add forloop.previous](https://github.com/yogthos/Selmer/pull/244)
 * 1.12.30 - [handle includes in blocks](https://github.com/yogthos/Selmer/pull/241)
 * 1.12.29 - [Process include tags with the context of the already observed blocks](https://github.com/yogthos/Selmer/pull/240)
 * 1.12.28 - [fix for async script tag](https://github.com/yogthos/Selmer/commit/d0525a94d61a149fe199147b49adb80f2f7affde)
