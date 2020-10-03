@@ -880,6 +880,18 @@ Render the body one time for each element in the list. Each render will introduc
 * `forloop.parentloop`
 * `forloop.previous`
 
+`forloop.previous` is a hash map that contains the loop variable name:
+
+```
+{% for item in some.values %}
+  {% if forloop.previous.item = item %}
+   repeated
+  {% else %}
+   {{item}} is new!
+  {% endif %}
+{% endfor %}
+```
+
 `{% for x in some-list %}element: {{x}} first? {{forloop.first}} last? {{forloop.last}}{% endfor %}`
 
 you can iterate over nested data structures, eg:
