@@ -3,10 +3,10 @@
             [selmer.parser :refer :all]
             [selmer.filters :as filters]
             [selmer.util :refer :all]
-            [criterium.core :as criterium])
-  (:import java.io.StringReader))
+            [criterium.core :as criterium]
+            [clojure.string :as string]))
 
-(def user (repeat 10 [{:name "test" }]))
+(def user (repeat 10 [{:name "test"}]))
 
 (def nested-for-context {:users (repeat 10 user)})
 
@@ -48,3 +48,9 @@
   (filters/add-filter! :inc (fn [^String s] (str (inc (Integer/parseInt s)))))
   (criterium/quick-bench
     (render (str "{{bar" filter-chain "}}") {:bar "0"})))
+
+(deftest ^:benchmark if-bench
+  (println "BENCH: Many . acceses in an if clause")
+  (criterium/quick-bench
+    (render (string/join "" (repeat 1000 "{% if p.a.a.a.a %}{% endif %}"))
+            {})))
