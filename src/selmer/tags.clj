@@ -205,7 +205,7 @@
       (render-if render context-map condition success failure))))
 
 (defn if-handler [params tag-content render rdr]
-  ; The main idea of this function is to genreate a list of test conditions and corresponding contetn,
+  ; The main idea of this function is to generate a list of test conditions and corresponding content,
   ; then going though them in order until a test is successful, and then returning the contents belonging to
   ; that test.
 
