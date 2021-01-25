@@ -121,23 +121,25 @@
       [#(comparator (parse-double %) (parse-double p2)) p1 nil])))
 
 (defn numeric-expression-evaluation [[comparator context-key1 context-key2]]
-  (fn [context-map]
-    (let [[value1 value2]
-          (cond
-            (and context-key1 context-key2)
-            [(not-empty ((compile-filter-body context-key1) context-map))
-             (not-empty ((compile-filter-body context-key2) context-map))]
-            context-key1
-            [(not-empty ((compile-filter-body context-key1) context-map))]
-            context-key2
-            [(not-empty ((compile-filter-body context-key2) context-map))])]
-      (cond
-        (and value1 value2)
-        (comparator value1 value2)
-        value1
-        (comparator value1)
-        value2
-        (comparator value2)))))
+  (let [l (when context-key1 (compile-filter-body context-key1))
+        r (when context-key2 (compile-filter-body context-key2))]
+    (fn [context-map]
+      (let [[value1 value2]
+            (cond
+              (and context-key1 context-key2)
+              [(not-empty (l context-map))
+               (not-empty (r context-map))]
+              context-key1
+              [(not-empty (l context-map))]
+              context-key2
+              [(not-empty (r context-map))])]
+        (cond
+          (and value1 value2)
+          (comparator value1 value2)
+          value1
+          (comparator value1)
+          value2
+          (comparator value2))))))
 
 (defn if-any-all-fn [op params]
   (let [filters (map compile-filter-body params)]
