@@ -4,7 +4,8 @@
             [selmer.filters :as filters]
             [selmer.util :refer :all]
             [criterium.core :as criterium]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [selmer.parser :as parser]))
 
 (def user (repeat 10 [{:name "test"}]))
 
@@ -54,3 +55,11 @@
   (criterium/quick-bench
     (render (string/join "" (repeat 1000 "{% if p.a.a.a.a %}{% endif %}"))
             {})))
+
+(deftest ^:benchmark many-numeric-if-clauses-bench
+  (println "BENCH: for loop with a numeric if clause in it")
+  (reset! parser/templates {})
+  (cache-on!)
+  (render-file "templates/numerics.html" {:ps []})
+  (criterium/quick-bench
+    (render-file "templates/numerics.html" {:ps (repeat 10000 "x")})))
