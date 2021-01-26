@@ -17,5 +17,7 @@
                    :all (constantly true)}
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
                    :repl-options {:port 10123}
+                   :source-paths ["src" "dev"]
                    :plugins [[lein-marginalia "0.9.0"]]
-                   :dependencies [[environ "1.2.0"]]}})
+                   :dependencies [[environ "1.2.0"]
+                                  [org.clojure/tools.namespace "1.1.0"]]}})
