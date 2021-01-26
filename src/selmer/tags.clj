@@ -139,9 +139,13 @@
           (comparator value2))))))
 
 (defn if-any-all-fn [op params]
+  ; op is either the function "some" or "any"
   (let [filters (map compile-filter-body params)]
-    (fn [context-map]
-      (op #{true} (map #(if-result (% context-map)) filters)))))
+    (fn if-any-all-runtime-test [context-map]
+      ; We want to short-circuit here, in case
+      ; the first arg is true for ANY, or false for ALL.
+      (op (fn [f] (-> context-map (f) (if-result)))
+          filters))))
 
 (defn parse-eq-arg [^String arg-string]
   (cond

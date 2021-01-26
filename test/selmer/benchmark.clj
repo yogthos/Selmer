@@ -63,3 +63,11 @@
   (render-file "templates/numerics.html" {:ps []})
   (criterium/quick-bench
     (render-file "templates/numerics.html" {:ps (repeat 10000 "x")})))
+
+(deftest ^:benchmark many-any-if-clauses-bench
+  (println "BENCH: for loop with a if any clause in it")
+  (reset! parser/templates {})
+  (cache-on!)
+  (render-file "templates/any.html" {:products []})
+  (criterium/quick-bench
+    (render-file "templates/any.html" {:products (repeat 10000 {})})))
