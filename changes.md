@@ -1,3 +1,4 @@
+* 1.12.32 - [performance improvements](https://github.com/yogthos/Selmer/pull/246)
 * 1.12.31 - [add forloop.previous](https://github.com/yogthos/Selmer/pull/244)
 * 1.12.30 - [handle includes in blocks](https://github.com/yogthos/Selmer/pull/241)
 * 1.12.29 - [Process include tags with the context of the already observed blocks](https://github.com/yogthos/Selmer/pull/240)
