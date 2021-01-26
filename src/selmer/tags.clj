@@ -121,28 +121,31 @@
       [#(comparator (parse-double %) (parse-double p2)) p1 nil])))
 
 (defn numeric-expression-evaluation [[comparator context-key1 context-key2]]
-  (fn [context-map]
-    (let [[value1 value2]
-          (cond
-            (and context-key1 context-key2)
-            [(not-empty ((compile-filter-body context-key1) context-map))
-             (not-empty ((compile-filter-body context-key2) context-map))]
-            context-key1
-            [(not-empty ((compile-filter-body context-key1) context-map))]
-            context-key2
-            [(not-empty ((compile-filter-body context-key2) context-map))])]
-      (cond
-        (and value1 value2)
-        (comparator value1 value2)
-        value1
-        (comparator value1)
-        value2
-        (comparator value2)))))
+  ; Parse the filter bodies first and close over them.
+  ; This makes them cached.
+  (let [l (when context-key1 (compile-filter-body context-key1))
+        r (when context-key2 (compile-filter-body context-key2))]
+    (fn [context-map]
+      (let [value1 (when context-key1 (not-empty (l context-map)))
+            value2 (when context-key2 (not-empty (r context-map)))]
+        (cond
+          (and value1 value2)
+          (comparator value1 value2)
+
+          value1
+          (comparator value1)
+
+          value2
+          (comparator value2))))))
 
 (defn if-any-all-fn [op params]
+  ; op is either the function "some" or "any"
   (let [filters (map compile-filter-body params)]
-    (fn [context-map]
-      (op #{true} (map #(if-result (% context-map)) filters)))))
+    (fn if-any-all-runtime-test [context-map]
+      ; We want to short-circuit here, in case
+      ; the first arg is true for ANY, or false for ALL.
+      (op (fn [f] (-> context-map (f) (if-result)))
+          filters))))
 
 (defn parse-eq-arg [^String arg-string]
   (cond
@@ -205,7 +208,7 @@
       (render-if render context-map condition success failure))))
 
 (defn if-handler [params tag-content render rdr]
-  ; The main idea of this function is to genreate a list of test conditions and corresponding contetn,
+  ; The main idea of this function is to generate a list of test conditions and corresponding content,
   ; then going though them in order until a test is successful, and then returning the contents belonging to
   ; that test.
 

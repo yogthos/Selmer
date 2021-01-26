@@ -228,14 +228,16 @@
   (alter-var-root #'*missing-value-formatter* (constantly missing-value-fn))
   (alter-var-root #'*filter-missing-values* (constantly filter-missing-values)))
 
+(defn- parse-long [^String s]
+  (when (re-matches #"\d+" s)
+    (Long/valueOf s)))
+
 (defn fix-accessor
   "Turns strings into keywords and strings like \"0\" into Longs
 so it can access vectors as well as maps."
   [ks]
   (mapv (fn [^String s]
-          (try (Long/valueOf s)
-               (catch NumberFormatException _
-                 (keyword s))))
+          (or (parse-long s) (keyword s)))
         ks))
 
 (defn parse-accessor
