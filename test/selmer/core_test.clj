@@ -158,10 +158,28 @@
   (is
     (= "main template foo body" (render-file "templates/my-include.html" {:foo "foo"}))))
 
-(deftest nested-includes
-  (testing "bindings made using `with` should propagate down nested includes"
+(deftest include-with-form
+  (testing "bindings made using `include` special form `with` should use default values if none are provided."
     (is
-      (= "foo bar baz some-value" (render-file "templates/inheritance/include/grandparent.html" {})))))
+      (= "foo baz default-value another-default-value" (render-file "templates/inheritance/include/another-parent.html" {})))
+    (is
+      (= "foo baz some-value another-default-value" (render-file "templates/inheritance/include/another-parent.html" {:my-variable "some-value"})))
+    (is
+      (= "foo baz some-value some-other-value" (render-file "templates/inheritance/include/another-parent.html" {:my-variable "some-value"
+                                                                                                                 :my-other-variable "some-other-value"})))))
+
+(deftest nested-includes
+  (testing "bindings made using built-in tag `with` should propagate down nested includes"
+    (is
+      (= "foo bar baz some-value some-other-value" (render-file "templates/inheritance/include/grandparent.html" {}))))
+  (testing "bindings made using `include` special default `with` should propagate down nested includes"
+    (is
+      (= "foo bar baz default-value other-default-value" (render-file "templates/inheritance/include/another-grandparent.html" {})))
+    (is
+      (= "foo bar baz some-value other-default-value" (render-file "templates/inheritance/include/another-grandparent.html" {:my-variable "some-value"})))
+    (is
+      (= "foo bar baz some-value some-other-value" (render-file "templates/inheritance/include/another-grandparent.html" {:my-variable "some-value"
+                                                                                                                          :my-other-variable "some-other-value"})))))
 
 (deftest render-file-accepts-resource-URL
   (is
