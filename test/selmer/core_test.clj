@@ -181,6 +181,7 @@
       (= "foo bar baz some-value some-other-value" (render-file "templates/inheritance/include/another-grandparent.html" {:my-variable "some-value"
                                                                                                                           :my-other-variable "some-other-value"})))))
 
+
 (deftest render-file-accepts-resource-URL
   (is
    (= "main template foo body" (render-file (io/resource "templates/my-include.html") {:foo "foo"}))))
