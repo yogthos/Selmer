@@ -158,7 +158,10 @@
   (is
     (= "main template foo body" (render-file "templates/my-include.html" {:foo "foo"}))))
 
-
+(deftest nested-includes
+  (testing "bindings made using `with` should propagate down nested includes"
+    (is
+      (= "foo bar baz some-value" (render-file "templates/inheritance/include/grandparent.html" {})))))
 
 (deftest render-file-accepts-resource-URL
   (is
