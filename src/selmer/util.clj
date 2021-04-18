@@ -18,6 +18,14 @@
   (when (thread-bound? #'*custom-resource-path*)
     (set! *custom-resource-path* path)))
 
+(def ^:dynamic *url-stream-handler* nil)
+
+(defn set-url-stream-handler!
+  [path]
+  (alter-var-root #'*url-stream-handler* (constantly path))
+  (when (thread-bound? #'*url-stream-handler*)
+    (set! *url-stream-handler* path)))
+
 (def ^:dynamic *escape-variables* true)
 
 (defn turn-off-escaping! []
@@ -189,8 +197,11 @@
           (looks-like-absolute-file-path? f) (.toURL (.toURI (io/file f)))
           (.startsWith f "file:/") (java.net.URL. f)
           (.startsWith f "jar:file:/") (java.net.URL. f)
+          *url-stream-handler* (java.net.URL. nil f *url-stream-handler*)
           :else (io/resource f)))
-      (io/resource template))))
+      (cond
+        *url-stream-handler* (java.net.URL. nil template *url-stream-handler*)
+        :else (io/resource template)))))
 
 (defn resource-last-modified [^java.net.URL resource]
   (let [path (.getPath resource)]
