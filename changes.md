@@ -1,3 +1,4 @@
+* 1.12.34 - [support for java.net.URLStreamHandler](https://github.com/yogthos/Selmer/pull/250)
 * 1.12.33 - [fix for templates with nested with clauses](https://github.com/yogthos/Selmer/pull/249)
 * 1.12.32 - [performance improvements](https://github.com/yogthos/Selmer/pull/246)
 * 1.12.31 - [add forloop.previous](https://github.com/yogthos/Selmer/pull/244)
