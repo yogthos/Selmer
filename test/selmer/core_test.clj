@@ -10,7 +10,7 @@
             [clojure.string :as string])
   (:import java.util.Locale
            java.io.File
-           (java.io StringReader)))
+           (java.io StringReader ByteArrayInputStream)))
 
 (def path (str "test/templates" File/separator))
 
@@ -196,6 +196,25 @@
                                                .getAbsoluteFile
                                                .toURI
                                                .toURL)}))))
+
+(deftest render-file-accepts-url-stream-handler
+  (is
+   (=
+    "main template zip body"
+    (render-file "templates/my-include.html"
+                 {:zip "zip"}
+                 {:custom-resource-path "https://example.com/"
+                  :url-stream-handler
+                  (proxy [java.net.URLStreamHandler] []
+                    (openConnection [url]
+                      (proxy [java.net.URLConnection] [url]
+                        (getInputStream []
+                          (case (str url)
+                            "https://example.com/templates/my-include.html"
+                            (ByteArrayInputStream.
+                             (.getBytes "main template {% include \"templates/my-include-child.html\" %} body"))
+                            "https://example.com/templates/my-include-child.html"
+                            (ByteArrayInputStream. (.getBytes "{{ zip }}")))))))}))))
 
 (deftest custom-tags
   (is
