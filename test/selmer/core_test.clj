@@ -7,7 +7,8 @@
             [selmer.template-parser :refer :all]
             [selmer.util :refer :all]
             [clojure.java.io :as io]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [clojure.string :as str])
   (:import java.util.Locale
            java.io.File
            (java.io StringReader ByteArrayInputStream)))
@@ -1250,3 +1251,7 @@
                                                 BOOM
                                               {% endifequal %}
                                             {% endfor %}")))))
+
+(deftest debug-test
+  (is (str/includes? (render "{% debug %}" {:debug-value 1})
+                     "debug-value")))

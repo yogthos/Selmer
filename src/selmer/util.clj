@@ -197,10 +197,13 @@
           (looks-like-absolute-file-path? f) (.toURL (.toURI (io/file f)))
           (.startsWith f "file:/") (java.net.URL. f)
           (.startsWith f "jar:file:/") (java.net.URL. f)
-          *url-stream-handler* (java.net.URL. nil f *url-stream-handler*)
+          *url-stream-handler*
+          (java.net.URL. nil f
+                         ^java.net.URLStreamHandler *url-stream-handler*)
           :else (io/resource f)))
       (cond
-        *url-stream-handler* (java.net.URL. nil template *url-stream-handler*)
+        *url-stream-handler* (java.net.URL. nil ^String template
+                                            ^java.net.URLStreamHandler *url-stream-handler*)
         :else (io/resource template)))))
 
 (defn resource-last-modified [^java.net.URL resource]

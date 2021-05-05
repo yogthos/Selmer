@@ -1,10 +1,11 @@
 (ns selmer.tags
   (:require
+    clojure.java.io
+    clojure.pprint
     selmer.node
     [selmer.filter-parser :refer [safe-filter compile-filter-body get-accessor]]
     [selmer.filters :refer [filters]]
-    [selmer.util :refer :all]
-    [json-html.core :refer [edn->html]])
+    [selmer.util :refer :all])
   (:import [selmer.node TextNode]))
 
 ;; A tag can modify the context map for its body
@@ -383,13 +384,28 @@
     (fn [context-map]
       (render content (assoc context-map safe-filter true)))))
 
+(def prettify-edn
+  "Resolves to json-html.core/edn->html if available, falls back to clojure.pprint/pprint otherwise.
+  NOTE: It's important that we resolve vars at compile
+  time (top-level) rather than at run-time (in a function body)."
+  (try
+    (require 'json-html.core)
+    (let [edn->html @(resolve 'json-html.core/edn->html)]
+      (fn [ctx-map]
+        (edn->html ctx-map)))
+    (catch java.lang.RuntimeException _
+      (require 'clojure.pprint)
+      (let [pprint @(resolve 'clojure.pprint/pprint)]
+        (fn [ctx-map]
+          (with-out-str (pprint ctx-map)))))))
+
 (defn debug-handler [_ _ _ _]
   (fn [context-map]
     (str
       "<style>"
       (-> "json.human.css" clojure.java.io/resource slurp)
       "</style>"
-      (edn->html context-map))))
+      (prettify-edn context-map))))
 
 ;; expr-tags are {% if ... %}, {% ifequal ... %},
 ;; {% for ... %}, and {% block blockname %}
