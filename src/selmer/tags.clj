@@ -399,7 +399,7 @@
     (let [edn->html @(resolve 'json-html.core/edn->html)]
       (fn [ctx-map]
         (edn->html ctx-map)))
-    (catch java.lang.RuntimeException _
+    (catch java.lang.Exception _
       basic-edn->html)))
 
 (defn debug-handler [_ _ _ _]
