@@ -1256,4 +1256,4 @@
   (is (str/includes? (render "{% debug %}" {:debug-value 1})
                      "debug-value"))
   (testing "basic rendering escapes HTML"
-    (println (basic-edn->html {:a "<pre>"}))))
+    (is (str/includes? (basic-edn->html {:a "<pre>"}) "&quot"))))
