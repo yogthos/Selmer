@@ -752,7 +752,7 @@ Will cycle through the supplied values.
 
 #### debug
 
-Pretty prints the context map passed to the template using [json-html](https://github.com/yogthos/json-html).
+Prints the context map passed to the template using `pr-str`. Pretty printing can be enabled by including [json-html](https://github.com/yogthos/json-html) or implementing `json-html.core/edn->html` function that accepts a map as its argument and returns a string.
 
  ```
  (render "{% debug %}" {:foo :bar})
