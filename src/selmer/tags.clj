@@ -1,10 +1,10 @@
 (ns selmer.tags
   (:require
+    clojure.java.io
     selmer.node
-    [selmer.filter-parser :refer [safe-filter compile-filter-body get-accessor]]
+    [selmer.filter-parser :refer [safe-filter compile-filter-body get-accessor escape-html*]]
     [selmer.filters :refer [filters]]
-    [selmer.util :refer :all]
-    [json-html.core :refer [edn->html]])
+    [selmer.util :refer :all])
   (:import [selmer.node TextNode]))
 
 ;; A tag can modify the context map for its body
@@ -383,13 +383,32 @@
     (fn [context-map]
       (render content (assoc context-map safe-filter true)))))
 
+(defn basic-edn->html [ctx-map]
+  (str "<pre>"
+       "Include yogthos/json-html for prettier debugging.\n"
+       (escape-html* (pr-str ctx-map))
+       "</pre>"))
+
+(def prettify-edn
+  "Resolves to json-html.core/edn->html if available, falls back to more basic rendering otherwise.
+  NOTE: It's important for GraalVM native-image that we resolve vars
+  at compile time (top-level) rather than at run-time (in a function
+  body)."
+  (try
+    (require 'json-html.core)
+    (let [edn->html @(resolve 'json-html.core/edn->html)]
+      (fn [ctx-map]
+        (edn->html ctx-map)))
+    (catch java.lang.RuntimeException _
+      basic-edn->html)))
+
 (defn debug-handler [_ _ _ _]
   (fn [context-map]
     (str
       "<style>"
       (-> "json.human.css" clojure.java.io/resource slurp)
       "</style>"
-      (edn->html context-map))))
+      (prettify-edn context-map))))
 
 ;; expr-tags are {% if ... %}, {% ifequal ... %},
 ;; {% for ... %}, and {% block blockname %}
