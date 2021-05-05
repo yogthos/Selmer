@@ -5,7 +5,7 @@ map. The rest of the arguments are optional and are always strings."
   (:require
     [clojure.string :as s]
     [cheshire.core :as json]
-    [selmer.util :refer [exception]])
+    [selmer.util :as u :refer [exception]])
   (:import
     java.util.Locale
     [java.time Instant
@@ -15,8 +15,7 @@ map. The rest of the arguments are optional and are always strings."
                ZonedDateTime
                ZoneId]
     [java.time.format DateTimeFormatter FormatStyle]
-    java.text.NumberFormat
-    [org.apache.commons.codec.digest DigestUtils]))
+    java.text.NumberFormat))
 
 (def valid-date-formats
   {"shortTime"      (DateTimeFormatter/ofLocalizedTime FormatStyle/SHORT)
@@ -300,13 +299,7 @@ map. The rest of the arguments are optional and are always strings."
             :hash
             (fn [s hash]
               (let [s (str s)]
-                (case hash
-                  "md5" (DigestUtils/md5Hex s)
-                  "sha" (DigestUtils/shaHex s)
-                  "sha256" (DigestUtils/sha256Hex s)
-                  "sha384" (DigestUtils/sha384Hex s)
-                  "sha512" (DigestUtils/sha512Hex s)
-                  (throw (IllegalArgumentException. (str "'" hash "' is not a valid hash algorithm."))))))
+                (u/hex hash s)))
 
             :join
             (fn [coll & [sep]]

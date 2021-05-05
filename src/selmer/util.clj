@@ -3,7 +3,8 @@
     [clojure.java.io :as io]
     [clojure.string :as string])
   (:import java.io.StringReader
-           java.util.regex.Pattern))
+           java.util.regex.Pattern
+           java.security.MessageDigest))
 
 (defmacro exception [& [param & more :as params]]
   (if (class? param)
@@ -268,3 +269,15 @@ so it can access vectors as well as maps."
   (some
     (fn [e] (and (f e) e))
     coll))
+
+(defn hex [algo ^String s]
+  (let [algo (case algo
+               "md5" "MD5"
+               "sha" "SHA"
+               "sha245" "SHA-256"
+               "sha384" "SHA-384"
+               "sha512" "SHA-512"
+               (throw (IllegalArgumentException. (str "'" algo "' is not a valid hash algorithm."))))
+        algo (MessageDigest/getInstance algo)
+        bs (.digest algo (.getBytes s))]
+    (format "%032x" (BigInteger. 1 bs))))
