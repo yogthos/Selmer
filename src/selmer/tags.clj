@@ -386,8 +386,9 @@
 
 (def prettify-edn
   "Resolves to json-html.core/edn->html if available, falls back to clojure.pprint/pprint otherwise.
-  NOTE: It's important that we resolve vars at compile
-  time (top-level) rather than at run-time (in a function body)."
+  NOTE: It's important for GraalVM native-image that we resolve vars
+  at compile time (top-level) rather than at run-time (in a function
+  body)."
   (try
     (require 'json-html.core)
     (let [edn->html @(resolve 'json-html.core/edn->html)]
