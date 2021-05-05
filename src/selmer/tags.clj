@@ -1,7 +1,6 @@
 (ns selmer.tags
   (:require
     clojure.java.io
-    clojure.pprint
     selmer.node
     [selmer.filter-parser :refer [safe-filter compile-filter-body get-accessor]]
     [selmer.filters :refer [filters]]
@@ -385,7 +384,7 @@
       (render content (assoc context-map safe-filter true)))))
 
 (def prettify-edn
-  "Resolves to json-html.core/edn->html if available, falls back to clojure.pprint/pprint otherwise.
+  "Resolves to json-html.core/edn->html if available, falls back to more basic rendering otherwise.
   NOTE: It's important for GraalVM native-image that we resolve vars
   at compile time (top-level) rather than at run-time (in a function
   body)."
@@ -395,10 +394,11 @@
       (fn [ctx-map]
         (edn->html ctx-map)))
     (catch java.lang.RuntimeException _
-      (require 'clojure.pprint)
-      (let [pprint @(resolve 'clojure.pprint/pprint)]
-        (fn [ctx-map]
-          (with-out-str (pprint ctx-map)))))))
+      (fn [ctx-map]
+        (str "<pre>"
+             "Include yogthos/json-html for prettier debugging."
+             (str ctx-map)
+             "</pre>")))))
 
 (defn debug-handler [_ _ _ _]
   (fn [context-map]
