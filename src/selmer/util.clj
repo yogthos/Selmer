@@ -1,7 +1,8 @@
 (ns selmer.util
   (:require
-    [clojure.java.io :as io]
-    [clojure.string :as string])
+   [clojure.java.io :as io]
+   [clojure.string :as string]
+   [clojure.string :as str])
   (:import java.io.StringReader
            java.util.regex.Pattern
            java.security.MessageDigest))
@@ -100,7 +101,7 @@
         (recur ch2 (read-char rdr))))
     (let [content (->> (.toString buf)
                        (check-tag-args)
-                       (re-seq #"(?:[^\s\"]|\"[^\"]*\")+")
+                       (re-seq #"(?:[^\"]|\"[^\"]*\")+")
                        (remove empty?)
                        (map (fn [^String s] (.trim s))))
           tag-info (merge {:tag-type tag-type}
