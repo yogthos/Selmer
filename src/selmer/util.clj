@@ -1,8 +1,7 @@
 (ns selmer.util
   (:require
-   [clojure.java.io :as io]
-   [clojure.string :as string]
-   [clojure.string :as str])
+    [clojure.java.io :as io]
+    [clojure.string :as string])
   (:import java.io.StringReader
            java.util.regex.Pattern
            java.security.MessageDigest))
@@ -91,7 +90,8 @@
 
 (defn read-tag-info [rdr]
   (let [buf      (StringBuilder.)
-        tag-type (if (= *filter-open* (read-char rdr)) :filter :expr)]
+        tag-type (if (= *filter-open* (read-char rdr)) :filter :expr)
+        filter? (identical? :filter tag-type )]
     (loop [ch1 (read-char rdr)
            ch2 (read-char rdr)]
       (when-not (or (nil? ch1)
@@ -101,7 +101,9 @@
         (recur ch2 (read-char rdr))))
     (let [content (->> (.toString buf)
                        (check-tag-args)
-                       (re-seq #"(?:[^\"]|\"[^\"]*\")+")
+                       (re-seq (if filter?
+                                 #"(?:[^\"]|\"[^\"]*\")+"
+                                 #"(?:[^\s\"]|\"[^\"]*\")+"))
                        (remove empty?)
                        (map (fn [^String s] (.trim s))))
           tag-info (merge {:tag-type tag-type}
