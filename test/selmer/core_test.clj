@@ -1257,3 +1257,10 @@
                      "debug-value"))
   (testing "basic rendering escapes HTML"
     (is (str/includes? (basic-edn->html {:a "<pre>"}) "&quot"))))
+
+(deftest resource-fn-test
+  (is
+   (= "foo - bar"
+      (binding [*resource-fn* (fn [_path]
+                                (.toURL (io/file "test/templates/snippet.html")))]
+        (render-file "foobar" {:url "foo" :gridid "bar"})))))
