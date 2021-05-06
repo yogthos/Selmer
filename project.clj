@@ -3,9 +3,14 @@
   :url "https://github.com/yogthos/Selmer"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.9.0"]
+  :dependencies [;; minimal clojure version
+                 [org.clojure/clojure "1.9.0"]
+
+                 ;; optional dependencies
                  [json-html "0.4.7" :scope "provided"]
-                 [cheshire "5.10.0"]
+                 [cheshire "5.10.0" :scope "provided"]
+
+                 ;; test dependencies
                  [criterium "0.4.6" :scope "test"]]
 
   :aot [selmer.node]
