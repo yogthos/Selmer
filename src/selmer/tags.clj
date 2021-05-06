@@ -383,10 +383,61 @@
     (fn [context-map]
       (render content (assoc context-map safe-filter true)))))
 
+(defn pretty-print
+  ([m]
+   (let [sb (StringBuilder.)]
+     (pretty-print sb 1 m)
+     (.toString sb)))
+  ([sb indent v]
+   (letfn [(spaces [n] (apply str (repeat n " ")))
+           (append-k [sb indent k]
+             (.append sb (str (spaces indent) (pr-str k) " ")))
+           (append-v [sb indent v]
+             (if (coll? v)
+               (do
+                 (.append sb (str "\n" (spaces indent)))
+                 (pretty-print sb (inc indent) v))
+               (.append sb (pr-str v))))
+           (render-coll [coll open close offset]
+             (let [[x & xs] coll
+                   new-indent (+ offset indent)]
+               (.append sb open)
+               (when x
+                 (if (coll? x)
+                   (pretty-print sb new-indent x)
+                   (.append sb (pr-str x)))
+                 (doseq [x xs]
+                   (.append sb (str "\n" (spaces indent)))
+                   (if (coll? x)
+                     (pretty-print sb new-indent x)
+                     (.append sb (str (pr-str x))))))
+               (.append sb close)))]
+     (cond
+       (map? v)
+       (let [[[k v] & m] v]
+         (.append sb "{")
+         (when k
+           (append-k sb 0 k)
+           (append-v sb indent v))
+         (when (seq? m)
+           (let [indent indent]
+             (.append sb "\n")
+             (doseq [x (interpose "\n" m)]
+               (if (string? x)
+                 (.append sb x)
+                 (let [[k v] x]
+                   (append-k sb indent k)
+                   (append-v sb indent v))))))
+         (.append sb "}"))
+       (coll? v)
+       (render-coll v "[" "]" 1)
+       :else
+       (append-v sb indent v)))))
+
 (defn basic-edn->html [ctx-map]
   (str "<pre>"
        "Include yogthos/json-html for prettier debugging.\n"
-       (escape-html* (pr-str ctx-map))
+       (escape-html* (pretty-print ctx-map))
        "</pre>"))
 
 (def prettify-edn
@@ -398,17 +449,17 @@
     (require 'json-html.core)
     (let [edn->html @(resolve 'json-html.core/edn->html)]
       (fn [ctx-map]
-        (edn->html ctx-map)))
+        (str
+          "<style>"
+          (-> "json.human.css" clojure.java.io/resource slurp)
+          "</style>"
+          (edn->html ctx-map))))
     (catch java.lang.Exception _
       basic-edn->html)))
 
 (defn debug-handler [_ _ _ _]
   (fn [context-map]
-    (str
-      "<style>"
-      (-> "json.human.css" clojure.java.io/resource slurp)
-      "</style>"
-      (prettify-edn context-map))))
+    (prettify-edn context-map)))
 
 ;; expr-tags are {% if ... %}, {% ifequal ... %},
 ;; {% for ... %}, and {% block blockname %}
