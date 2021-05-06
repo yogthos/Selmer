@@ -281,7 +281,7 @@ so it can access vectors as well as maps."
   (let [algo (case algo
                "md5" "MD5"
                "sha" "SHA"
-               "sha245" "SHA-256"
+               "sha256" "SHA-256"
                "sha384" "SHA-384"
                "sha512" "SHA-512"
                (throw (IllegalArgumentException. (str "'" algo "' is not a valid hash algorithm."))))
