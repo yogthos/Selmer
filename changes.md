@@ -1,3 +1,4 @@
+* 1.12.37 - [make JSON dependency pluggable, remove hard dependency on cheshire](https://github.com/yogthos/Selmer/pull/263)
 * 1.12.36 - improved default pretty printing of the context map using debug tag
 * 1.12.35 - [made json-html dependency optional](https://github.com/yogthos/Selmer/pull/254), [removed commons-codec dependency](https://github.com/yogthos/Selmer/pull/256)
 * 1.12.34 - [support for java.net.URLStreamHandler](https://github.com/yogthos/Selmer/pull/250)
