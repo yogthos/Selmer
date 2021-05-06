@@ -19,7 +19,7 @@ map. The rest of the arguments are optional and are always strings."
 (def generate-json
   "JSON generation function. Resolved in the (arbitrary) order of cheshire, clojure.data.json, jsonista. Falls back on function that throws at runtime. It is important for GraalVM native-image that we resolve this at compile time (top level)."
   (try (require 'cheshire.core)
-       @(resolve 'cheshire.core/generate-json)
+       @(resolve 'cheshire.core/generate-string)
        (catch Exception _
          (try (require 'clojure.data.json)
               @(resolve 'clojure.data.json/write-str)
