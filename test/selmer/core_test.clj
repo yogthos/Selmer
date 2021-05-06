@@ -1264,3 +1264,6 @@
       (binding [*resource-fn* (fn [_path]
                                 (.toURL (io/file "test/templates/snippet.html")))]
         (render-file "foobar" {:url "foo" :gridid "bar"})))))
+
+(deftest allow-whitespace-in-filter-test
+  (is (= "bar" (render "{{ foo | default:bar }}" {:dude 1}))))

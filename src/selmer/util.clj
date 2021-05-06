@@ -90,7 +90,8 @@
 
 (defn read-tag-info [rdr]
   (let [buf      (StringBuilder.)
-        tag-type (if (= *filter-open* (read-char rdr)) :filter :expr)]
+        tag-type (if (= *filter-open* (read-char rdr)) :filter :expr)
+        filter? (identical? :filter tag-type )]
     (loop [ch1 (read-char rdr)
            ch2 (read-char rdr)]
       (when-not (or (nil? ch1)
@@ -100,7 +101,9 @@
         (recur ch2 (read-char rdr))))
     (let [content (->> (.toString buf)
                        (check-tag-args)
-                       (re-seq #"(?:[^\s\"]|\"[^\"]*\")+")
+                       (re-seq (if filter?
+                                 #"(?:[^\"]|\"[^\"]*\")+"
+                                 #"(?:[^\s\"]|\"[^\"]*\")+"))
                        (remove empty?)
                        (map (fn [^String s] (.trim s))))
           tag-info (merge {:tag-type tag-type}
