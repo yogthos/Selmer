@@ -134,7 +134,6 @@ applied filter."
 
 (defn split-value [s]
   (->> s
-       (s/trim)
        ;; Ignore pipes and allow escaped doublequotes inside doublequotes
        (re-seq #"\w*(?:[^|\"]|\"[^\"]*\")+")
        (map str/trim)))
