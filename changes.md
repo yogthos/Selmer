@@ -1,3 +1,4 @@
+* 1.12.40 - fix reflection warnings in debug pretty printer
 * 1.12.39 - fix typo for sha256 filter
 * 1.12.38 - [fix typo resolving Cheshire JSON](https://github.com/yogthos/Selmer/pull/264)
 * 1.12.37 - [make JSON dependency pluggable, remove hard dependency on cheshire](https://github.com/yogthos/Selmer/pull/263)
