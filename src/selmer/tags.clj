@@ -387,53 +387,53 @@
   ([m]
    (let [sb (StringBuilder.)]
      (pretty-print sb 1 m)
-     (.toString ^StringBuilder sb)))
-  ([sb indent v]
+     (str sb)))
+  ([^StringBuilder sb indent v]
    (letfn [(spaces [n] (apply str (repeat n " ")))
            (primitive-coll? [coll] (and (< (count coll) 100) (every? (complement coll?) coll)))
-           (append-k [sb indent k]
-             (.append ^StringBuilder sb (str (spaces indent) (pr-str k) " ")))
-           (append-v [sb indent v]
+           (append-k [^StringBuilder sb indent k]
+             (.append sb (str (spaces indent) (pr-str k) " ")))
+           (append-v [^StringBuilder sb indent v]
              (if (coll? v)
                (if (primitive-coll? v)
-                 (.append ^StringBuilder sb (pr-str v))
+                 (.append sb (pr-str v))
                  (do
-                   (.append ^StringBuilder sb (str "\n" (spaces indent)))
+                   (.append sb (str "\n" (spaces indent)))
                    (pretty-print sb (inc indent) v)))
-               (.append ^StringBuilder sb (pr-str v))))
+               (.append sb (pr-str v))))
            (render-coll [coll open close offset]
              (if (primitive-coll? coll)
-               (.append ^StringBuilder sb (pr-str coll))
+               (.append sb (pr-str coll))
                (let [[x & xs] coll
                      new-indent (+ offset indent)]
                  (.append ^StringBuilder sb open)
                  (when x
                    (if (coll? x)
                      (pretty-print sb new-indent x)
-                     (.append ^StringBuilder sb (pr-str x)))
+                     (.append sb (pr-str x)))
                    (doseq [x xs]
-                     (.append ^StringBuilder sb (str "\n" (spaces indent)))
+                     (.append sb (str "\n" (spaces indent)))
                      (if (coll? x)
                        (pretty-print sb new-indent x)
-                       (.append ^StringBuilder sb (str (pr-str x))))))
-                 (.append ^StringBuilder sb close))))]
+                       (.append sb (str (pr-str x))))))
+                 (.append sb close))))]
      (cond
        (map? v)
        (let [[[k v] & m] v]
-         (.append ^StringBuilder sb "{")
+         (.append sb "{")
          (when k
            (append-k sb 0 k)
            (append-v sb indent v))
          (when (seq? m)
            (let [indent indent]
-             (.append ^StringBuilder sb "\n")
+             (.append sb "\n")
              (doseq [x (interpose "\n" m)]
                (if (string? x)
-                 (.append ^StringBuilder sb x)
+                 (.append sb x)
                  (let [[k v] x]
                    (append-k sb indent k)
                    (append-v sb indent v))))))
-         (.append ^StringBuilder sb "}"))
+         (.append sb "}"))
        (coll? v)
        (render-coll v "[" "]" 1)
        :else
