@@ -193,7 +193,7 @@ as a jar and would like to be able to modify the HTML without having to redeploy
 
 ### Custom Markers
 
-By default, Selmer uses `{%` and `%}` to indicate the start and the end of an expression, while using `{{` and `}}` for for variables.
+By default, Selmer uses `{%` and `%}` to indicate the start and the end of an expression, while using `{{` and `}}` for variables.
 This might conflict with clientside frameworks such as AngularJS. In this case you can specify custom tags by passing
 a map containing any of the following keys to the parser:
 
@@ -207,9 +207,9 @@ a map containing any of the following keys to the parser:
 
 ```clojure
 (render "[% for ele in foo %]{{[{ele}]}}[%endfor%]"
-                 {:foo [1 2 3]}
-                 {:tag-open \[
-                  :tag-close \]})
+        {:foo [1 2 3]}
+        {:tag-open \[
+         :tag-close \]})
 =>"{{1}}{{2}}{{3}}"
 ```
 
