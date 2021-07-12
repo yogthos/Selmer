@@ -408,3 +408,30 @@
          meta
          :all-tags
          parse-variables)))
+
+(defmacro env-map
+  "Puts &env into a map."
+  []
+  `(apply zipmap [(mapv keyword (quote ~(keys &env))) (vector ~@(keys &env))]))
+
+(defn resolve-var-from-kw [env kw]
+  (when-let [value (if (namespace kw)
+                     (try (eval (symbol (str (namespace kw) "/" (name kw))))
+                          (catch java.lang.RuntimeException _ nil))
+                     (or
+                      ;; check local env first
+                      (get env kw nil)
+                      (try (eval (symbol (name kw)))
+                           (catch java.lang.RuntimeException _ nil))))]
+    {kw value}))
+
+(defmacro <<
+  "Resolves the variables from your template string from the local-env, or the
+  namespace and puts them into your template for you.
+
+  e.g. (let [a 1] (<< \"{{a}} + {{a}} = 2\")) ;;=> \"1 + 1 = 2\" "
+  [s]
+  `(->> (known-variables ~s)
+        (mapv #(resolve-var-from-kw (env-map) %))
+        (apply merge)
+        (render ~s)))
