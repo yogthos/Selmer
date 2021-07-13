@@ -140,6 +140,16 @@ For example, if we wanted to render a string containing a name variable we could
 =>"Hello Yogthos!"
 ```
 
+alternatively, it's possible to use string interpolation macro to inject symbols found in the environment directly into the template:
+
+```clojure
+(let [a 1
+      b "hello"]
+  (<< "{{b|upper}}, {{a}} + {{a}} = 2"))
+
+;;=> "1 + 1 = 2" 
+```
+
 To render a file we can call `render-file` instead:
 
 ```clojure
