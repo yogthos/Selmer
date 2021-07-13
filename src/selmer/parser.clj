@@ -409,19 +409,19 @@
          :all-tags
          parse-variables)))
 
-(defmacro env-map
+(defmacro ^:no-doc env-map
   "Puts &env into a map."
   []
   `(apply zipmap [(mapv keyword (quote ~(keys &env))) (vector ~@(keys &env))]))
 
-(defn resolve-var-from-kw [env kw]
+(defn ^:no-doc resolve-var-from-kw [env kw]
   (when-let [value (if (namespace kw)
-                     (try (eval (symbol (str (namespace kw) "/" (name kw))))
+                     (try @(resolve (symbol (str (namespace kw) "/" (name kw))))
                           (catch java.lang.RuntimeException _ nil))
                      (or
                       ;; check local env first
                       (get env kw nil)
-                      (try (eval (symbol (name kw)))
+                      (try @(resolve (symbol (name kw)))
                            (catch java.lang.RuntimeException _ nil))))]
     {kw value}))
 
