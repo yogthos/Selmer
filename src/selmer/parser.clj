@@ -412,18 +412,15 @@
 (defmacro ^:no-doc env-map
   "Puts &env into a map."
   []
-  `(apply zipmap [(mapv keyword (quote ~(keys &env))) (vector ~@(keys &env))]))
+  `(zipmap (mapv keyword (quote ~(keys &env))) (vector ~@(keys &env))))
 
 (defn ^:no-doc resolve-var-from-kw [env kw]
-  (when-let [value (if (namespace kw)
-                     (try @(resolve (symbol (str (namespace kw) "/" (name kw))))
-                          (catch java.lang.RuntimeException _ nil))
-                     (or
-                      ;; check local env first
-                      (get env kw nil)
-                      (try @(resolve (symbol (name kw)))
-                           (catch java.lang.RuntimeException _ nil))))]
-    {kw value}))
+  (if (namespace kw)
+    (when-let [v (resolve (symbol (str (namespace kw) "/" (name kw))))] {kw @v})
+    (or
+     ;; check local env first
+     (when-let [[_ v] (find env kw)] {kw v})
+     (when-let [v (resolve (symbol (name kw)))] {kw @v}))))
 
 (defmacro <<
   "Resolves the variables from your template string from the local-env, or the
