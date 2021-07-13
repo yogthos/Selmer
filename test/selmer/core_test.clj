@@ -1315,4 +1315,13 @@
   (require '[selmer.benchmark :as sb])
   (is (= "sb/user has 10 items."
          (<< "sb/user has {{sb/user|count}} items.")))
-  (ns-unmap *ns* 'sb))
+  (ns-unmap *ns* 'sb)
+
+  (def y 1)
+  (is (= "" (let [y nil] (<< "{{y}}")))
+      "<< picks up local values even if they are nil")
+
+  (is (= "false" (let [y false] (<< "{{y}}")))
+      "<< picks up local values even if they are false")
+
+  (ns-unmap *ns* 'y))
