@@ -1267,3 +1267,52 @@
 
 (deftest allow-whitespace-in-filter-test
   (is (= "bar" (render "{{ foo | default:bar }}" {:dude 1}))))
+
+;; String interopolation
+
+(deftest resolve-kw-local-var-test
+  (def local-to-this-ns 42)
+  (is (= "fourty two = 42"
+         (<< "fourty two = {{local-to-this-ns}}")))
+  (ns-unmap *ns* 'local-to-this-ns))
+
+(deftest resolve-kw-unaliased-var-in-another-ns
+  (require '[selmer.benchmark])
+  (is (= {:selmer.benchmark/user selmer.benchmark/user}
+         (resolve-var-from-kw (env-map) :selmer.benchmark/user)))
+  (ns-unmap *ns* 'selmer.benchmark))
+
+(deftest resolve-kw-var-aliased-to-another-ns
+  (require '[selmer.benchmark :as sb])
+  (is (= {:sb/user
+          [[{:name "test"}] [{:name "test"}] [{:name "test"}] [{:name "test"}]
+           [{:name "test"}] [{:name "test"}] [{:name "test"}] [{:name "test"}]
+           [{:name "test"}] [{:name "test"}]]}
+         (resolve-var-from-kw (env-map) :sb/user)))
+  (ns-unmap *ns* 'sb))
+
+(deftest string-interpolation-test
+  (def one "one")
+  (is (= "one plus one is two."
+         (<< "{{one}} plus {{one}} is two.")))
+
+  (let [one 1]
+    (is (= "1 + 1 = 2"
+           (<< "{{one}} + {{one}} = 2"))))
+
+  (let [one 1]
+    (let [one 11]
+      (is (= "11 + 11 = 2"
+             (<< "{{one}} + {{one}} = 2")))))
+
+  (ns-unmap *ns* 'one)
+
+  (require '[selmer.benchmark])
+  (is (= "selmer.benchmark/user has 10 items."
+         (<< "selmer.benchmark/user has {{selmer..benchmark/user|count}} items.")))
+  (ns-unmap *ns* 'selmer.benchmark)
+
+  (require '[selmer.benchmark :as sb])
+  (is (= "sb/user has 10 items."
+         (<< "sb/user has {{sb/user|count}} items.")))
+  (ns-unmap *ns* 'sb))
