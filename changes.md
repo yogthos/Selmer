@@ -1,3 +1,4 @@
+* 1.12.42 - [changed](https://github.com/yogthos/Selmer/commit/3387e76dc2325ab2cead5deb043fc2e729fadadc) interpolation to use `resolve` instead of `eval` for safety and compatibility with Babashka
 * 1.12.41 - addition of [string interpolation macro](https://github.com/yogthos/Selmer/pull/266)
 * 1.12.40 - fix reflection warnings in debug pretty printer
 * 1.12.39 - fix typo for sha256 filter
