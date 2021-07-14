@@ -1277,10 +1277,8 @@
   (ns-unmap *ns* 'local-to-this-ns))
 
 (deftest resolve-kw-unaliased-var-in-another-ns
-  (require '[selmer.benchmark])
   (is (= {:selmer.benchmark/user selmer.benchmark/user}
-         (resolve-var-from-kw (env-map) :selmer.benchmark/user)))
-  (ns-unmap *ns* 'selmer.benchmark))
+         (resolve-var-from-kw *ns* (env-map) :selmer.benchmark/user))))
 
 (deftest resolve-kw-var-aliased-to-another-ns
   (require '[selmer.benchmark :as sb])
@@ -1288,11 +1286,15 @@
           [[{:name "test"}] [{:name "test"}] [{:name "test"}] [{:name "test"}]
            [{:name "test"}] [{:name "test"}] [{:name "test"}] [{:name "test"}]
            [{:name "test"}] [{:name "test"}]]}
-         (resolve-var-from-kw (env-map) :sb/user)))
+         (resolve-var-from-kw *ns* (env-map) :sb/user)))
   (ns-unmap *ns* 'sb))
 
+;; setup namespaces, vars + alias for << tests
+(require '[selmer.benchmark :as sb])
+(def one "one")
+(def y 1)
+
 (deftest string-interpolation-test
-  (def one "one")
   (is (= "one plus one is two."
          (<< "{{one}} plus {{one}} is two.")))
 
@@ -1300,28 +1302,19 @@
     (is (= "1 + 1 = 2"
            (<< "{{one}} + {{one}} = 2"))))
 
-  (let [one 1]
-    (let [one 11]
-      (is (= "11 + 11 = 2"
-             (<< "{{one}} + {{one}} = 2")))))
+  (let [one 1
+        one 11]
+    (is (= "11 + 11 = 2"
+           (<< "{{one}} + {{one}} = 2"))))
 
-  (ns-unmap *ns* 'one)
-
-  (require '[selmer.benchmark])
   (is (= "selmer.benchmark/user has 10 items."
          (<< "selmer.benchmark/user has {{selmer..benchmark/user|count}} items.")))
-  (ns-unmap *ns* 'selmer.benchmark)
 
-  (require '[selmer.benchmark :as sb])
   (is (= "sb/user has 10 items."
          (<< "sb/user has {{sb/user|count}} items.")))
-  (ns-unmap *ns* 'sb)
 
-  (def y 1)
   (is (= "" (let [y nil] (<< "{{y}}")))
       "<< picks up local values even if they are nil")
 
   (is (= "false" (let [y false] (<< "{{y}}")))
-      "<< picks up local values even if they are false")
-
-  (ns-unmap *ns* 'y))
+      "<< picks up local values even if they are false"))
