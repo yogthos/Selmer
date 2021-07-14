@@ -403,24 +403,23 @@
         vars))))
 
 (defn known-variables [input]
-  (let [nodes (atom '())]
-    (->> (parse parse-input (java.io.StringReader. input) {})
-         meta
-         :all-tags
-         parse-variables)))
+  (->> (parse parse-input (java.io.StringReader. input) {})
+       meta
+       :all-tags
+       parse-variables))
 
 (defmacro ^:no-doc env-map
   "Puts &env into a map."
   []
   `(zipmap (mapv keyword (quote ~(keys &env))) (vector ~@(keys &env))))
 
-(defn ^:no-doc resolve-var-from-kw [env kw]
+(defn ^:no-doc resolve-var-from-kw [ns env kw]
   (if (namespace kw)
-    (when-let [v (resolve (symbol (str (namespace kw) "/" (name kw))))] {kw @v})
+    (when-let [v (ns-resolve ns (symbol (str (namespace kw) "/" (name kw))))] {kw @v})
     (or
      ;; check local env first
      (when-let [[_ v] (find env kw)] {kw v})
-     (when-let [v (resolve (symbol (name kw)))] {kw @v}))))
+     (when-let [v (ns-resolve ns (symbol (name kw)))] {kw @v}))))
 
 (defmacro <<
   "Resolves the variables from your template string from the local-env, or the
@@ -429,6 +428,6 @@
   e.g. (let [a 1] (<< \"{{a}} + {{a}} = 2\")) ;;=> \"1 + 1 = 2\" "
   [s]
   `(->> (known-variables ~s)
-        (mapv #(resolve-var-from-kw (env-map) %))
+        (mapv #(resolve-var-from-kw ~*ns* (env-map) %))
         (apply merge)
         (render ~s)))
