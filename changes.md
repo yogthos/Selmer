@@ -1,3 +1,4 @@
+* 1.12.44 - [fix for << macro to resolve from correct namespace](https://github.com/yogthos/Selmer/pull/270)
 * 1.12.43 - fix to make [string interpolation work with falsey env](https://github.com/yogthos/Selmer/pull/269)
 * 1.12.42 - [changed](https://github.com/yogthos/Selmer/commit/3387e76dc2325ab2cead5deb043fc2e729fadadc) interpolation to use `resolve` instead of `eval` for safety and compatibility with Babashka
 * 1.12.41 - addition of [string interpolation macro](https://github.com/yogthos/Selmer/pull/266)
