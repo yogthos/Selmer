@@ -147,7 +147,7 @@ alternatively, it's possible to use string interpolation macro to inject symbols
       b "hello"]
   (<< "{{b|upper}}, {{a}} + {{a}} = 2"))
 
-;;=> "1 + 1 = 2" 
+;;=> "HELLO, 1 + 1 = 2" 
 ```
 
 To render a file we can call `render-file` instead:
