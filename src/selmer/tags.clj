@@ -105,20 +105,20 @@
 (defn- num? [v]
   (and v (re-matches #"[0-9]*\.?[0-9]+" v)))
 
-(defn- parse-double [v]
+(defn- parse-double-value [v]
   (java.lang.Double/parseDouble v))
 
 (defn parse-numeric-params [p1 op p2]
   (let [comparator (match-comparator op)]
     (cond
       (and (not (num? p1)) (not (num? p2)))
-      [#(comparator (parse-double %1) (parse-double %2)) p1 p2]
+      [#(comparator (parse-double-value %1) (parse-double-value %2)) p1 p2]
 
       (num? p1)
-      [#(comparator (parse-double p1) (parse-double %)) nil p2]
+      [#(comparator (parse-double-value p1) (parse-double-value %)) nil p2]
 
       (num? p2)
-      [#(comparator (parse-double %) (parse-double p2)) p1 nil])))
+      [#(comparator (parse-double-value %) (parse-double-value p2)) p1 nil])))
 
 (defn numeric-expression-evaluation [[comparator context-key1 context-key2]]
   ; Parse the filter bodies first and close over them.
@@ -190,8 +190,8 @@
                         (if (and (num? a) (num? b))
                           ; Special case for when both are numbers -
                           ; since we want 2 = 2.0 to be true and in clojure (= 2 2.0) => false
-                          (== (parse-double a)
-                              (parse-double b))
+                          (== (parse-double-value a)
+                              (parse-double-value b))
                           (= a b)))))
 
                   ; it has to be a numeric expression like 1 > 2

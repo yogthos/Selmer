@@ -250,7 +250,7 @@
   (alter-var-root #'*missing-value-formatter* (constantly missing-value-fn))
   (alter-var-root #'*filter-missing-values* (constantly filter-missing-values)))
 
-(defn- parse-long [^String s]
+(defn- parse-long-value [^String s]
   (when (re-matches #"\d+" s)
     (Long/valueOf s)))
 
@@ -259,7 +259,7 @@
 so it can access vectors as well as maps."
   [ks]
   (mapv (fn [^String s]
-          (or (parse-long s) (keyword s)))
+          (or (parse-long-value s) (keyword s)))
         ks))
 
 (defn parse-accessor
