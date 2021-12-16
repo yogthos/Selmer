@@ -1,3 +1,4 @@
+* 1.12.46 - [fix block inheritance NPE](https://github.com/yogthos/Selmer/issues/273)
 * 1.12.45 - [fix Clojure Clojure 1.11 warnings](https://github.com/yogthos/Selmer/issues/272)
 * 1.12.44 - [fix for << macro to resolve from correct namespace](https://github.com/yogthos/Selmer/pull/270)
 * 1.12.43 - fix to make [string interpolation work with falsey env](https://github.com/yogthos/Selmer/pull/269)

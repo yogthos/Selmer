@@ -62,14 +62,15 @@
                 super-tag?     (re-matches *block-super-pattern* tag-str)
                 existing-block (when block-name (get-in blocks [block-name :content]))]
 
-            (cond
-              includes?
-              (.append buf (process-includes tag-str buf blocks))
+            (when buf
+              (cond
+                includes?
+                (.append buf (process-includes tag-str buf blocks))
 
-              ;;check if we wish to write the closing tag for the block. If we're
-              ;;injecting block.super, then we want to omit it
-              (write-tag? buf super-tag? existing-block blocks-to-close omit-close-tag?)
-              (.append buf tag-str))
+                ;;check if we wish to write the closing tag for the block. If we're
+                ;;injecting block.super, then we want to omit it
+                (write-tag? buf super-tag? existing-block blocks-to-close omit-close-tag?)
+                (.append buf tag-str)))
 
             (recur
               (long
@@ -162,14 +163,14 @@
 (defn to-expression-string [tag-name args defaults]
   (let [tag-name' (name tag-name)
         args'     (clojure.string/join \space args)
-        defaults' (when (= tag-name' "include") ;; forwards any defined defaults down to the children to be evaluated in context
+        defaults' (when (= tag-name' "include")             ;; forwards any defined defaults down to the children to be evaluated in context
                     (unparse-defaults defaults))
         joined    (str tag-name'
                        (when (seq args)
                          (str \space args'))
                        (when defaults'
                          (str \space "with" \space defaults')))]
-      (wrap-in-expression-tag joined)))
+    (wrap-in-expression-tag joined)))
 
 (defn add-default [identifier default]
   (str identifier "|default:" \" default \"))
@@ -184,10 +185,10 @@
     (wrap-in-variable-tag (try-add-default tag-name defaults))))
 
 (defn add-defaults-to-expression-tag [tag-str defaults]
-  (let [tag-str' (->> (trim-expression-tag tag-str)
-                      ;; NOTE: we add a character here since read-tag-info
-                      ;; consumes the first character before parsing.
-                      (str *tag-second*))
+  (let [tag-str'            (->> (trim-expression-tag tag-str)
+                                 ;; NOTE: we add a character here since read-tag-info
+                                 ;; consumes the first character before parsing.
+                                 (str *tag-second*))
         {:keys [tag-name args]} (read-tag-info (string->reader tag-str'))
         identifier+defaults (map #(try-add-default % defaults) args)]
     (to-expression-string tag-name identifier+defaults defaults)))
