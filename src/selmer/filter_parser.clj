@@ -106,7 +106,7 @@ applied filter."
     (and (.startsWith val "\"") (.endsWith val "\""))
     (re-matches #"[0-9]+" val)))
 
-(defn- parse-literal [^String val]
+(defn parse-literal [^String val]
   (if (.startsWith val "\"")
     (subs val 1 (dec (count val)))
     val))

@@ -399,6 +399,13 @@ map. The rest of the arguments are optional and are always strings."
               (throw-when-expecting-seqable coll)
               (rand-nth coll))
 
+            :range
+            (fn [end & [start step]]
+              (cond
+                step  (range (Long/parseLong start) (Long/parseLong end) (Long/parseLong step))
+                start (range (Long/parseLong start) (Long/parseLong end))
+                :else (range (Long/parseLong end))))
+
             ;;; Turns the to-remove string into a set of chars
             ;;; That are removed from the context string
             :remove
