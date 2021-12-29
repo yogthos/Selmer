@@ -42,7 +42,11 @@
         [ids [_ items]] (aggregate-args args)
         ids           (map parse-accessor ids)
         [items & filter-names] (if items (.split ^String items "\\|"))
-        filters       (compile-filters items filter-names)
+        ;; prevent literals cascading through filters:
+        for-items     (cond->> items
+                        (literal? items)
+                        (str "for-"))
+        filters       (compile-filters for-items filter-names)
         item-keys     (parse-accessor items)]
     (fn [context-map]
       (let [buf              (StringBuilder.)
@@ -54,7 +58,7 @@
           ;item was not in the context map and it didn't have an {% empty %} fallback
           (.append buf (*missing-value-formatter* {:tag-name :for :args item-keys} context-map))
           ;item was in context map, keep going
-          (let [items  (apply-filters unfiltered-items filters context-map items)
+          (let [items  (apply-filters unfiltered-items filters context-map for-items)
                 length (count items)]
             (if (and empty-content (empty? items))
               (.append buf (render empty-content context-map))
