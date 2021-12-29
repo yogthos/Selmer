@@ -2,7 +2,7 @@
   (:require
     clojure.java.io
     selmer.node
-    [selmer.filter-parser :refer [safe-filter compile-filter-body get-accessor escape-html*]]
+    [selmer.filter-parser :refer [literal? parse-literal safe-filter compile-filter-body get-accessor escape-html*]]
     [selmer.filters :refer [filters]]
     [selmer.util :refer :all])
   (:import [selmer.node TextNode]))
@@ -46,7 +46,9 @@
         item-keys     (parse-accessor items)]
     (fn [context-map]
       (let [buf              (StringBuilder.)
-            unfiltered-items (reduce get-accessor context-map item-keys)]
+            unfiltered-items (if (literal? items)
+                               (parse-literal items)
+                               (reduce get-accessor context-map item-keys))]
 
         (if (and (nil? unfiltered-items) (not empty-content))
           ;item was not in the context map and it didn't have an {% empty %} fallback
