@@ -331,6 +331,10 @@
   (is (= "i=0;" (render "{% for i in 1|range %}i={{i}};{% endfor %}" {})))
   (is (= "i=1;" (render "{% for i in 2|range:1 %}i={{i}};{% endfor %}" {})))
   (is (= "i=1;" (render "{% for i in 3|range:1:2 %}i={{i}};{% endfor %}" {})))
+  (is (= ""     (render "{% for i in n|range %}i={{i}};{% endfor %}" {:n 0})))
+  (is (= "i=0;" (render "{% for i in n|range %}i={{i}};{% endfor %}" {:n 1})))
+  (is (= "i=1;" (render "{% for i in n|range:1 %}i={{i}};{% endfor %}" {:n 2})))
+  (is (= "i=1;" (render "{% for i in n|range:1:2 %}i={{i}};{% endfor %}" {:n 3})))
   (is
     (= "1234567890"
        (render-template
