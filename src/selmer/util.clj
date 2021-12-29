@@ -3,7 +3,8 @@
     [clojure.java.io :as io]
     [clojure.string :as string])
   (:import java.io.StringReader
-           java.util.regex.Pattern))
+           java.util.regex.Pattern
+           java.security.MessageDigest))
 
 (defmacro exception [& [param & more :as params]]
   (if (class? param)
@@ -17,6 +18,14 @@
   (alter-var-root #'*custom-resource-path* (constantly path))
   (when (thread-bound? #'*custom-resource-path*)
     (set! *custom-resource-path* path)))
+
+(def ^:dynamic *url-stream-handler* nil)
+
+(defn set-url-stream-handler!
+  [path]
+  (alter-var-root #'*url-stream-handler* (constantly path))
+  (when (thread-bound? #'*url-stream-handler*)
+    (set! *url-stream-handler* path)))
 
 (def ^:dynamic *escape-variables* true)
 
@@ -81,7 +90,8 @@
 
 (defn read-tag-info [rdr]
   (let [buf      (StringBuilder.)
-        tag-type (if (= *filter-open* (read-char rdr)) :filter :expr)]
+        tag-type (if (= *filter-open* (read-char rdr)) :filter :expr)
+        filter? (identical? :filter tag-type )]
     (loop [ch1 (read-char rdr)
            ch2 (read-char rdr)]
       (when-not (or (nil? ch1)
@@ -91,7 +101,9 @@
         (recur ch2 (read-char rdr))))
     (let [content (->> (.toString buf)
                        (check-tag-args)
-                       (re-seq #"(?:[^\s\"]|\"[^\"]*\")+")
+                       (re-seq (if filter?
+                                 #"(?:[^\"]|\"[^\"]*\")+"
+                                 #"(?:[^\s\"]|\"[^\"]*\")+"))
                        (remove empty?)
                        (map (fn [^String s] (.trim s))))
           tag-info (merge {:tag-type tag-type}
@@ -180,6 +192,10 @@
   (or (.startsWith path java.io.File/separator)
       (and (on-windows?) (re-matches #"[a-zA-Z]:.*" path))))
 
+(def ^:dynamic *resource-fn*
+  "Var to override the implementation of io/resource. Used by babashka."
+  io/resource)
+
 (defn resource-path [template]
   (if (instance? java.net.URL template)
     template
@@ -189,8 +205,14 @@
           (looks-like-absolute-file-path? f) (.toURL (.toURI (io/file f)))
           (.startsWith f "file:/") (java.net.URL. f)
           (.startsWith f "jar:file:/") (java.net.URL. f)
-          :else (io/resource f)))
-      (io/resource template))))
+          *url-stream-handler*
+          (java.net.URL. nil f
+                         ^java.net.URLStreamHandler *url-stream-handler*)
+          :else (*resource-fn* f)))
+      (cond
+        *url-stream-handler* (java.net.URL. nil ^String template
+                                            ^java.net.URLStreamHandler *url-stream-handler*)
+        :else (*resource-fn* template)))))
 
 (defn resource-last-modified [^java.net.URL resource]
   (let [path (.getPath resource)]
@@ -228,14 +250,16 @@
   (alter-var-root #'*missing-value-formatter* (constantly missing-value-fn))
   (alter-var-root #'*filter-missing-values* (constantly filter-missing-values)))
 
+(defn- parse-long-value [^String s]
+  (when (re-matches #"\d+" s)
+    (Long/valueOf s)))
+
 (defn fix-accessor
   "Turns strings into keywords and strings like \"0\" into Longs
 so it can access vectors as well as maps."
   [ks]
   (mapv (fn [^String s]
-          (try (Long/valueOf s)
-               (catch NumberFormatException _
-                 (keyword s))))
+          (or (parse-long-value s) (keyword s)))
         ks))
 
 (defn parse-accessor
@@ -252,3 +276,15 @@ so it can access vectors as well as maps."
   (some
     (fn [e] (and (f e) e))
     coll))
+
+(defn hex [algo ^String s]
+  (let [algo (case algo
+               "md5" "MD5"
+               "sha" "SHA"
+               "sha256" "SHA-256"
+               "sha384" "SHA-384"
+               "sha512" "SHA-512"
+               (throw (IllegalArgumentException. (str "'" algo "' is not a valid hash algorithm."))))
+        algo (MessageDigest/getInstance algo)
+        bs (.digest algo (.getBytes s))]
+    (format "%032x" (BigInteger. 1 bs))))

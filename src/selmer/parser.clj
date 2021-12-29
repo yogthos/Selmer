@@ -123,11 +123,13 @@
   " Parses files if there isn't a memoized post-parse vector ready to go,
   renders post-parse vector with passed context-map regardless. Double-checks
   last-modified on files. Uses classpath for filename-or-url path "
-  [filename-or-url context-map & [{:keys [cache custom-resource-path]
+  [filename-or-url context-map & [{:keys [cache custom-resource-path url-stream-handler]
                                    :or   {cache                @cache?
-                                          custom-resource-path *custom-resource-path*}
+                                          custom-resource-path *custom-resource-path*
+                                          url-stream-handler   *url-stream-handler*}
                                    :as   opts}]]
-  (binding [*custom-resource-path* (make-resource-path custom-resource-path)]
+  (binding [*custom-resource-path* (make-resource-path custom-resource-path)
+            *url-stream-handler* url-stream-handler]
     (if-let [resource (resource-path filename-or-url)]
       (let [{:keys [template last-modified]} (get @templates resource)
             ;;for some resources, such as ones inside a jar, it's
@@ -401,8 +403,31 @@
         vars))))
 
 (defn known-variables [input]
-  (let [nodes (atom '())]
-    (->> (parse parse-input (java.io.StringReader. input) {})
-         meta
-         :all-tags
-         parse-variables)))
+  (->> (parse parse-input (java.io.StringReader. input) {})
+       meta
+       :all-tags
+       parse-variables))
+
+(defmacro ^:no-doc env-map
+  "Puts &env into a map."
+  []
+  `(zipmap (mapv keyword (quote ~(keys &env))) (vector ~@(keys &env))))
+
+(defn ^:no-doc resolve-var-from-kw [ns env kw]
+  (if (namespace kw)
+    (when-let [v (ns-resolve ns (symbol (str (namespace kw) "/" (name kw))))] {kw @v})
+    (or
+     ;; check local env first
+     (when-let [[_ v] (find env kw)] {kw v})
+     (when-let [v (ns-resolve ns (symbol (name kw)))] {kw @v}))))
+
+(defmacro <<
+  "Resolves the variables from your template string from the local-env, or the
+  namespace and puts them into your template for you.
+
+  e.g. (let [a 1] (<< \"{{a}} + {{a}} = 2\")) ;;=> \"1 + 1 = 2\" "
+  [s]
+  `(->> (known-variables ~s)
+        (mapv #(resolve-var-from-kw ~*ns* (env-map) %))
+        (apply merge)
+        (render ~s)))

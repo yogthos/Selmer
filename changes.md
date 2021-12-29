@@ -1,3 +1,19 @@
+* 1.12.46 - [fix block inheritance NPE](https://github.com/yogthos/Selmer/issues/273)
+* 1.12.45 - [fix Clojure Clojure 1.11 warnings](https://github.com/yogthos/Selmer/issues/272)
+* 1.12.44 - [fix for << macro to resolve from correct namespace](https://github.com/yogthos/Selmer/pull/270)
+* 1.12.43 - fix to make [string interpolation work with falsey env](https://github.com/yogthos/Selmer/pull/269)
+* 1.12.42 - [changed](https://github.com/yogthos/Selmer/commit/3387e76dc2325ab2cead5deb043fc2e729fadadc) interpolation to use `resolve` instead of `eval` for safety and compatibility with Babashka
+* 1.12.41 - addition of [string interpolation macro](https://github.com/yogthos/Selmer/pull/266)
+* 1.12.40 - fix reflection warnings in debug pretty printer
+* 1.12.39 - fix typo for sha256 filter
+* 1.12.38 - [fix typo resolving Cheshire JSON](https://github.com/yogthos/Selmer/pull/264)
+* 1.12.37 - [make JSON dependency pluggable, remove hard dependency on cheshire](https://github.com/yogthos/Selmer/pull/263)
+* 1.12.36 - improved default pretty printing of the context map using debug tag, [allow whitespace in filter](https://github.com/yogthos/Selmer/pull/261): {{ foo | default:bar }}
+* 1.12.35 - [made json-html dependency optional](https://github.com/yogthos/Selmer/pull/254), [removed commons-codec dependency](https://github.com/yogthos/Selmer/pull/256)
+* 1.12.34 - [support for java.net.URLStreamHandler](https://github.com/yogthos/Selmer/pull/250)
+* 1.12.33 - [fix for templates with nested with clauses](https://github.com/yogthos/Selmer/pull/249)
+* 1.12.32 - [performance improvements](https://github.com/yogthos/Selmer/pull/246)
+* 1.12.31 - [add forloop.previous](https://github.com/yogthos/Selmer/pull/244)
 * 1.12.30 - [handle includes in blocks](https://github.com/yogthos/Selmer/pull/241)
 * 1.12.29 - [Process include tags with the context of the already observed blocks](https://github.com/yogthos/Selmer/pull/240)
 * 1.12.28 - [fix for async script tag](https://github.com/yogthos/Selmer/commit/d0525a94d61a149fe199147b49adb80f2f7affde)

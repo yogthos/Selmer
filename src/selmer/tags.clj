@@ -1,10 +1,10 @@
 (ns selmer.tags
   (:require
+    clojure.java.io
     selmer.node
-    [selmer.filter-parser :refer [safe-filter compile-filter-body get-accessor]]
+    [selmer.filter-parser :refer [safe-filter compile-filter-body get-accessor escape-html*]]
     [selmer.filters :refer [filters]]
-    [selmer.util :refer :all]
-    [json-html.core :refer [edn->html]])
+    [selmer.util :refer :all])
   (:import [selmer.node TextNode]))
 
 ;; A tag can modify the context map for its body
@@ -105,46 +105,49 @@
 (defn- num? [v]
   (and v (re-matches #"[0-9]*\.?[0-9]+" v)))
 
-(defn- parse-double [v]
+(defn- parse-double-value [v]
   (java.lang.Double/parseDouble v))
 
 (defn parse-numeric-params [p1 op p2]
   (let [comparator (match-comparator op)]
     (cond
       (and (not (num? p1)) (not (num? p2)))
-      [#(comparator (parse-double %1) (parse-double %2)) p1 p2]
+      [#(comparator (parse-double-value %1) (parse-double-value %2)) p1 p2]
 
       (num? p1)
-      [#(comparator (parse-double p1) (parse-double %)) nil p2]
+      [#(comparator (parse-double-value p1) (parse-double-value %)) nil p2]
 
       (num? p2)
-      [#(comparator (parse-double %) (parse-double p2)) p1 nil])))
+      [#(comparator (parse-double-value %) (parse-double-value p2)) p1 nil])))
 
 (defn numeric-expression-evaluation [[comparator context-key1 context-key2]]
-  (fn [context-map]
-    (let [[value1 value2]
-          (cond
-            (and context-key1 context-key2)
-            [(not-empty ((compile-filter-body context-key1) context-map))
-             (not-empty ((compile-filter-body context-key2) context-map))]
-            context-key1
-            [(not-empty ((compile-filter-body context-key1) context-map))]
-            context-key2
-            [(not-empty ((compile-filter-body context-key2) context-map))])]
-      (cond
-        (and value1 value2)
-        (comparator value1 value2)
-        value1
-        (comparator value1)
-        value2
-        (comparator value2)))))
+  ; Parse the filter bodies first and close over them.
+  ; This makes them cached.
+  (let [l (when context-key1 (compile-filter-body context-key1))
+        r (when context-key2 (compile-filter-body context-key2))]
+    (fn [context-map]
+      (let [value1 (when context-key1 (not-empty (l context-map)))
+            value2 (when context-key2 (not-empty (r context-map)))]
+        (cond
+          (and value1 value2)
+          (comparator value1 value2)
+
+          value1
+          (comparator value1)
+
+          value2
+          (comparator value2))))))
 
 (defn if-any-all-fn [op params]
+  ; op is either the function "some" or "any"
   (let [filters (map compile-filter-body params)]
-    (fn [context-map]
-      (op #{true} (map #(if-result (% context-map)) filters)))))
+    (fn if-any-all-runtime-test [context-map]
+      ; We want to short-circuit here, in case
+      ; the first arg is true for ANY, or false for ALL.
+      (op (fn [f] (-> context-map (f) (if-result)))
+          filters))))
 
-(defn parse-eq-arg [arg-string]
+(defn parse-eq-arg [^String arg-string]
   (cond
     (= \" (first arg-string))
     (.substring arg-string 1 (dec (.length arg-string)))
@@ -187,8 +190,8 @@
                         (if (and (num? a) (num? b))
                           ; Special case for when both are numbers -
                           ; since we want 2 = 2.0 to be true and in clojure (= 2 2.0) => false
-                          (== (parse-double a)
-                              (parse-double b))
+                          (== (parse-double-value a)
+                              (parse-double-value b))
                           (= a b)))))
 
                   ; it has to be a numeric expression like 1 > 2
@@ -205,7 +208,7 @@
       (render-if render context-map condition success failure))))
 
 (defn if-handler [params tag-content render rdr]
-  ; The main idea of this function is to genreate a list of test conditions and corresponding contetn,
+  ; The main idea of this function is to generate a list of test conditions and corresponding content,
   ; then going though them in order until a test is successful, and then returning the contents belonging to
   ; that test.
 
@@ -380,13 +383,88 @@
     (fn [context-map]
       (render content (assoc context-map safe-filter true)))))
 
+(defn pretty-print
+  ([m]
+   (let [sb (StringBuilder.)]
+     (pretty-print sb 1 m)
+     (str sb)))
+  ([^StringBuilder sb indent v]
+   (letfn [(spaces [n] (apply str (repeat n " ")))
+           (primitive-coll? [coll] (and (< (count coll) 100) (every? (complement coll?) coll)))
+           (append-k [^StringBuilder sb indent k]
+             (.append sb (str (spaces indent) (pr-str k) " ")))
+           (append-v [^StringBuilder sb indent v]
+             (if (coll? v)
+               (if (primitive-coll? v)
+                 (.append sb (pr-str v))
+                 (do
+                   (.append sb (str "\n" (spaces indent)))
+                   (pretty-print sb (inc indent) v)))
+               (.append sb (pr-str v))))
+           (render-coll [coll open close offset]
+             (if (primitive-coll? coll)
+               (.append sb (pr-str coll))
+               (let [[x & xs] coll
+                     new-indent (+ offset indent)]
+                 (.append ^StringBuilder sb open)
+                 (when x
+                   (if (coll? x)
+                     (pretty-print sb new-indent x)
+                     (.append sb (pr-str x)))
+                   (doseq [x xs]
+                     (.append sb (str "\n" (spaces indent)))
+                     (if (coll? x)
+                       (pretty-print sb new-indent x)
+                       (.append sb (str (pr-str x))))))
+                 (.append sb close))))]
+     (cond
+       (map? v)
+       (let [[[k v] & m] v]
+         (.append sb "{")
+         (when k
+           (append-k sb 0 k)
+           (append-v sb indent v))
+         (when (seq? m)
+           (let [indent indent]
+             (.append sb "\n")
+             (doseq [x (interpose "\n" m)]
+               (if (string? x)
+                 (.append sb x)
+                 (let [[k v] x]
+                   (append-k sb indent k)
+                   (append-v sb indent v))))))
+         (.append sb "}"))
+       (coll? v)
+       (render-coll v "[" "]" 1)
+       :else
+       (append-v sb indent v)))))
+
+(defn basic-edn->html [ctx-map]
+  (str "<pre>"
+       "Include yogthos/json-html for prettier debugging.\n"
+       (escape-html* (pretty-print ctx-map))
+       "</pre>"))
+
+(def prettify-edn
+  "Resolves to json-html.core/edn->html if available, falls back to more basic rendering otherwise.
+  NOTE: It's important for GraalVM native-image that we resolve vars
+  at compile time (top-level) rather than at run-time (in a function
+  body)."
+  (try
+    (require 'json-html.core)
+    (let [edn->html @(resolve 'json-html.core/edn->html)]
+      (fn [ctx-map]
+        (str
+          "<style>"
+          (-> "json.human.css" clojure.java.io/resource slurp)
+          "</style>"
+          (edn->html ctx-map))))
+    (catch java.lang.Exception _
+      basic-edn->html)))
+
 (defn debug-handler [_ _ _ _]
   (fn [context-map]
-    (str
-      "<style>"
-      (-> "json.human.css" clojure.java.io/resource slurp)
-      "</style>"
-      (edn->html context-map))))
+    (prettify-edn context-map)))
 
 ;; expr-tags are {% if ... %}, {% ifequal ... %},
 ;; {% for ... %}, and {% block blockname %}

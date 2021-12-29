@@ -7,10 +7,11 @@
             [selmer.template-parser :refer :all]
             [selmer.util :refer :all]
             [clojure.java.io :as io]
-            [clojure.string :as string])
+            [clojure.string :as string]
+            [clojure.string :as str])
   (:import java.util.Locale
            java.io.File
-           (java.io StringReader)))
+           (java.io StringReader ByteArrayInputStream)))
 
 (def path (str "test/templates" File/separator))
 
@@ -158,6 +159,28 @@
   (is
     (= "main template foo body" (render-file "templates/my-include.html" {:foo "foo"}))))
 
+(deftest include-with-form
+  (testing "bindings made using `include` special form `with` should use default values if none are provided."
+    (is
+      (= "foo baz default-value another-default-value" (render-file "templates/inheritance/include/another-parent.html" {})))
+    (is
+      (= "foo baz some-value another-default-value" (render-file "templates/inheritance/include/another-parent.html" {:my-variable "some-value"})))
+    (is
+      (= "foo baz some-value some-other-value" (render-file "templates/inheritance/include/another-parent.html" {:my-variable "some-value"
+                                                                                                                 :my-other-variable "some-other-value"})))))
+
+(deftest nested-includes
+  (testing "bindings made using built-in tag `with` should propagate down nested includes"
+    (is
+      (= "foo bar baz some-value some-other-value" (render-file "templates/inheritance/include/grandparent.html" {}))))
+  (testing "bindings made using `include` special default `with` should propagate down nested includes"
+    (is
+      (= "foo bar baz default-value other-default-value" (render-file "templates/inheritance/include/another-grandparent.html" {})))
+    (is
+      (= "foo bar baz some-value other-default-value" (render-file "templates/inheritance/include/another-grandparent.html" {:my-variable "some-value"})))
+    (is
+      (= "foo bar baz some-value some-other-value" (render-file "templates/inheritance/include/another-grandparent.html" {:my-variable "some-value"
+                                                                                                                          :my-other-variable "some-other-value"})))))
 
 
 (deftest render-file-accepts-resource-URL
@@ -174,6 +197,25 @@
                                                .getAbsoluteFile
                                                .toURI
                                                .toURL)}))))
+
+(deftest render-file-accepts-url-stream-handler
+  (is
+   (=
+    "main template zip body"
+    (render-file "templates/my-include.html"
+                 {:zip "zip"}
+                 {:custom-resource-path "https://example.com/"
+                  :url-stream-handler
+                  (proxy [java.net.URLStreamHandler] []
+                    (openConnection [url]
+                      (proxy [java.net.URLConnection] [url]
+                        (getInputStream []
+                          (case (str url)
+                            "https://example.com/templates/my-include.html"
+                            (ByteArrayInputStream.
+                             (.getBytes "main template {% include \"templates/my-include-child.html\" %} body"))
+                            "https://example.com/templates/my-include-child.html"
+                            (ByteArrayInputStream. (.getBytes "{{ zip }}")))))))}))))
 
 (deftest custom-tags
   (is
@@ -1209,3 +1251,70 @@
                                                 BOOM
                                               {% endifequal %}
                                             {% endfor %}")))))
+
+(deftest debug-test
+  (is (str/includes? (render "{% debug %}" {:debug-value 1})
+                     "debug-value"))
+  (testing "basic rendering escapes HTML"
+    (is (str/includes? (basic-edn->html {:a "<pre>"}) "&quot"))))
+
+(deftest resource-fn-test
+  (is
+   (= "foo - bar"
+      (binding [*resource-fn* (fn [_path]
+                                (.toURL (io/file "test/templates/snippet.html")))]
+        (render-file "foobar" {:url "foo" :gridid "bar"})))))
+
+(deftest allow-whitespace-in-filter-test
+  (is (= "bar" (render "{{ foo | default:bar }}" {:dude 1}))))
+
+;; String interopolation
+
+(deftest resolve-kw-local-var-test
+  (def local-to-this-ns 42)
+  (is (= "fourty two = 42"
+         (<< "fourty two = {{local-to-this-ns}}")))
+  (ns-unmap *ns* 'local-to-this-ns))
+
+(deftest resolve-kw-unaliased-var-in-another-ns
+  (is (= {:selmer.benchmark/user selmer.benchmark/user}
+         (resolve-var-from-kw *ns* (env-map) :selmer.benchmark/user))))
+
+(deftest resolve-kw-var-aliased-to-another-ns
+  (require '[selmer.benchmark :as sb])
+  (is (= {:sb/user
+          [[{:name "test"}] [{:name "test"}] [{:name "test"}] [{:name "test"}]
+           [{:name "test"}] [{:name "test"}] [{:name "test"}] [{:name "test"}]
+           [{:name "test"}] [{:name "test"}]]}
+         (resolve-var-from-kw *ns* (env-map) :sb/user)))
+  (ns-unmap *ns* 'sb))
+
+;; setup namespaces, vars + alias for << tests
+(require '[selmer.benchmark :as sb])
+(def one "one")
+(def y 1)
+
+(deftest string-interpolation-test
+  (is (= "one plus one is two."
+         (<< "{{one}} plus {{one}} is two.")))
+
+  (let [one 1]
+    (is (= "1 + 1 = 2"
+           (<< "{{one}} + {{one}} = 2"))))
+
+  (let [one 1
+        one 11]
+    (is (= "11 + 11 = 2"
+           (<< "{{one}} + {{one}} = 2"))))
+
+  (is (= "selmer.benchmark/user has 10 items."
+         (<< "selmer.benchmark/user has {{selmer..benchmark/user|count}} items.")))
+
+  (is (= "sb/user has 10 items."
+         (<< "sb/user has {{sb/user|count}} items.")))
+
+  (is (= "" (let [y nil] (<< "{{y}}")))
+      "<< picks up local values even if they are nil")
+
+  (is (= "false" (let [y false] (<< "{{y}}")))
+      "<< picks up local values even if they are false"))

@@ -62,14 +62,15 @@
                 super-tag?     (re-matches *block-super-pattern* tag-str)
                 existing-block (when block-name (get-in blocks [block-name :content]))]
 
-            (cond
-              includes?
-              (.append buf (process-includes tag-str buf blocks))
+            (when buf
+              (cond
+                includes?
+                (.append buf (process-includes tag-str buf blocks))
 
-              ;;check if we wish to write the closing tag for the block. If we're
-              ;;injecting block.super, then we want to omit it
-              (write-tag? buf super-tag? existing-block blocks-to-close omit-close-tag?)
-              (.append buf tag-str))
+                ;;check if we wish to write the closing tag for the block. If we're
+                ;;injecting block.super, then we want to omit it
+                (write-tag? buf super-tag? existing-block blocks-to-close omit-close-tag?)
+                (.append buf tag-str)))
 
             (recur
               (long
@@ -150,10 +151,25 @@
 (defn trim-expression-tag [string]
   (trim-regex string *tag-open-pattern* *tag-close-pattern*))
 
-(defn to-expression-string [tag-name args]
+(defn- unparse-defaults [defaults]
+  (when defaults
+    (trim
+      (reduce-kv
+        (fn [s k v]
+          (str s k "=\"" v "\" "))
+        ""
+        defaults))))
+
+(defn to-expression-string [tag-name args defaults]
   (let [tag-name' (name tag-name)
         args'     (clojure.string/join \space args)
-        joined    (if (seq args) (str tag-name' \space args') tag-name')]
+        defaults' (when (= tag-name' "include")             ;; forwards any defined defaults down to the children to be evaluated in context
+                    (unparse-defaults defaults))
+        joined    (str tag-name'
+                       (when (seq args)
+                         (str \space args'))
+                       (when defaults'
+                         (str \space "with" \space defaults')))]
     (wrap-in-expression-tag joined)))
 
 (defn add-default [identifier default]
@@ -169,12 +185,13 @@
     (wrap-in-variable-tag (try-add-default tag-name defaults))))
 
 (defn add-defaults-to-expression-tag [tag-str defaults]
-  (let [tag-str' (->> (trim-expression-tag tag-str)
-                      ;; NOTE: we add a character here since read-tag-info
-                      ;; consumes the first character before parsing.
-                      (str *tag-second*))
-        {:keys [tag-name args]} (read-tag-info (string->reader tag-str'))]
-    (to-expression-string tag-name (map #(try-add-default % defaults) args))))
+  (let [tag-str'            (->> (trim-expression-tag tag-str)
+                                 ;; NOTE: we add a character here since read-tag-info
+                                 ;; consumes the first character before parsing.
+                                 (str *tag-second*))
+        {:keys [tag-name args]} (read-tag-info (string->reader tag-str'))
+        identifier+defaults (map #(try-add-default % defaults) args)]
+    (to-expression-string tag-name identifier+defaults defaults)))
 
 (defn get-template-path [template]
   (resource-path template))
@@ -205,12 +222,19 @@
                         (recur blocks (read-char rdr) parent))
 
                     (and defaults
-                         (re-matches *tag-pattern* tag-str))
+                         (re-matches *tag-pattern* tag-str)
+                         (not (re-matches *include-pattern* tag-str)))
                     (do (.append buf (add-defaults-to-expression-tag tag-str defaults))
                         (recur blocks (read-char rdr) parent))
 
                     ;;if the template includes another, pre-process it and
                     ;;add the contents to the front of the buffer.
+                    (and defaults
+                         (re-matches *include-pattern* tag-str))
+                    (let [tag-str' (add-defaults-to-expression-tag tag-str defaults)]
+                      (.append buf (process-includes tag-str' buf blocks))
+                      (recur blocks (read-char rdr) parent))
+
                     (re-matches *include-pattern* tag-str)
                     (do (.append buf (process-includes tag-str buf blocks))
                         (recur blocks (read-char rdr) parent))

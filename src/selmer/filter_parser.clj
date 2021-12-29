@@ -1,21 +1,22 @@
 (ns selmer.filter-parser
   "Accessors are separated by dots like {{ foo.bar.0 }}
-which gets translated into (get-in context-map [:foo :bar 0]). So you
-can nest vectors and maps in your context-map.
+  which gets translated into (get-in context-map [:foo :bar 0]). So you
+  can nest vectors and maps in your context-map.
 
-Filters can be applied by separating then from the accessor
-with pipes: {{ foo|lower|capitalize }}. They are applied one after
-the other from left to right. Arguments can be passed to a filter
-separated by colons: {{ foo|pluralize:y:ies }}. If an argument includes
-spaces you can enclose it with doublequotes or colons: {{ foo|join:\", \" }}.
+  Filters can be applied by separating then from the accessor
+  with pipes: {{ foo|lower|capitalize }}. They are applied one after
+  the other from left to right. Arguments can be passed to a filter
+  separated by colons: {{ foo|pluralize:y:ies }}. If an argument includes
+  spaces you can enclose it with doublequotes or colons: {{ foo|join:\", \" }}.
 
-You can escape doublequotes inside doublequotes. And you can put colons
-inside doublequotes which will be ignored for the purpose of separating
-arguments."
+  You can escape doublequotes inside doublequotes. And you can put colons
+  inside doublequotes which will be ignored for the purpose of separating
+  arguments."
   (:require
-    [selmer.filters :refer [get-filter]]
-    [selmer.util :refer [exception *escape-variables* fix-accessor parse-accessor]]
-    [clojure.string :as s]))
+   [selmer.filters :refer [get-filter]]
+   [selmer.util :refer [exception *escape-variables* fix-accessor parse-accessor]]
+   [clojure.string :as s]
+   [clojure.string :as str]))
 
 ;;; More Utils
 (defn escape-html*
@@ -133,9 +134,9 @@ applied filter."
 
 (defn split-value [s]
   (->> s
-       (s/trim)
        ;; Ignore pipes and allow escaped doublequotes inside doublequotes
-       (re-seq #"(?:[^|\"]|\"[^\"]*\")+")))
+       (re-seq #"\w*(?:[^|\"]|\"[^\"]*\")+")
+       (map str/trim)))
 
 (defn compile-filter-body
   "Turns a string like foo|filter1:x|filter2:y into a fn that expects a
