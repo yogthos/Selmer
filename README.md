@@ -78,6 +78,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [name](#name)
 [phone](#phone)
 [pluralize](#pluralize)
+[range](#range)
 [rand-nth](#rand-nth)
 [remove](#remove)
 [remove-tags](#remove-tags)
@@ -147,7 +148,7 @@ alternatively, it's possible to use string interpolation macro to inject symbols
       b "hello"]
   (<< "{{b|upper}}, {{a}} + {{a}} = 2"))
 
-;;=> "HELLO, 1 + 1 = 2" 
+;;=> "HELLO, 1 + 1 = 2"
 ```
 
 To render a file we can call `render-file` instead:
@@ -608,6 +609,24 @@ Returns the correct (English) pluralization based on the variable. This works wi
 
 `(render "{{people}} lad{{people|pluralize:\"y\":\"ies\"}}" {:people 2})` => `"2 ladies"`
 
+#### range
+returns a range (sequence) of values from 0 to the value, if no arguments are provided.
+`(render "{{n|range}}" {:n 3})` => `"(0 1 2)"`
+
+Accepts a start value and a step value:
+
+`(render "{{n|range:1}}" {:n 3})` => `"(1 2)"`
+
+`(render "{{n|range:0:2}}" {:n 3})` => `"(0 2)"`
+
+The value can also be a numeric literal:
+
+`(render "{{3|range}}" {})` => `"(0 1 2)"`
+
+`(render "{{3|range:1}}" {})` => `"(1 2)"`
+
+`(render "{{3|range:0:2}}" {})` => `"(0 2)"`
+
 #### rand-nth
 returns rand-nths value from a collection:
 `(render "{{foo|rand-nth}}" {:foo [1 2 3]})` => `"2"`
@@ -857,7 +876,7 @@ You can have elif (else if) clauses if you want:
          {% else %}
               lower than 10... not ok
          {% endif %}"
-  {:pl 14 :status "decent"}) 
+  {:pl 14 :status "decent"})
 => "still pretty ok"
 ```
 
