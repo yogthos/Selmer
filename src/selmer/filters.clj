@@ -401,10 +401,11 @@ map. The rest of the arguments are optional and are always strings."
 
             :range
             (fn [end & [start step]]
-              (cond
-                step  (range (Long/parseLong start) (Long/parseLong end) (Long/parseLong step))
-                start (range (Long/parseLong start) (Long/parseLong end))
-                :else (range (Long/parseLong end))))
+              (let [->long (fn [s] (if (number? s) s (Long/parseLong s)))]
+                (cond
+                  step  (range (->long start) (->long end) (->long step))
+                  start (range (->long start) (->long end))
+                  :else (range (->long end)))))
 
             ;;; Turns the to-remove string into a set of chars
             ;;; That are removed from the context string
