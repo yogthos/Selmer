@@ -1,3 +1,4 @@
+* 1.12.48 - expose add-filter! in selmer.parser namespace for consistency
 * 1.12.48 - [use synthetic name for literals in a for tag](https://github.com/yogthos/Selmer/pull/277)
 * 1.12.47 - [range filter and ability to use literals in for tag](https://github.com/yogthos/Selmer/pull/275)
 * 1.12.46 - [fix block inheritance NPE](https://github.com/yogthos/Selmer/issues/273)

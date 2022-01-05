@@ -2,7 +2,7 @@
   (:require [clojure.test :refer :all]
             [cheshire.core :refer :all]
             [selmer.tags :refer :all]
-            [selmer.filters :refer :all]
+            [selmer.filters :refer :all :exclude [add-filter!]]
             [selmer.parser :refer :all]
             [selmer.template-parser :refer :all]
             [selmer.util :refer :all]
