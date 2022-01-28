@@ -404,8 +404,9 @@
                  (rest tags)))
         vars))))
 
-(defn known-variables [input]
-  (->> (parse parse-input (java.io.StringReader. input) {})
+(defn known-variables [input & [opts]]
+  (->> (or opts {})
+       (parse parse-input (java.io.StringReader. input))
        meta
        :all-tags
        parse-variables))
