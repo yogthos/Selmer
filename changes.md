@@ -1,3 +1,4 @@
+* 1.12.50 - updated cheshire version to 5.11.0
 * 1.12.50 - [add opts to known-variables params](https://github.com/yogthos/Selmer/pull/279)
 * 1.12.49 - added mapping for add-filter! in selmer.parser namespace 
 * 1.12.48 - expose add-filter! in selmer.parser namespace for consistency

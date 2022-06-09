@@ -1,4 +1,4 @@
-(defproject selmer "1.12.50"
+(defproject selmer "1.12.51"
   :description "Django style templates for Clojure"
   :url "https://github.com/yogthos/Selmer"
   :license {:name "Eclipse Public License"
@@ -8,7 +8,7 @@
 
                  ;; optional dependencies
                  [json-html "0.4.7" :scope "provided"]
-                 [cheshire "5.10.0" :scope "provided"]
+                 [cheshire "5.11.0" :scope "provided"]
 
                  ;; test dependencies
                  [criterium "0.4.6" :scope "test"]]
@@ -24,4 +24,4 @@
                    :source-paths ["src" "dev"]
                    :plugins [[lein-marginalia "0.9.0"]]
                    :dependencies [[environ "1.2.0"]
-                                  [org.clojure/tools.namespace "1.1.0"]]}})
+                                  [org.clojure/tools.namespace "1.3.0"]]}})
