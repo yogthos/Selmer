@@ -8,6 +8,7 @@ pom.xml.asc
 *.jar
 *.class
 .clj-kondo/.cache
+.cpcache
 .lein-deps-sum
 .lein-failures
 .lein-plugins

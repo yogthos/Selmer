@@ -1,6 +1,7 @@
 (ns selmer.core-test
   (:require [clojure.test :refer :all]
             [cheshire.core :refer :all]
+            [selmer.benchmark]
             [selmer.tags :refer :all]
             [selmer.filters :refer :all :exclude [add-filter!]]
             [selmer.parser :refer :all]
