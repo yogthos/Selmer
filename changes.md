@@ -1,5 +1,5 @@
-* 1.12.next - [allow tags to have string arguments containing variables/filters](https://github.com/yogthos/Selmer/issues/285)
-* 1.12.50 - updated cheshire version to 5.11.0
+* 1.12.52 - [allow tags to have string arguments containing variables/filters](https://github.com/yogthos/Selmer/issues/285)
+* 1.12.51 - updated cheshire version to 5.11.0
 * 1.12.50 - [add opts to known-variables params](https://github.com/yogthos/Selmer/pull/279)
 * 1.12.49 - added mapping for add-filter! in selmer.parser namespace
 * 1.12.48 - expose add-filter! in selmer.parser namespace for consistency
