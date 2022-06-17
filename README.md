@@ -752,6 +752,8 @@ The content will be keyed on the opening tag name as can be seen below:
 
 #### include
 
+This tag is only available for `render-file` since `render` function only operates on a template consisting of a single string.
+
 replaces itself with the contents of the referenced template
 
 `{% include "path/to/comments.html" %}`

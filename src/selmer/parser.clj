@@ -80,6 +80,8 @@
       (swap! selmer.tags/closing-tags update-tag tag tags)
       (recur tags))))
 
+(def add-filter! selmer.filters/add-filter!)
+
 ;; add-tag! is a hella nifty macro. Example use:
 ;; (add-tag! :joined (fn [args context-map] (clojure.string/join "," args)))
 (defmacro add-tag!
@@ -402,8 +404,9 @@
                  (rest tags)))
         vars))))
 
-(defn known-variables [input]
-  (->> (parse parse-input (java.io.StringReader. input) {})
+(defn known-variables [input & [opts]]
+  (->> (or opts {})
+       (parse parse-input (java.io.StringReader. input))
        meta
        :all-tags
        parse-variables))
