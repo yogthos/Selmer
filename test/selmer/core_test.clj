@@ -48,6 +48,10 @@
   (remove-tag! :temp)
   (is (thrown? Exception (render "{% temp arg1 arg2 %}" {}))))
 
+(deftest tag-can-have-filter-args
+  ;; #285: this threw a malformed tag arguments exception:
+  (is (= "foo" (render "{% if \"{{var}}\" %}foo{% endif %}" {}))))
+
 (deftest custom-filter-test
   (is (= "BAR"
          (render-template (parse parse-input (java.io.StringReader. "{{bar|embiginate}}")
