@@ -95,7 +95,7 @@
     (loop [ch1 (read-char rdr)
            ch2 (read-char rdr)]
       (when-not (or (nil? ch1)
-                    (and (or (= *filter-close* ch1) (= *tag-second* ch1))
+                    (and (if filter? (= *filter-close* ch1) (= *tag-second* ch1))
                          (= *tag-close* ch2)))
         (.append buf ch1)
         (recur ch2 (read-char rdr))))
