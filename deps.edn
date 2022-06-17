@@ -13,8 +13,8 @@
 
  :deps/prep-lib ; allow for use via git deps: clojure -X:deps prep
  ;; see https://clojure.org/guides/deps_and_cli#prep_libs for more detail
- {:alias build
-  :fn build/prep
+ {:alias :build
+  :fn prep
   :ensure "target/classes"}
 
  :aliases
