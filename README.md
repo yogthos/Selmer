@@ -684,14 +684,14 @@ Returns the closest integer to the argument, with ties rounding up.
 
 #### multiply
 
-Multiplies the value with the given number. Throws error if one of the both
+Multiplies the value by the given number. Throws error if one of the both
 values are neither Long nor Double.
 
 `(render "{{foo|multiply:2}}" {:foo 3.3})` =\> `"6.6"`
 
 #### divide
 
-Multiplies the value with the given number. Throws error if one of the both
+Multiplies the value by the given number. Throws error if one of the both
 values are neither Long nor Double.
 
 `(render "{{foo|divide:2}}" {:foo 6})` =\> `"3"`
