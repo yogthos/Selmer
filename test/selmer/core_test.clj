@@ -1250,12 +1250,11 @@
   (testing "now"
     (is (= #{} (known-variables "{% now \"dd MM yyyy\" %}"))))
 
-  (testing "firstof"
+  (testing "custom tags"
     (is (= #{:var1 :var2 :var3} (known-variables "{% firstof var1 var2 var3 %}"))))
 
   (testing "verbatim"
     (is (= #{} (known-variables "{% verbatim %}{{if dying}}Still alive.{{/if}}{% endverbatim %}"))))
-
 
   (testing "nesting"
     (is (= #{:x :y :z} (known-variables "{% if x <= y %}{% if z = 2 %}yes!{% else %}not!{% endif %}{% endif %}")))
@@ -1265,7 +1264,83 @@
                                               {% ifequal item.middeName foo %}
                                                 BOOM
                                               {% endifequal %}
-                                            {% endfor %}")))))
+                                            {% endfor %}"))))
+  (testing "with"
+    (is (= #{:item :foo :items}
+           (known-variables "{% with a=items|sort %}
+                                    <tr><td>{{item.name}}</td>
+                                    <td>{{item.age}}</td></tr>
+                                    {% ifequal a foo %}
+                                      BOOM
+                                    {% endifequal %}
+                                  {% endwith %}")
+           )))
+  )
+
+(deftest testing-known-variable-paths
+  (testing "Basic variables"
+    (is (= #{[:name]} (known-variable-paths "{{name}}")))
+    (is (= #{[:name]} (known-variable-paths "{{name|capitalize}}")))
+    (is (= #{[:person :name]} (known-variable-paths "{{person.name|capitalize}}"))))
+
+  (testing "If statements"
+    (is (= #{[:foo] [:bar] [:baz]} (known-variable-paths "{% if any foo bar baz %}hello{% endif %}")))
+    (is (= #{[:foo] [:bar] [:baz]} (known-variable-paths "{% if not any foo bar baz %}hello{% endif %}")))
+    (is (= #{[:foo] [:bar]} (known-variable-paths "{% if all foo bar %}hello{% endif %}")))
+    (is (= #{[:x]} (known-variable-paths "{% if 6 >= x %}yes!{% endif %}")))
+    (is (= #{[:x] [:y]} (known-variable-paths "{% if x <= y %}yes!{% endif %}")))
+    (is (= #{[:x]} (known-variable-paths "{% if x > 5 %}yes!{% else %}no!{% endif %}")))
+    (is (= #{[:vals]} (known-variable-paths "{% if vals|length <= 3 %}yes!{% else %}no!{% endif %}"))))
+
+  (testing "ifequal"
+    (is (= #{[:foo] [:bar]} (known-variable-paths "{% ifequal foo bar %}yes!{% endifequal %}")))
+    (is (= #{[:foo] [:bar]} (known-variable-paths "{% ifequal foo bar %}yes!{% else %}no!{% endifequal %}")))
+    (is (= #{[:foo]} (known-variable-paths "{% ifequal foo \"this also works\" %}yes!{% endifequal %}"))))
+
+  (testing "ifunequal"
+    (is (= #{[:foo] [:bar]} (known-variable-paths "{% ifunequal foo bar %}yes!{% endifunequal %}"))))
+
+  (testing "for"
+    (is (= #{[:some-list]} (known-variable-paths
+                             "{% for x in some-list %}element: {{x}} first? {{forloop.first}} last? {{forloop.last}}{% endfor %}")))
+
+    (is (= #{[:some-list :nested1]}
+           (known-variable-paths
+             "{% for x in some-list.nested1 %}element: {{x.more.nested2}} first? {{forloop.first}} last? {{forloop.last}}{% endfor %}")))
+
+    (is (= #{[:items]} (known-variable-paths "{% for item in items %} <tr><td>{{item.name}}</td><td>{{item.age}}</td></tr> {% endfor %}")))
+    (is (= #{[:items]} (known-variable-paths "{% for x,y in items %}{{x}},{{y}}{% endfor %}"))))
+
+  (testing "sum"
+    (is (= #{[:foo] [:bar] [:baz]} (known-variable-paths "{% sum foo bar baz %}"))))
+
+  (testing "now"
+    (is (= #{} (known-variable-paths "{% now \"dd MM yyyy\" %}"))))
+
+  (testing "custom tags"
+    (is (= #{[:var1] [:var2] [:var3]} (known-variable-paths "{% firstof var1 var2 var3 %}"))))
+
+  (testing "verbatim"
+    (is (= #{} (known-variable-paths "{% verbatim %}{{if dying}}Still alive.{{/if}}{% endverbatim %}"))))
+
+  (testing "nesting"
+    (is (= #{[:x] [:y] [:z]} (known-variable-paths "{% if x <= y %}{% if z = 2 %}yes!{% else %}not!{% endif %}{% endif %}")))
+    (is (= #{[:items :nested1] [:foo :nested2]}
+           (known-variable-paths "{% for item,idx in items.nested1|sort %}
+                                    <tr><td>{{item.name}}</td>
+                                    <td>{{item.age}}</td></tr>
+                                    {% ifequal item.middle-Name foo.nested2 %}
+                                      BOOM
+                                    {% endifequal %}
+                                  {% endfor %}"))))
+
+  (testing "with"
+    (is (= #{[:items :nested1] [:foo :nested2]}
+           (known-variable-paths "{% with a=items.nested1|sort %}
+                                    {% ifequal a foo.nested2 %}
+                                      BOOM
+                                    {% endifequal %}
+                                  {% endwith %}")))))
 
 (deftest debug-test
   (is (str/includes? (render "{% debug %}" {:debug-value 1})
