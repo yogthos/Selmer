@@ -16,7 +16,8 @@
     [selmer.tags :refer :all]
     [selmer.util :refer :all]
     [selmer.validator :refer [validation-error]]
-    selmer.node)
+    selmer.node
+    )
   (:import [selmer.node TextNode FunctionNode]))
 
 ;; Ahead decl because some fns call into each other.
@@ -361,48 +362,86 @@
       (parse-fn input params)
       {:all-tags @*tags*})))
 
+(defn- parse-top-level-variable
+  "
+  takes in vals like: \"person.name|capitalize\"
+  and produces :person
+  "
+  [arg]
+  (some-> arg
+          split-value
+          first
+          parse-accessor
+          first))
+
+(defn- parse-variable-paths
+  "
+  takes in vals like: \"person.name|capitalize\"
+  and produces [:person :name]
+  "
+  [arg]
+  (some-> arg
+          split-value
+          first
+          parse-accessor))
+
 ;; List of variables in a template file
-(defn ^:private parse-variables [tags]
-  (let [clean-variable (fn clean-variable [arg]
-                         (some-> arg
-                                 split-value
-                                 first
-                                 parse-accessor
-                                 first))]
-    (loop [vars        #{}
-           nested-keys #{}
-           tags        tags]
-      (if-let [{:keys [tag-type tag-name tag-value args] :as tag} (first tags)]
-        (cond
-          (= tag-type :filter) (let [v (clean-variable tag-value)]
-                                 (recur (cond-> vars
-                                                (not (contains? nested-keys v)) (conj v))
-                                        nested-keys
-                                        (rest tags)))
-          (= :for tag-name) (let [[ids [_ items]] (aggregate-args args)]
-                              (recur (conj vars (clean-variable items))
-                                     (conj (set (map keyword ids)) :forloop)
+(defn ^:private parse-variables
+  ([tags] (parse-variables tags parse-top-level-variable))
+  ([tags var-fn]
+   (loop [vars        #{}
+          nested-keys #{}
+          tags        tags]
+     (if-let [{:keys [tag-type tag-name tag-value args] :as tag} (first tags)]
+       (cond
+         (= :filter tag-type) (let [v (var-fn tag-value)]
+                                (recur (cond-> vars
+                                         (not (cond
+                                                (keyword? v) (contains? nested-keys v)
+                                                (vector? v)  (contains? nested-keys (first v)))) (conj v))
+                                       nested-keys
+                                       (rest tags)))
+         (= :for tag-name)    (let [[ids [_ items]] (aggregate-args args)]
+                                (recur (conj vars (var-fn items))
+                                       (conj (set (map keyword ids)) :forloop)
+                                       (rest tags)))
+
+         (= :with tag-name) (let [[id value] (string/split (first args) #"=")]
+                              (recur (conj vars (var-fn value))
+                                     #{(keyword id)}
                                      (rest tags)))
 
-          (= :with tag-name) (let [[id value] (string/split (first args) #"=")]
-                               (recur (conj vars (clean-variable value))
-                                      #{(keyword id)}
-                                      (rest tags)))
+         (contains? #{:endfor :endwith} tag-name) (recur vars #{} (rest tags))
 
-          (contains? #{:endfor :endwith} tag-name) (recur vars #{} (rest tags))
+         :else
+         (let [special-syms   #{nil :not :all :any :< :> := :<= :>=}
+               should-remove? (fn [var]
+                                (if (vector? var)
+                                  (or
+                                    (->> var first special-syms)
+                                    (->> var first nested-keys))
+                                  (or
+                                    (->> var special-syms)
+                                    (->> var nested-keys))))
+               ]
+           (recur (set/union
+                    vars
+                    (->> args
+                         (filter (complement literal?))
+                         (map var-fn)
+                         (remove should-remove?)
+                         set))
+                  nested-keys
+                  (rest tags))))
+       vars))))
 
-          :else
-          (recur (set/union
-                   vars
-                   (->> args
-                        (filter (complement literal?))
-                        (map clean-variable)
-                        (remove nested-keys)
-                        (remove #{nil :not :all :any :< :> := :<= :>=})
-                        set))
-                 nested-keys
-                 (rest tags)))
-        vars))))
+(defn known-variable-paths [input & [opts]]
+  (let [parser #(-> % (parse-variables parse-variable-paths))]
+    (->> (or opts {})
+         (parse parse-input (java.io.StringReader. input))
+         meta
+         :all-tags
+         parser)))
 
 (defn known-variables [input & [opts]]
   (->> (or opts {})
