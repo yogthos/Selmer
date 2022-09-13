@@ -1356,7 +1356,10 @@
         (render-file "foobar" {:url "foo" :gridid "bar"})))))
 
 (deftest allow-whitespace-in-filter-test
-  (is (= "bar" (render "{{ foo | default:bar }}" {:dude 1}))))
+  (is (= "bar" (render "{{ foo | default:bar }}" {:dude 1})))
+  (binding [*resource-fn* (fn [_path]
+                            (.toURL (io/file "test/templates/filter-whitespace.html")))]
+    (is (= "bar\n" (render-file "foobar" {:foo "bar"})))))
 
 ;; String interopolation
 

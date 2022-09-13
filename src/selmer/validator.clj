@@ -3,6 +3,7 @@
     [selmer.tags :refer :all]
     [selmer.filters :refer :all]
     [selmer.util :refer :all]
+    [clojure.string :as str]
     [clojure.set :refer [difference]]
     [clojure.java.io :as io]))
 
@@ -43,7 +44,7 @@
 
 (defn validate-filters [template line {:keys [tag-value] :as tag}]
   (let [tag-filters (map
-                      #(-> ^String % (.split ":") first keyword)
+                      #(-> ^String % (.split ":") first str/trim keyword)
                       (-> tag-value name (.split "\\|") rest))]
     (if-not (empty? (difference (set tag-filters) (set (keys @filters))))
       (validation-error (str "Unrecognized filter " tag-value " found inside the tag") tag line template))))
