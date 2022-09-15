@@ -1,4 +1,5 @@
-* 1.12.54 - [switch to using ex-info for errors](https://github.com/yogthos/Selmer/pull/296)
+* 1.12.55 - [switch to using ex-info for errors](https://github.com/yogthos/Selmer/pull/296)
+* 1.12.54 - [Fix allowing whitespace in filters when parsing a file](https://github.com/yogthos/Selmer/pull/295)
 * 1.12.53 - [adds `known-variable-paths` function to `selmer.parser`](https://github.com/yogthos/Selmer/pull/293)
 * 1.12.52 - [allow tags to have string arguments containing variables/filters](https://github.com/yogthos/Selmer/issues/285)
 * 1.12.51 - updated cheshire version to 5.11.0
