@@ -14,8 +14,7 @@
   arguments."
   (:require
    [selmer.filters :refer [get-filter]]
-   [selmer.util :refer [exception *escape-variables* fix-accessor parse-accessor]]
-   [clojure.string :as s]
+   [selmer.util :refer [*escape-variables* parse-accessor]]
    [clojure.string :as str]))
 
 ;;; More Utils
@@ -97,7 +96,8 @@ applied filter."
     (if filter
       (fn [x context-map]
         (apply filter x (map (lookup-args context-map) args)))
-      (exception "No filter defined with the name '" filter-name "'"))))
+      (throw (ex-info (str "No filter defined with the name '" filter-name "'")
+                      {:filter-name filter})))))
 
 (def safe-filter ::selmer-safe-filter)
 
@@ -116,8 +116,11 @@ applied filter."
     (fn [acc [filter-str filter]]
       (try (filter acc context-map)
            (catch Exception e
-             (exception
-               "On filter body '" s "' and filter '" filter-str "' this error occurred:" (.getMessage e)))))
+             (throw (ex-info (str "On filter body '" s "' and filter '" filter-str "' this error occurred:" (.getMessage e))
+                             {:filters filters
+                              :filter-str filter-str
+                              :body s}
+                             e)))))
     val
     (map vector filter-strs filters)))
 

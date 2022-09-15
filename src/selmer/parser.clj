@@ -157,7 +157,9 @@
 (defn expr-tag [{:keys [tag-name args]} rdr]
   (if-let [handler (tag-name @expr-tags)]
     (handler args tag-content render-template rdr)
-    (exception "unrecognized tag: " tag-name " - did you forget to close a tag?")))
+    (throw (ex-info (str "unrecognized tag: " tag-name 
+                         " - did you forget to close a tag?") 
+                    {}))))
 
 ;; Same as a vanilla data tag with a value, but composes
 ;; the filter fns. Like, {{ data-var | upper | safe }}
@@ -214,7 +216,7 @@
          ch2 (read-char rdr)]
     (cond
       (nil? ch2)
-      (exception "short-form comment tag was not closed")
+      (throw (ex-info "short-form comment tag was not closed" {}))
 
       (and (= *short-comment-second* ch1) (= *tag-close* ch2))
       nil
@@ -235,7 +237,8 @@
            cur-args nil]
       (cond
         (and (nil? ch) (not-empty end-tags))
-        (exception "No closing tag found for " start-tag)
+        (throw (ex-info (str "No closing tag found for " start-tag)
+                        {:args start-tag}))
 
         ; We're done with this tag so return.
         (nil? ch)

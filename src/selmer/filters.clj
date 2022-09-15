@@ -4,7 +4,7 @@ The first argument to the fn is always the value obtained from the context
 map. The rest of the arguments are optional and are always strings."
   (:require
     [clojure.string :as s]
-    [selmer.util :as u :refer [exception]])
+    [selmer.util :as u])
   (:import
     java.util.Locale
     [java.time Instant
@@ -26,9 +26,11 @@ map. The rest of the arguments are optional and are always strings."
               (catch Exception _
                 (try (require 'jsonista.core)
                      @(resolve 'jsonista.core/write-value-as-string)
-                     (catch Exception _
+                     (catch Exception e
                        (fn [_]
-                         (throw (RuntimeException. "Supported JSON libraries: cheshire, clojure.data.json or jsonista. Provide one of these on the classpath to enable the json filter."))))))))))
+                         (throw (ex-info "Supported JSON libraries: cheshire, clojure.data.json or 
+                                          jsonista. Provide one of these on the classpath to enable 
+                                          the json filter." {} e))))))))))
 
 (def valid-date-formats
   {"shortTime"      (DateTimeFormatter/ofLocalizedTime FormatStyle/SHORT)
@@ -99,14 +101,14 @@ map. The rest of the arguments are optional and are always strings."
                              (instance? java.util.Map x)))
         ^String msg (if msg msg (str "Expected '" (if (nil? x) "nil" (str x)) "' to be a collection of some sort."))]
     (when-not is-seqable
-      (exception msg))))
+      (throw (ex-info msg {:arg x})))))
 
 ;;; Similar to the above only with numbers
 (defn throw-when-expecting-number
   [x & [msg]]
   (let [^String msg (if msg msg (str "Expected '" (if (nil? x) "nil" (str x)) "' to be a number."))]
     (when-not (number? x)
-      (exception msg))))
+      (throw (ex-info msg {:arg x})))))
 
 (defonce filters
          (atom
