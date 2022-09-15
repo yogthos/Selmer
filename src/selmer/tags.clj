@@ -1,6 +1,7 @@
 (ns selmer.tags
   (:require
     clojure.java.io
+    [clojure.string :as str]
     selmer.node
     [selmer.filter-parser :refer [literal? parse-literal safe-filter compile-filter-body get-accessor escape-html*]]
     [selmer.filters :refer [filters]]
@@ -41,7 +42,7 @@
         empty-content (get-in content [:empty :content])
         [ids [_ items]] (aggregate-args args)
         ids           (map parse-accessor ids)
-        [items & filter-names] (if items (.split ^String items "\\|"))
+        [items & filter-names] (when items (.split ^String items "\\|"))
         ;; prevent literals cascading through filters:
         for-items     (cond->> items
                         (literal? items)
@@ -106,7 +107,8 @@
 
 (defn match-comparator [op]
   (condp = op ">" > "<" < "=" == ">=" >= "<=" <=
-              (exception "Unrecognized operator in 'if' statement: " op)))
+         (throw (ex-info (str "Unrecognized operator in 'if' statement: " op)
+                         {:args op}))))
 
 (defn- num? [v]
   (and v (re-matches #"[0-9]*\.?[0-9]+" v)))
@@ -304,9 +306,10 @@
 
 (defn compile-args [args]
   (when-not (even? (count args))
-    (exception "invalid arguments passed to 'with' tag: " args))
+    (throw (ex-info (str "invalid arguments passed to 'with' tag: " args)
+                    {:args args})))
   (for [[id value] (partition 2 args)]
-    [(map keyword (clojure.string/split id #"\.")) (compile-filter-body value false)]))
+    [(map keyword (str/split id #"\.")) (compile-filter-body value false)]))
 
 (defn with-handler [args tag-content render rdr]
   (let [content (get-in (tag-content rdr :with :endwith) [:with :content])

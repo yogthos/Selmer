@@ -86,7 +86,7 @@
 
 (defn check-tag-args [args]
   (if (even? (count (filter #{\"} args)))
-    args (exception "malformed tag arguments in " args)))
+    args (throw (ex-info (str "malformed tag arguments in " args) {:args args}))))
 
 (defn read-tag-info [rdr]
   (let [buf      (StringBuilder.)
