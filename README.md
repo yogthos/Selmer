@@ -737,10 +737,27 @@ It's also possible to define custom tags using the `add-tag!` macro:
 ```
 it's also possible to add block tags. When adding a block tag, the handler
 function should accept the tag arguments, the context map, and the content.
-The content will be keyed on the opening tag name as can be seen below:
+The content will be keyed on the opening tag name as can be seen below.
+
+The example uses [infix](https://github.com/rm-hull/infix) library to implement
+an infix math parsing tag:
 
 ```clojure
-(add-tag! :uppercase
+(require
+  '[infix.core :refer [base-env]]
+  '[jasentaa.parser :as p :refer [parse-all]]
+  '[infix.grammar :refer [expression]]
+  '[selmer.parser :as selmer])
+
+(selmer/add-tag! :math
+          (fn [args context-map]
+            ((parse-all expression (apply str args))
+             (merge base-env context-map))))
+
+(selmer/render "{% math x + y * z %}" {:x 1 :y 2 :z 3})
+=>"7"
+
+(selmer/add-tag! :uppercase
           (fn [args context-map content]
             (.toUpperCase (get-in content [:uppercase :content])))
           :enduppercase)
