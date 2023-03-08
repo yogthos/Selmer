@@ -999,19 +999,19 @@ to the URI. When `selmer/context` key is not present then the original URI is se
 
 `(render "{% script \"/js/site.js\" %}" {:selmer/context "/myapp"})` =>
 ```
-"<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
+"<script async-attr defer-attr src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
 ```
 
 Since 1.11.1 URI can be a name of context parameter with optional filters.
 
 `(render "{% script path %}" {:selmer/context "/myapp" :path "/js/site.js"})` =>
 ```
-"<script src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
+"<script async-attr defer-attr src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
 ```
 
 `(render "{% script path|upper %}" {:selmer/context "/myapp" :path "/js/site.js"})` =>
 ```
-"<script src=\"/myapp/JS/SITE.JS\" type=\"text/javascript\"></script>"
+"<script async-attr defer-attr src=\"/myapp/JS/SITE.JS\" type=\"text/javascript\"></script>"
 ```
 #### style
 

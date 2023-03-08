@@ -1,3 +1,4 @@
+* 1.12.56 - [Add defer attr to script tags](https://github.com/yogthos/Selmer/pull/298/files)
 * 1.12.55 - [switch to using ex-info for errors](https://github.com/yogthos/Selmer/pull/296)
 * 1.12.54 - [Fix allowing whitespace in filters when parsing a file](https://github.com/yogthos/Selmer/pull/295)
 * 1.12.53 - [adds `known-variable-paths` function to `selmer.parser`](https://github.com/yogthos/Selmer/pull/293)
