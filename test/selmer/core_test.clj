@@ -429,6 +429,20 @@
     (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
       (render "{% script \"/js/site.js\" async=nil %}" {}))))
 
+(deftest script-defer
+  (is
+    (= "<script defer src=\"/js/site.js\" type=\"application/javascript\"></script>"
+      (render "{% script \"/js/site.js\" defer=\"true\" %}" {})))
+  (is
+    (= "<script defer src=\"/js/site.js\" type=\"application/javascript\"></script>"
+      (render "{% script \"/js/site.js\" defer=1 %}" {})))
+  (is
+    (= "<script defer src=\"/js/site.js\" type=\"application/javascript\"></script>"
+      (render "{% with var = 1 %}{% script \"/js/site.js\" defer=var %}{% endwith %}" {})))
+  (is
+    (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
+      (render "{% script \"/js/site.js\" defer=nil %}" {}))))
+
 (deftest cycle-test
   (is
     (= "\"foo\"1\"bar\"2\"baz\"1\"foo\"2\"bar\"1"

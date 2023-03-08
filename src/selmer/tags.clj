@@ -348,6 +348,8 @@
   value of `selmer/context` context parameter and `uri` can be a string literal
   or name of context parameter (filters also supported). Optional arguments are:
   * `async` - when evaluates to logical true then 'async' attribute would be
+    added to generated tag.
+  * `defer` - when evaluates to logical true then 'defer' attribute would be
     added to generated tag."
   [[^String uri & args] _ _ _]
   (let [args
@@ -363,8 +365,9 @@
                            context-map
                            args)
             async-attr   (when (:async args) "async ")
+            defer-attr   (when (:defer args) "defer ")
             src-attr-val (build-uri-for-script-or-style-tag uri context-map)]
-        (str "<script " async-attr "src=\"" src-attr-val "\" type=\"application/javascript\"></script>")))))
+        (str "<script " async-attr defer-attr "src=\"" src-attr-val "\" type=\"application/javascript\"></script>")))))
 
 (defn style-handler
   "Returns function that renders HTML `<LINK/>` tag. Accepts `uri` that would
