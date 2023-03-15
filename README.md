@@ -964,6 +964,8 @@ filters can be used inside the for loop:
 Sums multiple variables together
 `(render "{% sum foo bar baz %}" {:foo 3 :bar 2 :baz 1})` => `"6"`
 
+`(render "{% sum foo \\1.1 %}" {:foo 1.1})` => `"2.2"`
+
 #### now
 renders current time
 
