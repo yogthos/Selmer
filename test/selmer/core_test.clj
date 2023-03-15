@@ -493,7 +493,13 @@
        (render "{% sum foo bar baz %}" {:foo 3 :bar 2 :baz 1})))
   (is
     (= "6"
-       (render "{% sum foo bar.baz %}" {:foo 3 :bar {:baz 3}}))))
+       (render "{% sum foo bar.baz %}" {:foo 3 :bar {:baz 3}})))
+  (is
+    (= "2.2"
+       (render "{% sum foo \\1.1 %}" {:foo 1.1})))
+  (is
+    (= "3"
+       (render "{% sum \\1 \\2 %}" {}))))
 
 
 (deftest tag-info-test
