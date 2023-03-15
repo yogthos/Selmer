@@ -267,8 +267,12 @@
 (defn sum-handler [args _ _ _]
   (fn [context-map]
     (reduce + (map (fn [val]
-                     (let [accessor (parse-accessor val)]
-                       (get-in context-map accessor))) args))))
+                     (if (= \\ (first val))
+                       (if (str/includes? val ".")
+                         (parse-double-value (subs val 1))
+                         (Integer/parseInt (subs val 1)))
+                       (let [accessor (parse-accessor val)]
+                         (get-in context-map accessor)))) args))))
 
 (defn now-handler [args _ _ _]
   (fn [context-map]
