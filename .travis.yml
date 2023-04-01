@@ -1,5 +1,0 @@
-language: clojure
-lein: lein
-jdk:
-  - openjdk10
-
