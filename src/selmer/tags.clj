@@ -111,7 +111,7 @@
                          {:args op}))))
 
 (defn- num? [v]
-  (and v (re-matches #"[0-9]*\.?[0-9]+" v)))
+  (and v (re-matches #"-?[0-9]*\.?[0-9]+" v)))
 
 (defn- parse-double-value [v]
   (java.lang.Double/parseDouble v))

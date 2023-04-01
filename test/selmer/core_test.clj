@@ -545,6 +545,12 @@
     (= ""
        (render "{% if v > 2 %}bigger{% endif %}" {:v 0})))
   (is
+    (= "bigger"
+       (render "{% if v > -2 %}bigger{% endif %}" {:v 0})))
+  (is
+    (= ""
+      (render "{% if v > -2 %}bigger{% endif %}" {:v -3})))
+  (is
     (= "not bigger"
        (render "{% if not v > 2 %}not bigger{% endif %}" {:v 0})))
   (is
