@@ -1,0 +1,25 @@
+---
+name: CI
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Prepare java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin' # See 'Supported distributions' for available options
+          java-version: '17'      
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@10.2
+        with:
+          tools-deps: '1.10.1.693'
+          
+      - name: Run test suite
+        run: clojure -M:dev:test

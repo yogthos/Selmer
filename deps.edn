@@ -38,4 +38,5 @@
 
                 ;; test dependencies
                 criterium/criterium {:mvn/version "0.4.6"}}
+   :main-opts ["-m" "cognitect.test-runner"]
    :exec-fn cognitect.test-runner.api/test}}}

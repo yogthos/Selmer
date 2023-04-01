@@ -16,8 +16,7 @@
     [selmer.tags :refer :all]
     [selmer.util :refer :all]
     [selmer.validator :refer [validation-error]]
-    selmer.node
-    )
+    selmer.node)
   (:import [selmer.node TextNode FunctionNode]))
 
 ;; Ahead decl because some fns call into each other.
