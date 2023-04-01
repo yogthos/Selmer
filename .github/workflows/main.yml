@@ -14,7 +14,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin' # See 'Supported distributions' for available options
-          java-version: '17'      
+          java-version: '19'      
 
       - name: Setup Clojure
         uses: DeLaGuardo/setup-clojure@10.2
