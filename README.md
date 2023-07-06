@@ -766,6 +766,50 @@ an infix math parsing tag:
 (render "{% uppercase %}foo {{bar}} baz{% enduppercase %}" {:bar "injected"})
 =>"FOO INJECTED BAZ"
 ```
+
+The args passed to the handler by default are not resolved, so if the tag arg contains
+a variable `{{variable}}`, a filter `{{variable|filter}}` or a tag `{% if foo %}bar{% endif %}`,
+you will get them as-is inside a string:
+
+```
+{% custom-tag {{variable}} %} -> "{{variable}}"
+{% custom-tag {{variable|filter}} %} -> "{{variable|filter}}"
+{% custom-tag {% if foo %}bar{% endif %} %} -> "{% if foo %}bar{% endif %}"
+```
+
+Similarly, if you have a literal as the arg to a tag, the handler will receive it double quoted:
+
+```
+{% custom-tag "Hello John" %} -> "\"Hello John\""
+```
+
+In both cases, you can use `resolve-arg` to resolve the variable, filter, tag or literal so that:
+
+```clojure
+(resolve-arg "Hello {{variable}}" {:variable "John"})
+=> "Hello John"
+(resolve-arg "Hello {{variable|upper}}" {:variable "John"})
+=> "Hello JOHN"
+(resolve-arg "Hello {% if variable = \"John\" %}Mr {{variable}}{% endif %}" {:variable "John"})
+=> "Hello Mr John"
+(resolve-arg "Hello John" {})
+=> "Hello John"
+```
+
+Here's an example custom tag which works like if/else but if a string ends with some other string,
+and we want to be able to use variables, filters and tags for the string:
+
+```clojure
+(add-tag!
+ :ifendswith
+ (fn [args context-map content]
+   (let [args (map #(resolve-arg % context-map) args)]
+     (if (str/ends-with? (first args) (second args))
+       (-> content :ifendswith :content)
+       (-> content :else :content))))
+ :else :endifendswith)
+```
+
 ### Built-in Tags
 
 #### include

@@ -12,7 +12,8 @@
     [clojure.string :as string]
     [selmer.template-parser :refer [preprocess-template]]
     [selmer.filters :refer [filters]]
-    [selmer.filter-parser :refer [compile-filter-body literal? split-value]]
+    [selmer.filter-parser :refer [compile-filter-body literal?
+                                  split-value parse-literal]]
     [selmer.tags :refer :all]
     [selmer.util :refer :all]
     [selmer.validator :refer [validation-error]]
@@ -459,3 +460,21 @@
         (mapv #(resolve-var-from-kw ~*ns* (env-map) %))
         (apply merge)
         (render ~s)))
+
+(defn resolve-arg
+  "Resolves an arg as passed to an add-tag! handler using the provided
+  context-map.
+
+  A custom tag handler will receive a seq of args as its first argument.
+  With this function, you can selectively resolve one or more of those args
+  so that if they contain literals, the literal value is returned, and if they
+  contain templates of any sort, which can itself have variables, filters or
+  tags in it, they will be returned resolved, applied and rendered.
+
+  Example:
+    (resolve-arg {{header-name|upper}} {:header-name \"My Page\"})
+    => \"MY PAGE\""
+  [arg context-map]
+  (if (literal? arg)
+    (parse-literal arg)
+    (render arg context-map)))
