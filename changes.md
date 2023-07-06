@@ -1,3 +1,4 @@
+* 1.12.59 - [adds resolve-arg function in selmer.parser which lets you resolve args passed to the handler of custom tags](https://github.com/yogthos/Selmer/pull/304)
 * 1.12.58 - [allow negative constants in `if` expressions](https://github.com/yogthos/Selmer/pull/301)
 * 1.12.57 - [`sum` tag now handles numeric literals](https://github.com/yogthos/Selmer/pull/299)
 * 1.12.56 - [Add defer attr to script tags](https://github.com/yogthos/Selmer/pull/298/files)
