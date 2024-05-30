@@ -34,7 +34,6 @@
   :test ; for testing
   {:extra-paths ["test"]
    :extra-deps {;; test dependencies
-                lambdaisland/kaocha {:mvn/version "1.75.1190"} 
+                lambdaisland/kaocha {:mvn/version "1.75.1190"}
                 criterium/criterium {:mvn/version "0.4.6"}}
-   :main-opts ["-m" "kaocha.runner"]
-   :exec-fn cognitect.test-runner.api/test}}}
+   :main-opts ["-m" "kaocha.runner"]}}}

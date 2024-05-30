@@ -869,7 +869,9 @@
 
 (deftest filter-date
   (let [date (java.util.Date.)
-        firstofmarch (java.util.Date. 114 2 1)]
+        date-inst (.toInstant date)
+        firstofmarch (java.util.Date. 114 2 1)
+        firstofmarch-inst (.toInstant firstofmarch)]
     (is (= "" (render "{{d|date:\"yyyy-MM-dd\"}}" {:d nil})))
     (is (= (.format (java.text.SimpleDateFormat. "yyyy-MM-dd HH:mm:ss") date)
            (render "{{f|date:\"yyyy-MM-dd HH:mm:ss\"}}" {:f date})))
@@ -885,7 +887,20 @@
     (is (= "2014/3/1 00:00" (render "{{d|date:shortDateTime:zh}}" {:d firstofmarch})))
     (is (= "2014年3月1日 00:00:00" (render "{{d|date:mediumDateTime:zh}}" {:d firstofmarch})))
     (is (= "2014年3月1日" (render "{{d|date:longDate:zh}}" {:d firstofmarch})))
-    (is (= "2014 Mar 1" (render "{{d|date:longDate:en_US}}" {:d firstofmarch})))))
+    (is (= "2014 Mar 1" (render "{{d|date:longDate:en_US}}" {:d firstofmarch})))
+    (is (= (.format (java.text.SimpleDateFormat. "yyyy-MM-dd HH:mm:ss") date)
+           (render "{{f|date:\"yyyy-MM-dd HH:mm:ss\"}}" {:f date-inst})))
+    (is (= (.format (java.text.SimpleDateFormat. "MMMM" (java.util.Locale. "fr")) firstofmarch)
+           (render "{{f|date:\"MMMM\":fr}}" {:f firstofmarch-inst})))
+    (is (= "00:00" (render "{{d|date:shortTime:en_US}}" {:d firstofmarch-inst})))
+    (is (= "00:00" (render "{{d|date:shortTime:zh}}" {:d firstofmarch-inst})))
+    (is (= "2014-03-01" (render "{{d|date:shortDate:en_US}}" {:d firstofmarch-inst})))
+    (is (= "2014/3/1" (render "{{d|date:shortDate:zh}}" {:d firstofmarch-inst})))
+    (is (= "2014-03-01 00:00" (render "{{d|date:shortDateTime:en_US}}" {:d firstofmarch-inst})))
+    (is (= "2014/3/1 00:00" (render "{{d|date:shortDateTime:zh}}" {:d firstofmarch-inst})))
+    (is (= "2014年3月1日 00:00:00" (render "{{d|date:mediumDateTime:zh}}" {:d firstofmarch-inst})))
+    (is (= "2014年3月1日" (render "{{d|date:longDate:zh}}" {:d firstofmarch-inst})))
+    (is (= "2014 Mar 1" (render "{{d|date:longDate:en_US}}" {:d firstofmarch-inst})))))
 
 (deftest filter-hash-md5
   (is (= "acbd18db4cc2f85cedef654fccc4a4d8"

@@ -19,3 +19,4 @@ pom.xml.asc
 test/readme.clj
 .idea
 *.iml
+.calva/repl.calva-repl
