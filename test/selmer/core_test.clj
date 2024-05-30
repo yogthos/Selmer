@@ -875,6 +875,8 @@
     (is (= "" (render "{{d|date:\"yyyy-MM-dd\"}}" {:d nil})))
     (is (= (.format (java.text.SimpleDateFormat. "yyyy-MM-dd HH:mm:ss") date)
            (render "{{f|date:\"yyyy-MM-dd HH:mm:ss\"}}" {:f date})))
+    (is (= (.format (java.text.SimpleDateFormat. "yyyy-MM-dd HH:mm:ss") date)
+           (render "{{f|date:\"yyyy-MM-dd HH:mm:ss\"}}" {:f (.toInstant date)})))
     (is (= (.format (java.text.SimpleDateFormat. "MMMM" (java.util.Locale. "fr")) firstofmarch)
            (render "{{f|date:\"MMMM\":fr}}" {:f firstofmarch})))
     (is (= "00:00" (render "{{d|date:shortTime:en_US}}" {:d firstofmarch})))
