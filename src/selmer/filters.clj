@@ -28,8 +28,8 @@ map. The rest of the arguments are optional and are always strings."
                      @(resolve 'jsonista.core/write-value-as-string)
                      (catch Exception e
                        (fn [_]
-                         (throw (ex-info "Supported JSON libraries: cheshire, clojure.data.json or 
-                                          jsonista. Provide one of these on the classpath to enable 
+                         (throw (ex-info "Supported JSON libraries: cheshire, clojure.data.json or
+                                          jsonista. Provide one of these on the classpath to enable
                                           the json filter." {} e))))))))))
 
 (def valid-date-formats
@@ -69,6 +69,10 @@ map. The rest of the arguments are optional and are always strings."
         (instance? java.util.Date d)
         (-> (.toInstant ^java.util.Date d)
             (.atZone (ZoneId/systemDefault))
+            (.toLocalDateTime))
+
+        (instance? java.time.Instant d)
+        (-> (.atZone ^java.time.Instant d (ZoneId/systemDefault))
             (.toLocalDateTime))
 
         :else
@@ -234,10 +238,11 @@ map. The rest of the arguments are optional and are always strings."
                                       (Locale/getDefault))]
                 (String/format locale fmt (into-array Object [n]))))
 
-            ;;; Formats a date with default locale, expects an instance of DateTime (Joda Time) or Date.
+            ;;; Formats a date with default locale. Supports a wide range of
+            ;;; date types (incl. java.util.Date, java.time.Instant, java.sql.Date)
             ;;; The format can be a key from valid-date-formats or a manually defined format
             ;;; Look in
-            ;;; http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
+            ;;; https://docs.oracle.com/en/java/javase/21/docs/api//java.base/java/time/format/DateTimeFormatter.html
             ;;; for formatting help.
             ;;; You can also format time with this.
             ;;; An optional locale for formatting can be given as second parameter
