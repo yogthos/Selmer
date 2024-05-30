@@ -57,7 +57,7 @@ map. The rest of the arguments are optional and are always strings."
         (-> (.getTime ^java.sql.Time d)
             (Instant/ofEpochMilli)
             (LocalDateTime/ofInstant (ZoneId/systemDefault)))
-
+        
         (instance? java.sql.Timestamp d)
         (-> (.getTime ^java.sql.Timestamp d)
             (Instant/ofEpochMilli)
@@ -70,6 +70,9 @@ map. The rest of the arguments are optional and are always strings."
         (-> (.toInstant ^java.util.Date d)
             (.atZone (ZoneId/systemDefault))
             (.toLocalDateTime))
+        
+        (instance? java.time.Instant d)
+        (LocalDateTime/ofInstant d (ZoneId/systemDefault))
 
         :else
         (throw (IllegalArgumentException. (str d " is not a valid date format.")))))
@@ -234,10 +237,10 @@ map. The rest of the arguments are optional and are always strings."
                                       (Locale/getDefault))]
                 (String/format locale fmt (into-array Object [n]))))
 
-            ;;; Formats a date with default locale, expects an instance of DateTime (Joda Time) or Date.
+            ;;; Formats a date with default locale, expects an instance of DateTime Date, or Instant.
             ;;; The format can be a key from valid-date-formats or a manually defined format
             ;;; Look in
-            ;;; http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html
+            ;;; https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html
             ;;; for formatting help.
             ;;; You can also format time with this.
             ;;; An optional locale for formatting can be given as second parameter
