@@ -1,3 +1,4 @@
+* 1.12.61 - improved `java.time.Instant` to the date filter support
 * 1.12.60 - add support for passing `java.time.Instant` to the date filter
 * 1.12.59 - [adds resolve-arg function in selmer.parser which lets you resolve args passed to the handler of custom tags](https://github.com/yogthos/Selmer/pull/304)
 * 1.12.58 - [allow negative constants in `if` expressions](https://github.com/yogthos/Selmer/pull/301)

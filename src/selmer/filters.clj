@@ -72,9 +72,6 @@ map. The rest of the arguments are optional and are always strings."
             (.toLocalDateTime))
         
         (instance? java.time.Instant d)
-        (LocalDateTime/ofInstant d (ZoneId/systemDefault))
-
-        (instance? java.time.Instant d)
         (-> (.atZone ^java.time.Instant d (ZoneId/systemDefault))
             (.toLocalDateTime))
 
