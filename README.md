@@ -1093,6 +1093,8 @@ injects the specified keys into the context map:
 
 ## Template Inheritance
 
+**note**: tags using template inheritance can only be used with `render-file` since `render` will only consider the input string itself
+
 ### Extending Templates
 
 Templates can inherit from other templates using the `extends` tag. When extending a template, any blocks in the parent
