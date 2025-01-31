@@ -1317,9 +1317,9 @@
                                     {% ifequal a foo %}
                                       BOOM
                                     {% endifequal %}
-                                  {% endwith %}")
-           )))
-  )
+                                  {% endwith %}")))))
+
+
 
 (deftest testing-known-variable-paths
   (testing "Basic variables"
