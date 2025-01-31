@@ -33,10 +33,14 @@
 ;; Can be overridden by closure/argument 'cache
 (defonce cache? (atom true))
 
+(defn clear-cache! []
+  (reset! templates {}))
+
 (defn cache-on! []
   (reset! cache? true))
 
 (defn cache-off! []
+  (clear-cache!)
   (reset! cache? false))
 
 (defn- append-slash
@@ -408,8 +412,8 @@
               should-remove? (fn [[var-head :as var]]
                                (or
                                  (special-syms var-head)
-                                 (nested-keys  var-head)))
-              ]
+                                 (nested-keys  var-head)))]
+
           (recur (set/union
                    vars
                    (->> args
