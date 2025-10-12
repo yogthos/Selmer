@@ -8,16 +8,16 @@
   means the first time we see a template *at runtime*, not the
   implementation's compile-time. "
   (:require
-    [clojure.set :as set]
-    [clojure.string :as string]
-    [selmer.template-parser :refer [preprocess-template]]
-    [selmer.filters :refer [filters]]
-    [selmer.filter-parser :refer [compile-filter-body literal?
-                                  split-value parse-literal]]
-    [selmer.tags :refer :all]
-    [selmer.util :refer :all]
-    [selmer.validator :refer [validation-error]]
-    selmer.node)
+   [clojure.set :as set]
+   [clojure.string :as string]
+   [selmer.template-parser :refer [preprocess-template]]
+   [selmer.filters :refer [filters]]
+   [selmer.filter-parser :refer [compile-filter-body literal?
+                                 split-value parse-literal]]
+   [selmer.tags :refer :all]
+   [selmer.util :refer :all]
+   [selmer.validator :refer [validation-error]]
+   selmer.node)
   (:import [selmer.node TextNode FunctionNode]))
 
 ;; Ahead decl because some fns call into each other.
@@ -62,10 +62,10 @@
     (if (or (looks-like-absolute-file-path? path)
             (.startsWith ^java.lang.String path "file:/"))
       (append-slash
-        (try
-          (str (java.net.URL. path))
-          (catch java.net.MalformedURLException err
-            (str "file:///" path))))
+       (try
+         (str (java.net.URL. path))
+         (catch java.net.MalformedURLException err
+           (str "file:///" path))))
       (append-slash path))))
 
 (defn set-resource-path!
@@ -119,7 +119,6 @@
   [s context-map & [opts]]
   (render-template (parse parse-input (java.io.StringReader. s) opts) context-map))
 
-
 ;; Primary fn you interact with as a user, you pass a path that
 ;; exists somewhere in your class-path, typically something like
 ;; resources/templates/template_name.html. You also pass a context
@@ -151,8 +150,8 @@
                                              :last-modified last-modified-time})
             (render-template template context-map))))
       (validation-error
-        (str "resource-path for " filename-or-url " returned nil, typically means the file doesn't exist in your classpath.")
-        nil nil nil))))
+       (str "resource-path for " filename-or-url " returned nil, typically means the file doesn't exist in your classpath.")
+       nil nil nil))))
 
 ;; For a given tag, get the fn handler for the tag type,
 ;; pass it the arguments, tag-content, render-template fn,
@@ -161,8 +160,8 @@
 (defn expr-tag [{:keys [tag-name args]} rdr]
   (if-let [handler (tag-name @expr-tags)]
     (handler args tag-content render-template rdr)
-    (throw (ex-info (str "unrecognized tag: " tag-name 
-                         " - did you forget to close a tag?") 
+    (throw (ex-info (str "unrecognized tag: " tag-name
+                         " - did you forget to close a tag?")
                     {}))))
 
 ;; Same as a vanilla data tag with a value, but composes
@@ -390,20 +389,20 @@
                                    updated-vars    (cond-> vars
                                                      should-add-var? (conj v))]
                                (recur
-                                 updated-vars
-                                 nested-keys
-                                 (rest tags)))
+                                updated-vars
+                                nested-keys
+                                (rest tags)))
         (= :for tag-name)    (let [[ids [_ items]] (aggregate-args args)]
                                (recur
-                                 (conj vars (parse-variable-paths items))
-                                 (conj (set (map keyword ids)) :forloop)
-                                 (rest tags)))
+                                (conj vars (parse-variable-paths items))
+                                (conj (set (map keyword ids)) :forloop)
+                                (rest tags)))
 
         (= :with tag-name)   (let [[id value] (string/split (first args) #"=")]
                                (recur
-                                 (conj vars (parse-variable-paths value))
-                                 #{(keyword id)}
-                                 (rest tags)))
+                                (conj vars (parse-variable-paths value))
+                                #{(keyword id)}
+                                (rest tags)))
 
         (contains? #{:endfor :endwith} tag-name) (recur vars #{} (rest tags))
 
@@ -411,16 +410,16 @@
         (let [special-syms   #{nil :not :all :any :< :> := :<= :>=}
               should-remove? (fn [[var-head :as var]]
                                (or
-                                 (special-syms var-head)
-                                 (nested-keys  var-head)))]
+                                (special-syms var-head)
+                                (nested-keys  var-head)))]
 
           (recur (set/union
-                   vars
-                   (->> args
-                        (filter (complement literal?))
-                        (map parse-variable-paths)
-                        (remove should-remove?)
-                        set))
+                  vars
+                  (->> args
+                       (filter (complement literal?))
+                       (map parse-variable-paths)
+                       (remove should-remove?)
+                       set))
                  nested-keys
                  (rest tags))))
       vars)))
