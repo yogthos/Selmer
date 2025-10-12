@@ -22,7 +22,7 @@
 
 ;; Ahead decl because some fns call into each other.
 
-(declare parse parse-input parse-file tag-content)
+(declare parse parse-input parse-str parse-file tag-content)
 
 ;; Memoization atom for templates. If you pass a filepath instead
 ;; of a string, we'll use the last-modified timestamp to cache the
@@ -117,7 +117,7 @@
 (defn render
   " render takes the string, the context-map and possibly also opts. "
   [s context-map & [opts]]
-  (render-template (parse parse-input (java.io.StringReader. s) opts) context-map))
+  (render-template (parse parse-str s opts) context-map))
 
 ;; Primary fn you interact with as a user, you pass a path that
 ;; exists somewhere in your class-path, typically something like
@@ -336,6 +336,11 @@
 
 (defn parse-file [file params]
   (-> file preprocess-template (java.io.StringReader.) (parse-input params)))
+
+;; File-aware parse wrapper for string.
+
+(defn parse-str [input params]
+  (-> (char-array input) preprocess-template (java.io.StringReader.) (parse-input params)))
 
 (defn parse [parse-fn input & [{:keys [tag-open tag-close filter-open filter-close tag-second short-comment-second]
                                 :or   {tag-open             *tag-open*

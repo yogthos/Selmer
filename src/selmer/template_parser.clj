@@ -197,80 +197,83 @@
   (resource-path template))
 
 (defn read-template [template blocks defaults]
-  (let [path (resource-path template)]
-    (when-not path
-      (validator/validation-error
-       (str "resource-path for " template " returned nil, typically means the file doesn't exist in your classpath.")
-       nil nil nil))
-    (validator/validate path)
-    (check-template-exists (get-template-path template))
-    (let [buf (StringBuilder.)
-          [parent blocks]
-          (with-open [rdr (reader path)]
-            (loop [blocks (or blocks {})
-                   ch     (read-char rdr)
-                   parent nil]
-              (cond
-                (nil? ch) [parent blocks]
+  (let [path (if (instance? (Class/forName "[C") template)
+               template
+               (let [path (resource-path template)]
+                 (when-not path
+                   (validator/validation-error
+                    (str "resource-path for " template " returned nil, typically means the file doesn't exist in your classpath.")
+                    nil nil nil))
+                 (validator/validate path)
+                 (check-template-exists (get-template-path template))
+                 path))
+        buf (StringBuilder.)
+        [parent blocks]
+        (with-open [rdr (reader path)]
+          (loop [blocks (or blocks {})
+                 ch     (read-char rdr)
+                 parent nil]
+            (cond
+              (nil? ch) [parent blocks]
 
-                (open-tag? ch rdr)
-                (let [tag-str (read-tag-content rdr)]
-                  (cond
-                    (and defaults
-                         (re-matches *filter-pattern* tag-str))
-                    (do (.append buf (add-defaults-to-variable-tag tag-str defaults))
-                        (recur blocks (read-char rdr) parent))
-
-                    (and defaults
-                         (re-matches *tag-pattern* tag-str)
-                         (not (re-matches *include-pattern* tag-str)))
-                    (do (.append buf (add-defaults-to-expression-tag tag-str defaults))
-                        (recur blocks (read-char rdr) parent))
-
-                    ;;if the template includes another, pre-process it and
-                    ;;add the contents to the front of the buffer.
-                    (and defaults
-                         (re-matches *include-pattern* tag-str))
-                    (let [tag-str' (add-defaults-to-expression-tag tag-str defaults)]
-                      (.append buf (process-includes tag-str' buf blocks))
+              (open-tag? ch rdr)
+              (let [tag-str (read-tag-content rdr)]
+                (cond
+                  (and defaults
+                       (re-matches *filter-pattern* tag-str))
+                  (do (.append buf (add-defaults-to-variable-tag tag-str defaults))
                       (recur blocks (read-char rdr) parent))
 
-                    (re-matches *include-pattern* tag-str)
-                    (do (.append buf (process-includes tag-str buf blocks))
-                        (recur blocks (read-char rdr) parent))
-
-                    ;;if the template extends another it's not the root
-                    ;;this template is allowed to only contain blocks
-                    (re-matches *extends-pattern* tag-str)
-                    (recur blocks (read-char rdr) (get-parent tag-str))
-
-                    ;;if we have a parent then we simply want to add the
-                    ;;block to the block map if it hasn't been added already
-                    (and parent (re-matches *block-pattern* tag-str))
-                    (recur (read-block rdr tag-str blocks) (read-char rdr) parent)
-
-                    ;;if the template has blocks, but no parent it's the root
-                    ;;we either replace the block with an existing one from a child
-                    ;;template or read the block from this template
-                    (re-matches *block-pattern* tag-str)
-                    (do
-                      (process-block rdr buf tag-str blocks)
+                  (and defaults
+                       (re-matches *tag-pattern* tag-str)
+                       (not (re-matches *include-pattern* tag-str)))
+                  (do (.append buf (add-defaults-to-expression-tag tag-str defaults))
                       (recur blocks (read-char rdr) parent))
 
-                    ;;if we are in the root template we'll accumulate the content
-                    ;;into a buffer, this will be the resulting template string
-                    (nil? parent)
-                    (do
-                      (.append buf tag-str)
-                      (recur blocks (read-char rdr) parent))))
+                  ;;if the template includes another, pre-process it and
+                  ;;add the contents to the front of the buffer.
+                  (and defaults
+                       (re-matches *include-pattern* tag-str))
+                  (let [tag-str' (add-defaults-to-expression-tag tag-str defaults)]
+                    (.append buf (process-includes tag-str' buf blocks))
+                    (recur blocks (read-char rdr) parent))
 
-                :else
-                (do
-                  (when (nil? parent) (.append buf ch))
-                  (recur blocks (read-char rdr) parent)))))]
-      (if parent
-        (recur parent blocks defaults)
-        (.toString buf)))))
+                  (re-matches *include-pattern* tag-str)
+                  (do (.append buf (process-includes tag-str buf blocks))
+                      (recur blocks (read-char rdr) parent))
+
+                  ;;if the template extends another it's not the root
+                  ;;this template is allowed to only contain blocks
+                  (re-matches *extends-pattern* tag-str)
+                  (recur blocks (read-char rdr) (get-parent tag-str))
+
+                  ;;if we have a parent then we simply want to add the
+                  ;;block to the block map if it hasn't been added already
+                  (and parent (re-matches *block-pattern* tag-str))
+                  (recur (read-block rdr tag-str blocks) (read-char rdr) parent)
+
+                  ;;if the template has blocks, but no parent it's the root
+                  ;;we either replace the block with an existing one from a child
+                  ;;template or read the block from this template
+                  (re-matches *block-pattern* tag-str)
+                  (do
+                    (process-block rdr buf tag-str blocks)
+                    (recur blocks (read-char rdr) parent))
+
+                  ;;if we are in the root template we'll accumulate the content
+                  ;;into a buffer, this will be the resulting template string
+                  (nil? parent)
+                  (do
+                    (.append buf tag-str)
+                    (recur blocks (read-char rdr) parent))))
+
+              :else
+              (do
+                (when (nil? parent) (.append buf ch))
+                (recur blocks (read-char rdr) parent)))))]
+    (if parent
+      (recur parent blocks defaults)
+      (.toString buf))))
 
 (defn preprocess-template [template & [blocks defaults]]
   (read-template template blocks defaults))

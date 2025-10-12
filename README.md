@@ -814,9 +814,7 @@ and we want to be able to use variables, filters and tags for the string:
 
 #### include
 
-This tag is only available for `render-file` since `render` function only operates on a template consisting of a single string.
-
-replaces itself with the contents of the referenced template
+Replaces itself with the contents of the referenced template
 
 `{% include "path/to/comments.html" %}`
 
@@ -1092,8 +1090,6 @@ injects the specified keys into the context map:
 `(render "{% with total=business.employees|count %}{{ total }}{% endwith %}" {:business {:employees (range 5)}})` => `"5 employees"`
 
 ## Template Inheritance
-
-**note**: tags using template inheritance can only be used with `render-file` since `render` will only consider the input string itself
 
 ### Extending Templates
 
