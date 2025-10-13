@@ -1,3 +1,4 @@
+* 1.12.63 - [update render behavior to match render-file](https://github.com/yogthos/Selmer/pull/315)
 * 1.12.62 - render's inheritance works like render-file
 * 1.12.61 - improved `java.time.Instant` to the date filter support
 * 1.12.60 - add support for passing `java.time.Instant` to the date filter
