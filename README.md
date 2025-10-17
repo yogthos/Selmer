@@ -1047,6 +1047,13 @@ to the URI. When `selmer/context` key is not present then the original URI is se
 "<script async-attr defer-attr src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
 ```
 
+When `type` key is present its value is used for the 'type' attribute.
+
+`(render "{% script \"/js/site.js\" type=\"module\" %}" ` =>
+```
+"<script src=\"/js/site.js\" type=\"module\"></script>"
+```
+
 Since 1.11.1 URI can be a name of context parameter with optional filters.
 
 `(render "{% script path %}" {:selmer/context "/myapp" :path "/js/site.js"})` =>
