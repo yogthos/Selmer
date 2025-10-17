@@ -443,6 +443,14 @@
     (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
       (render "{% script \"/js/site.js\" defer=nil %}" {}))))
 
+(deftest script-type
+  (is
+    (= "<script src=\"/js/site.js\" type=\"module\"></script>"
+       (render "{% script \"/js/site.js\" type=\"module\" %}" {})))
+  (is
+    (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {}))))
+
 (deftest cycle-test
   (is
     (= "\"foo\"1\"bar\"2\"baz\"1\"foo\"2\"bar\"1"

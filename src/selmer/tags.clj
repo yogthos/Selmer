@@ -354,7 +354,8 @@
   * `async` - when evaluates to logical true then 'async' attribute would be
     added to generated tag.
   * `defer` - when evaluates to logical true then 'defer' attribute would be
-    added to generated tag."
+    added to generated tag.
+  * `type` - when present its value is used for the 'type' attribute."
   [[^String uri & args] _ _ _]
   (let [args
         (->> args
@@ -370,8 +371,9 @@
                            args)
             async-attr   (when (:async args) "async ")
             defer-attr   (when (:defer args) "defer ")
+            type-attr    (or (:type args) "application/javascript")
             src-attr-val (build-uri-for-script-or-style-tag uri context-map)]
-        (str "<script " async-attr defer-attr "src=\"" src-attr-val "\" type=\"application/javascript\"></script>")))))
+        (str "<script " async-attr defer-attr "src=\"" src-attr-val "\" type=\"" type-attr "\"></script>")))))
 
 (defn style-handler
   "Returns function that renders HTML `<LINK/>` tag. Accepts `uri` that would
