@@ -132,10 +132,16 @@
                filter? (not= *tag-second* next-ch)]
            (.append buf *tag-open*)
            (when next-ch
-             (loop [ch (read-char rdr)]
-               (.append buf ch)
-               (when (and (not= *tag-close* ch) (not= *filter-close* ch))
-                 (recur (read-char rdr))))
+             (loop []
+               (let [ch (read-char rdr)]
+                 (cond
+                   (or (= *tag-close* ch)
+                       (= *filter-close* ch))
+                   (.append buf ch)
+                   (nil? ch)
+                   (throw (java.io.EOFException. (str "Expected closing delimiter: " buf)))
+                   :else (do (.append buf ch)
+                             (recur)))))
              (when filter?
                (.append buf (read-char rdr)))))))
 

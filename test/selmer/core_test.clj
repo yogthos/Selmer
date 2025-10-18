@@ -20,8 +20,11 @@
 
 (deftest dev-error-handling
   (is (= "No filter defined with the name 'woot'"
+         (try (render "{{blah|safe|woot}}" {:blah "woot"})
+              (catch Exception ex (.getMessage ex)))))
+  (is (= "Expected closing delimiter: {{blah|safe|woot"
          (try (render "{{blah|safe|woot" {:blah "woot"})
-              (catch Exception ex (.getMessage ex))))))
+              (catch java.io.EOFException ex (.getMessage ex))))))
 
 (deftest custom-handler-test
   (let [handler (tag-handler
@@ -941,7 +944,7 @@
   (is (= "0" (render "{{f|count}}" {}))))
 
 (deftest emptiness
-  (is (= "true" (render "{{xs|empty?" {:xs []})))
+  (is (= "true" (render "{{xs|empty?}}" {:xs []})))
   (is (= "foo" (render "{% if xs|empty? %}foo{% endif %}" {:xs []})))
   (is (= "" (render "{% if xs|not-empty %}foo{% endif %}" {:xs []})))
   (is (= "foo" (render "{% if xs|not-empty %}foo{% endif %}" {:xs [1 2]}))))
