@@ -1,3 +1,4 @@
+* 1.12.66 - [leave initial slashes in script src alone](https://github.com/yogthos/Selmer/pull/318)
 * 1.12.65 - [handle error for template without closing delimiters](https://github.com/yogthos/Selmer/pull/317)
 * 1.12.64 - [support for specifying type attribute of script tag](https://github.com/yogthos/Selmer/pull/316)
 * 1.12.63 - [update render behavior to match render-file](https://github.com/yogthos/Selmer/pull/315)
