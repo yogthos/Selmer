@@ -409,6 +409,12 @@
    (= "<script src=\"/myapp/JS/SITE.JS\" type=\"application/javascript\"></script>"
       (render "{% script path|upper %}" {:selmer/context "/myapp" :path "/js/site.js"})))
   (is
+    (= "<script src=\"//localhost:5173/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script \"//localhost:5173/js/site.js\" %}" {})))
+  (is
+    (= "<script src=\"//localhost:5173/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script path %}" {:selmer/context "//localhost:5173/" :path "/js/site.js"})))
+  (is
    (= "<link href=\"/myapp/css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
       (render "{% style \"/css/screen.css\" %}" {:selmer/context "/myapp"})))
   (is

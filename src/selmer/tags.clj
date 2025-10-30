@@ -342,8 +342,9 @@
                    (.replace uri "\"" "")                   ; case of {% style "/css/foo.css" %}
                    (-> uri                                  ; case of {% style context-param|some-filter:arg1:arg2 %}
                        (compile-filter-body)
-                       (apply [context-map])))]
-    (-> context (str uri) (.replace "//" "/"))))
+                       (apply [context-map])))
+        [_ initial-slashes the-rest] (re-matches #"^(/+)(.*)" (str context uri))]
+    (str initial-slashes (-> the-rest (.replace "//" "/")))))
 
 (defn script-handler
   "Returns function that renders HTML `<SCRIPT/>` tag. Accepts `uri` that would
