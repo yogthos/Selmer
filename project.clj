@@ -1,4 +1,4 @@
-(defproject selmer "1.12.66"
+(defproject selmer "1.12.67"
   :description "Django style templates for Clojure"
   :url "https://github.com/yogthos/Selmer"
   :license {:name "Eclipse Public License"
@@ -22,4 +22,5 @@
                    :dependencies [[environ "1.2.0"]
                                   [org.clojure/tools.namespace "1.3.0"]
                                   [criterium "0.4.6"]]}
-             :test {:dependencies [[criterium "0.4.6"]]}})
+             :test {:global-vars {*warn-on-reflection* true}
+                    :dependencies [[criterium "0.4.6"]]}})

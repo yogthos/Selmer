@@ -344,7 +344,7 @@
                        (compile-filter-body)
                        (apply [context-map])))
         [_ initial-slashes the-rest] (re-matches #"^(/+)(.*)" (str context uri))]
-    (str initial-slashes (-> the-rest (.replace "//" "/")))))
+    (str initial-slashes (-> ^String the-rest (.replace "//" "/")))))
 
 (defn script-handler
   "Returns function that renders HTML `<SCRIPT/>` tag. Accepts `uri` that would
