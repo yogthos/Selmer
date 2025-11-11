@@ -422,7 +422,26 @@
       (render "{% style path %}" {:selmer/context "/myapp" :path "/css/screen.css"})))
   (is
    (= "<link href=\"/myapp/CSS/SCREEN.CSS\" rel=\"stylesheet\" type=\"text/css\" />"
-      (render "{% style path|upper %}" {:selmer/context "/myapp" :path "/css/screen.css"}))))
+      (render "{% style path|upper %}" {:selmer/context "/myapp" :path "/css/screen.css"})))
+  ;; Test cases for null/empty context and path (NPE fix)
+  (is
+   (= "<script src=\"\" type=\"application/javascript\"></script>"
+      (render "{% script path %}" {:path nil})))
+  (is
+   (= "<script src=\"\" type=\"application/javascript\"></script>"
+      (render "{% script path %}" {:path ""})))
+  (is
+   (= "<script src=\"js/site.js\" type=\"application/javascript\"></script>"
+      (render "{% script path %}" {:path "js/site.js"})))
+  (is
+   (= "<link href=\"\" rel=\"stylesheet\" type=\"text/css\" />"
+      (render "{% style path %}" {:path nil})))
+  (is
+   (= "<link href=\"\" rel=\"stylesheet\" type=\"text/css\" />"
+      (render "{% style path %}" {:path ""})))
+  (is
+   (= "<link href=\"css/screen.css\" rel=\"stylesheet\" type=\"text/css\" />"
+      (render "{% style path %}" {:path "css/screen.css"}))))
 
 (deftest script-async
   (is

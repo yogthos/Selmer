@@ -343,8 +343,10 @@
                    (-> uri                                  ; case of {% style context-param|some-filter:arg1:arg2 %}
                        (compile-filter-body)
                        (apply [context-map])))
-        [_ initial-slashes the-rest] (re-matches #"^(/+)(.*)" (str context uri))]
-    (str initial-slashes (-> ^String the-rest (.replace "//" "/")))))
+        uri-str (str context uri)]
+    (if-let [[_ initial-slashes the-rest] (re-matches #"^(/+)(.*)" uri-str)]
+      (str initial-slashes (-> ^String (or the-rest "") (.replace "//" "/")))
+      uri-str)))
 
 (defn script-handler
   "Returns function that renders HTML `<SCRIPT/>` tag. Accepts `uri` that would
