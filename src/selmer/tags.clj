@@ -345,7 +345,8 @@
                        (apply [context-map])))
         uri-str (str context uri)]
     (if-let [[_ initial-slashes the-rest] (re-matches #"^(/+)(.*)" uri-str)]
-      (str initial-slashes (-> ^String (or the-rest "") (.replace "//" "/")))
+      (let [^String rest-part (or the-rest "")]
+        (str initial-slashes (.replace rest-part "//" "/")))
       uri-str)))
 
 (defn script-handler
