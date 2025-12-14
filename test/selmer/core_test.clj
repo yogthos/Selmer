@@ -1130,6 +1130,21 @@
   (is (= "quux"                                             ;; test nested lookup
          (render "{{name|default:@foo.bar.baz}}" {:name nil :foo {:bar {:baz "quux"}}}))))
 
+(deftest filter-get-tests
+  (is (= "bar"
+         (render "{{data|get:\"foo\"}}" {:data {"foo" "bar" "baz" "quux"}})))
+  (is (= "quux"
+         (render "{{data|get:\"baz\"}}" {:data {"foo" "bar" "baz" "quux"}})))
+  (is (= ""
+         (render "{{data|get:\"nonexistent\"}}" {:data {"foo" "bar" "baz" "quux"}})))
+  (is (= "default-value"
+         (render "{{data|get:\"nonexistent\":\"default-value\"}}" {:data {"foo" "bar" "baz" "quux"}})))
+  (is (= "2"
+         (render "{{my-map|get:@key}}" {:my-map {:a 1 :b 2} :key :b})))
+  (let [data {:x {"a" 1 "b" 2} :ys ["a" "b"]}]
+    (is (= "12"
+           (render "{% for y in ys %}{{x|get:@y}}{% endfor %}" data)))))
+
 (deftest custom-resource-path-setting
   (is (nil? *custom-resource-path*))
   (do

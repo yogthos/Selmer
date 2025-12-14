@@ -65,6 +65,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [take](#take)
 [drop](#drop)
 [drop-last](#drop-last)
+[get](#get)
 [get-digit](#get-digit)
 [hash](#hash)
 [join](#join)
@@ -513,6 +514,8 @@ Similar to drop:
 
 `(render "{{seq-of-some-sort|drop-last:4}}" {:seq-of-some-sort [:dog :cat :bird :bird :bird :is :the :word]})` =\> `[:dog :cat :bird :bird]`
 
+#### get
+`(render "{{my-map|get:@key}}" {:my-map {:a 1 :b 2} :key :b})` => `2`
 
 #### get-digit
 `(render "{{tis-a-number|get-digit:1}}" {:tis-a-number 12.34567})` => `7`

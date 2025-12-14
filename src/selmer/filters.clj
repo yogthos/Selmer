@@ -57,7 +57,7 @@ map. The rest of the arguments are optional and are always strings."
         (-> (.getTime ^java.sql.Time d)
             (Instant/ofEpochMilli)
             (LocalDateTime/ofInstant (ZoneId/systemDefault)))
-        
+
         (instance? java.sql.Timestamp d)
         (-> (.getTime ^java.sql.Timestamp d)
             (Instant/ofEpochMilli)
@@ -70,7 +70,7 @@ map. The rest of the arguments are optional and are always strings."
         (-> (.toInstant ^java.util.Date d)
             (.atZone (ZoneId/systemDefault))
             (.toLocalDateTime))
-        
+
         (instance? java.time.Instant d)
         (-> (.atZone ^java.time.Instant d (ZoneId/systemDefault))
             (.toLocalDateTime))
@@ -553,7 +553,10 @@ map. The rest of the arguments are optional and are always strings."
                   (throw (Exception. (str number " does not appear to be a valid phone number"))))))
 
             :name
-            name}))
+            name
+
+            :get
+            get}))
 
 
 (defn get-filter
