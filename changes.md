@@ -1,4 +1,4 @@
-* 1.12.next - [add `get` filter](https://github.com/yogthos/Selmer/issue/322)
+* 1.12.70 - [add `get` filter](https://github.com/yogthos/Selmer/issue/322)
 * 1.12.69 - fix relfection warning
 * 1.12.68 - fix handling nulls when parsing script tags
 * 1.12.67 - fix reflection warning parsing uri
