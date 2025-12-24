@@ -1,6 +1,7 @@
 Selmer
 ======
 
+[![Clojars Project](https://img.shields.io/clojars/v/selmer.svg)](https://clojars.org/selmer)
 ![build status](https://github.com/yogthos/Selmer/actions/workflows/main.yml/badge.svg)
 
 A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) inspired template system in pure Clojure.
@@ -32,7 +33,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 #### tools.deps
 
 ```edn
-{selmer {:mvn/version "<version>"}}
+{selmer/selmer {:mvn/version "<version>"}}
 ```
 
 ## Marginalia documentation
