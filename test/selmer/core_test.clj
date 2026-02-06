@@ -479,6 +479,84 @@
     (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
        (render "{% script \"/js/site.js\" %}" {}))))
 
+;; Tests for namespaced keys (issue #325)
+(deftest script-namespaced-async
+  (is
+    (= "<script async src=\"/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/async true})))
+  (is
+    (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/async false}))))
+
+(deftest script-namespaced-defer
+  (is
+    (= "<script defer src=\"/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/defer true})))
+  (is
+    (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/defer false}))))
+
+(deftest script-namespaced-type
+  (is
+    (= "<script src=\"/js/site.js\" type=\"module\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/type "module"})))
+  ;; Verify user's own :type key doesn't conflict when using namespaced key
+  (is
+    (= "<script src=\"/js/site.js\" type=\"module\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/type "module" :type :my-value}))))
+
+(deftest script-namespaced-priority
+  ;; Namespaced key takes priority over non-namespaced
+  (is
+    (= "<script src=\"/js/site.js\" type=\"module\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/type "module" :type "text/javascript"}))))
+
+(deftest script-falsey-namespaced-key
+  ;; When :selmer/async is false, should NOT fall back to deprecated :async
+  (is
+    (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/async false :async true})))
+  (is
+    (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/defer false :defer true}))))
+
+(deftest script-deprecated-key-warning
+  ;; Reset warned-keys so warnings are emitted fresh
+  (reset! @#'selmer.util/warned-keys #{})
+  (let [warnings (atom [])]
+    (binding [*deprecation-warning-handler* #(swap! warnings conj %)]
+      (render "{% script \"/js/site.js\" %}" {:async true}))
+    (is (= 1 (count @warnings)))
+    (is (str/includes? (first @warnings) ":selmer/async")))
+  ;; Second call should NOT warn again (once per key per session)
+  (let [warnings (atom [])]
+    (binding [*deprecation-warning-handler* #(swap! warnings conj %)]
+      (render "{% script \"/js/site.js\" %}" {:async true}))
+    (is (= 0 (count @warnings))))
+  ;; Reset and test defer warning
+  (reset! @#'selmer.util/warned-keys #{})
+  (let [warnings (atom [])]
+    (binding [*deprecation-warning-handler* #(swap! warnings conj %)]
+      (render "{% script \"/js/site.js\" %}" {:defer true}))
+    (is (= 1 (count @warnings)))
+    (is (str/includes? (first @warnings) ":selmer/defer")))
+  ;; No warning when *warn-on-deprecated-keys* is false
+  (reset! @#'selmer.util/warned-keys #{})
+  (let [warnings (atom [])]
+    (binding [*deprecation-warning-handler* #(swap! warnings conj %)
+              *warn-on-deprecated-keys* false]
+      (render "{% script \"/js/site.js\" %}" {:async true}))
+    (is (= 0 (count @warnings)))))
+
+(deftest script-deprecated-key-warning-default-handler
+  ;; Verify the default handler writes to stderr (the println fallback path)
+  (reset! @#'selmer.util/warned-keys #{})
+  (let [sw (java.io.StringWriter.)]
+    (binding [*err* sw]
+      (render "{% script \"/js/site.js\" %}" {:async true}))
+    (is (str/includes? (str sw) "DEPRECATION WARNING"))
+    (is (str/includes? (str sw) ":selmer/async"))))
+
 (deftest cycle-test
   (is
     (= "\"foo\"1\"bar\"2\"baz\"1\"foo\"2\"bar\"1"

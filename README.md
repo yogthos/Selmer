@@ -1043,31 +1043,52 @@ Note, the escaping of variables can also be controlled through the dynamic bindi
 
 #### script
 
-The script tag will generate an HTML script tag and prepend the value of the `selmer/context` key
-to the URI. When `selmer/context` key is not present then the original URI is set.
+The script tag will generate an HTML script tag and prepend the value of the `:selmer/context` key
+to the URI. When `:selmer/context` key is not present then the original URI is set.
 
 `(render "{% script \"/js/site.js\" %}" {:selmer/context "/myapp"})` =>
 ```
-"<script async-attr defer-attr src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
+"<script src=\"/myapp/js/site.js\" type=\"application/javascript\"></script>"
 ```
 
-When `type` key is present its value is used for the 'type' attribute.
+The tag supports the following optional arguments:
 
-`(render "{% script \"/js/site.js\" type=\"module\" %}" ` =>
+* `type` - sets the `type` attribute (default: `application/javascript`)
+* `async` - when truthy, adds the `async` attribute
+* `defer` - when truthy, adds the `defer` attribute
+
+`(render "{% script \"/js/site.js\" type=\"module\" %}" {})` =>
 ```
 "<script src=\"/js/site.js\" type=\"module\"></script>"
 ```
+
+`(render "{% script \"/js/site.js\" async=\"true\" defer=\"true\" %}" {})` =>
+```
+"<script async defer src=\"/js/site.js\" type=\"application/javascript\"></script>"
+```
+
+These attributes can also be set via the context map using namespaced keys:
+`:selmer/type`, `:selmer/async`, and `:selmer/defer`.
+
+`(render "{% script \"/js/site.js\" %}" {:selmer/type "module" :selmer/async true})` =>
+```
+"<script async src=\"/js/site.js\" type=\"module\"></script>"
+```
+
+**Note (since 1.13.0):** The `:type` context key is no longer consumed by the script tag — use
+`:selmer/type` instead. The non-namespaced `:async` and `:defer` context keys are deprecated;
+use `:selmer/async` and `:selmer/defer` to avoid conflicts with your own context data.
 
 Since 1.11.1 URI can be a name of context parameter with optional filters.
 
 `(render "{% script path %}" {:selmer/context "/myapp" :path "/js/site.js"})` =>
 ```
-"<script async-attr defer-attr src=\"/myapp/js/site.js\" type=\"text/javascript\"></script>"
+"<script src=\"/myapp/js/site.js\" type=\"application/javascript\"></script>"
 ```
 
 `(render "{% script path|upper %}" {:selmer/context "/myapp" :path "/js/site.js"})` =>
 ```
-"<script async-attr defer-attr src=\"/myapp/JS/SITE.JS\" type=\"text/javascript\"></script>"
+"<script src=\"/myapp/JS/SITE.JS\" type=\"application/javascript\"></script>"
 ```
 #### style
 

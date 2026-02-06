@@ -1,3 +1,5 @@
+* 1.13.0 - [namespace script tag context keys to avoid collisions](https://github.com/yogthos/Selmer/issues/325): `script` tag now uses `:selmer/type`, `:selmer/async`, and `:selmer/defer` context keys; non-namespaced `:async` and `:defer` are deprecated with warnings, `:type` requires `:selmer/type` - **breaking change**
+  
 * 1.12.70 - [add `get` filter](https://github.com/yogthos/Selmer/issue/322)
 * 1.12.69 - fix relfection warning
 * 1.12.68 - fix handling nulls when parsing script tags
