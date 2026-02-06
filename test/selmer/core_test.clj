@@ -511,6 +511,43 @@
     (= "<script src=\"/js/site.js\" type=\"module\"></script>"
        (render "{% script \"/js/site.js\" %}" {:selmer/type "module" :type "text/javascript"}))))
 
+(deftest script-falsey-namespaced-key
+  ;; When :selmer/async is false, should NOT fall back to deprecated :async
+  (is
+    (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/async false :async true})))
+  (is
+    (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/defer false :defer true}))))
+
+(deftest script-deprecated-key-warning
+  ;; Reset warned-keys so warnings are emitted fresh
+  (reset! @#'selmer.util/warned-keys #{})
+  (let [sw (java.io.StringWriter.)]
+    (binding [*err* sw]
+      (render "{% script \"/js/site.js\" %}" {:async true}))
+    (is (str/includes? (str sw) "DEPRECATION WARNING"))
+    (is (str/includes? (str sw) ":selmer/async")))
+  ;; Second call should NOT warn again (once per key per session)
+  (let [sw (java.io.StringWriter.)]
+    (binding [*err* sw]
+      (render "{% script \"/js/site.js\" %}" {:async true}))
+    (is (= "" (str sw))))
+  ;; Reset and test defer warning
+  (reset! @#'selmer.util/warned-keys #{})
+  (let [sw (java.io.StringWriter.)]
+    (binding [*err* sw]
+      (render "{% script \"/js/site.js\" %}" {:defer true}))
+    (is (str/includes? (str sw) "DEPRECATION WARNING"))
+    (is (str/includes? (str sw) ":selmer/defer")))
+  ;; No warning when *warn-on-deprecated-keys* is false
+  (reset! @#'selmer.util/warned-keys #{})
+  (let [sw (java.io.StringWriter.)]
+    (binding [*err* sw
+              *warn-on-deprecated-keys* false]
+      (render "{% script \"/js/site.js\" %}" {:async true}))
+    (is (= "" (str sw)))))
+
 (deftest cycle-test
   (is
     (= "\"foo\"1\"bar\"2\"baz\"1\"foo\"2\"bar\"1"

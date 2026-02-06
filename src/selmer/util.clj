@@ -305,7 +305,12 @@ so it can access vectors as well as maps."
   [message]
   (try
     (require 'clojure.tools.logging)
-    ((resolve 'clojure.tools.logging/warn) message)
+    (require 'clojure.tools.logging.impl)
+    (let [get-logger (resolve 'clojure.tools.logging.impl/get-logger)
+          factory    @(resolve 'clojure.tools.logging/*logger-factory*)
+          logger     (get-logger factory "selmer.util")
+          log*       (resolve 'clojure.tools.logging/log*)]
+      (log* logger :warn nil message))
     (catch Exception _
       (binding [*out* *err*]
         (println "DEPRECATION WARNING:" message)))))
@@ -315,13 +320,13 @@ so it can access vectors as well as maps."
    but falling back to the non-namespaced version (e.g. :async) with a deprecation warning.
    The warning is only emitted once per key per JVM session."
   [context-map namespaced-key non-namespaced-key]
-  (if-let [v (get context-map namespaced-key)]
-    v
-    (when-let [v (get context-map non-namespaced-key)]
+  (if (contains? context-map namespaced-key)
+    (get context-map namespaced-key)
+    (when (contains? context-map non-namespaced-key)
       (when (and *warn-on-deprecated-keys*
                  (not (contains? @warned-keys non-namespaced-key)))
         (swap! warned-keys conj non-namespaced-key)
         (log-deprecation-warning
           (str "Using " non-namespaced-key " in context is deprecated. "
                "Please use " namespaced-key " instead.")))
-      v)))
+      (get context-map non-namespaced-key))))

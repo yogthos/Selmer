@@ -364,10 +364,10 @@
   number of optional arguments. Value for 'src' attribute is built accounting
   value of `selmer/context` context parameter and `uri` can be a string literal
   or name of context parameter (filters also supported). Optional arguments are:
-  * `async` (or `selmer/async`) - when evaluates to logical true then 'async'
-    attribute would be added to generated tag.
-  * `defer` (or `selmer/defer`) - when evaluates to logical true then 'defer'
-    attribute would be added to generated tag.
+  * `selmer/async` (or deprecated `async`) - when evaluates to logical true
+    then 'async' attribute would be added to generated tag.
+  * `selmer/defer` (or deprecated `defer`) - when evaluates to logical true
+    then 'defer' attribute would be added to generated tag.
   * `selmer/type` - when present its value is used for the 'type' attribute.
 
   Note: Using non-namespaced keys `:async` and `:defer` in the context map is
@@ -387,11 +387,13 @@
                              (assoc-in context-map k (v context-map)))
                            context-map
                            args)
-            async-attr   (when (or (:selmer/async args)
-                                   (deprecated-key-lookup args :selmer/async :async))
+            async-attr   (when (if (contains? args :selmer/async)
+                                 (:selmer/async args)
+                                 (deprecated-key-lookup args :selmer/async :async))
                            "async ")
-            defer-attr   (when (or (:selmer/defer args)
-                                   (deprecated-key-lookup args :selmer/defer :defer))
+            defer-attr   (when (if (contains? args :selmer/defer)
+                                 (:selmer/defer args)
+                                 (deprecated-key-lookup args :selmer/defer :defer))
                            "defer ")
             type-attr    (or (:selmer/type args) "application/javascript")
             src-attr-val (build-uri-for-script-or-style-tag uri context-map)]
