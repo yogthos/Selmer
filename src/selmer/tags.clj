@@ -315,6 +315,15 @@
   (for [[id value] (partition 2 args)]
     [(map keyword (str/split id #"\.")) (compile-filter-body value false)]))
 
+(defn- compile-args-namespaced
+  "Like compile-args but namespaces keys under selmer/ to avoid conflicts with user context."
+  [args]
+  (when-not (even? (count args))
+    (throw (ex-info (str "invalid arguments passed to tag: " args)
+                    {:args args})))
+  (for [[id value] (partition 2 args)]
+    [(map #(keyword "selmer" %) (str/split id #"\.")) (compile-filter-body value false)]))
+
 (defn with-handler [args tag-content render rdr]
   (let [content (get-in (tag-content rdr :with :endwith) [:with :content])
         args    (->> args
@@ -355,17 +364,22 @@
   number of optional arguments. Value for 'src' attribute is built accounting
   value of `selmer/context` context parameter and `uri` can be a string literal
   or name of context parameter (filters also supported). Optional arguments are:
-  * `async` - when evaluates to logical true then 'async' attribute would be
-    added to generated tag.
-  * `defer` - when evaluates to logical true then 'defer' attribute would be
-    added to generated tag.
-  * `type` - when present its value is used for the 'type' attribute."
+  * `async` (or `selmer/async`) - when evaluates to logical true then 'async'
+    attribute would be added to generated tag.
+  * `defer` (or `selmer/defer`) - when evaluates to logical true then 'defer'
+    attribute would be added to generated tag.
+  * `selmer/type` - when present its value is used for the 'type' attribute.
+
+  Note: Using non-namespaced keys `:async` and `:defer` in the context map is
+  deprecated. Please use `:selmer/async` and `:selmer/defer` instead to avoid
+  conflicts with your own context data. The `:type` key is no longer supported
+  in the context map; use `:selmer/type` instead."
   [[^String uri & args] _ _ _]
   (let [args
         (->> args
              (mapcat #(.split ^String % "="))
              (remove #{"="})
-             (compile-args))]
+             (compile-args-namespaced))]
     (fn [context-map]
       (let [args
                          (reduce
@@ -373,9 +387,13 @@
                              (assoc-in context-map k (v context-map)))
                            context-map
                            args)
-            async-attr   (when (:async args) "async ")
-            defer-attr   (when (:defer args) "defer ")
-            type-attr    (or (:type args) "application/javascript")
+            async-attr   (when (or (:selmer/async args)
+                                   (deprecated-key-lookup args :selmer/async :async))
+                           "async ")
+            defer-attr   (when (or (:selmer/defer args)
+                                   (deprecated-key-lookup args :selmer/defer :defer))
+                           "defer ")
+            type-attr    (or (:selmer/type args) "application/javascript")
             src-attr-val (build-uri-for-script-or-style-tag uri context-map)]
         (str "<script " async-attr defer-attr "src=\"" src-attr-val "\" type=\"" type-attr "\"></script>")))))
 

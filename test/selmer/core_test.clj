@@ -479,6 +479,38 @@
     (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
        (render "{% script \"/js/site.js\" %}" {}))))
 
+;; Tests for namespaced keys (issue #325)
+(deftest script-namespaced-async
+  (is
+    (= "<script async src=\"/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/async true})))
+  (is
+    (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/async false}))))
+
+(deftest script-namespaced-defer
+  (is
+    (= "<script defer src=\"/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/defer true})))
+  (is
+    (= "<script src=\"/js/site.js\" type=\"application/javascript\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/defer false}))))
+
+(deftest script-namespaced-type
+  (is
+    (= "<script src=\"/js/site.js\" type=\"module\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/type "module"})))
+  ;; Verify user's own :type key doesn't conflict when using namespaced key
+  (is
+    (= "<script src=\"/js/site.js\" type=\"module\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/type "module" :type :my-value}))))
+
+(deftest script-namespaced-priority
+  ;; Namespaced key takes priority over non-namespaced
+  (is
+    (= "<script src=\"/js/site.js\" type=\"module\"></script>"
+       (render "{% script \"/js/site.js\" %}" {:selmer/type "module" :type "text/javascript"}))))
+
 (deftest cycle-test
   (is
     (= "\"foo\"1\"bar\"2\"baz\"1\"foo\"2\"bar\"1"

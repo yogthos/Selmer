@@ -294,3 +294,34 @@ so it can access vectors as well as maps."
         algo (MessageDigest/getInstance algo)
         bs (.digest algo (.getBytes s))]
     (format "%032x" (BigInteger. 1 bs))))
+
+;; Deprecation warning infrastructure
+(def ^:dynamic *warn-on-deprecated-keys* true)
+
+(defonce ^:private warned-keys (atom #{}))
+
+(defn- log-deprecation-warning
+  "Emit a deprecation warning. Tries clojure.tools.logging first, falls back to stderr."
+  [message]
+  (try
+    (require 'clojure.tools.logging)
+    ((resolve 'clojure.tools.logging/warn) message)
+    (catch Exception _
+      (binding [*out* *err*]
+        (println "DEPRECATION WARNING:" message)))))
+
+(defn deprecated-key-lookup
+  "Looks up a key in context-map, preferring the namespaced version (e.g. :selmer/async)
+   but falling back to the non-namespaced version (e.g. :async) with a deprecation warning.
+   The warning is only emitted once per key per JVM session."
+  [context-map namespaced-key non-namespaced-key]
+  (if-let [v (get context-map namespaced-key)]
+    v
+    (when-let [v (get context-map non-namespaced-key)]
+      (when (and *warn-on-deprecated-keys*
+                 (not (contains? @warned-keys non-namespaced-key)))
+        (swap! warned-keys conj non-namespaced-key)
+        (log-deprecation-warning
+          (str "Using " non-namespaced-key " in context is deprecated. "
+               "Please use " namespaced-key " instead.")))
+      v)))
