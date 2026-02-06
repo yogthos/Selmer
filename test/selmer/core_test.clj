@@ -523,30 +523,39 @@
 (deftest script-deprecated-key-warning
   ;; Reset warned-keys so warnings are emitted fresh
   (reset! @#'selmer.util/warned-keys #{})
-  (let [sw (java.io.StringWriter.)]
-    (binding [*err* sw]
+  (let [warnings (atom [])]
+    (binding [*deprecation-warning-handler* #(swap! warnings conj %)]
       (render "{% script \"/js/site.js\" %}" {:async true}))
-    (is (str/includes? (str sw) "DEPRECATION WARNING"))
-    (is (str/includes? (str sw) ":selmer/async")))
+    (is (= 1 (count @warnings)))
+    (is (str/includes? (first @warnings) ":selmer/async")))
   ;; Second call should NOT warn again (once per key per session)
-  (let [sw (java.io.StringWriter.)]
-    (binding [*err* sw]
+  (let [warnings (atom [])]
+    (binding [*deprecation-warning-handler* #(swap! warnings conj %)]
       (render "{% script \"/js/site.js\" %}" {:async true}))
-    (is (= "" (str sw))))
+    (is (= 0 (count @warnings))))
   ;; Reset and test defer warning
   (reset! @#'selmer.util/warned-keys #{})
-  (let [sw (java.io.StringWriter.)]
-    (binding [*err* sw]
+  (let [warnings (atom [])]
+    (binding [*deprecation-warning-handler* #(swap! warnings conj %)]
       (render "{% script \"/js/site.js\" %}" {:defer true}))
-    (is (str/includes? (str sw) "DEPRECATION WARNING"))
-    (is (str/includes? (str sw) ":selmer/defer")))
+    (is (= 1 (count @warnings)))
+    (is (str/includes? (first @warnings) ":selmer/defer")))
   ;; No warning when *warn-on-deprecated-keys* is false
   (reset! @#'selmer.util/warned-keys #{})
-  (let [sw (java.io.StringWriter.)]
-    (binding [*err* sw
+  (let [warnings (atom [])]
+    (binding [*deprecation-warning-handler* #(swap! warnings conj %)
               *warn-on-deprecated-keys* false]
       (render "{% script \"/js/site.js\" %}" {:async true}))
-    (is (= "" (str sw)))))
+    (is (= 0 (count @warnings)))))
+
+(deftest script-deprecated-key-warning-default-handler
+  ;; Verify the default handler writes to stderr (the println fallback path)
+  (reset! @#'selmer.util/warned-keys #{})
+  (let [sw (java.io.StringWriter.)]
+    (binding [*err* sw]
+      (render "{% script \"/js/site.js\" %}" {:async true}))
+    (is (str/includes? (str sw) "DEPRECATION WARNING"))
+    (is (str/includes? (str sw) ":selmer/async"))))
 
 (deftest cycle-test
   (is

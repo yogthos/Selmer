@@ -300,8 +300,8 @@ so it can access vectors as well as maps."
 
 (defonce ^:private warned-keys (atom #{}))
 
-(defn- log-deprecation-warning
-  "Emit a deprecation warning. Tries clojure.tools.logging first, falls back to stderr."
+(defn- default-deprecation-warning-handler
+  "Default handler that tries clojure.tools.logging first, falls back to stderr."
   [message]
   (try
     (require 'clojure.tools.logging)
@@ -315,6 +315,8 @@ so it can access vectors as well as maps."
       (binding [*out* *err*]
         (println "DEPRECATION WARNING:" message)))))
 
+(def ^:dynamic *deprecation-warning-handler* default-deprecation-warning-handler)
+
 (defn deprecated-key-lookup
   "Looks up a key in context-map, preferring the namespaced version (e.g. :selmer/async)
    but falling back to the non-namespaced version (e.g. :async) with a deprecation warning.
@@ -326,7 +328,7 @@ so it can access vectors as well as maps."
       (when (and *warn-on-deprecated-keys*
                  (not (contains? @warned-keys non-namespaced-key)))
         (swap! warned-keys conj non-namespaced-key)
-        (log-deprecation-warning
+        (*deprecation-warning-handler*
           (str "Using " non-namespaced-key " in context is deprecated. "
                "Please use " namespaced-key " instead.")))
       (get context-map non-namespaced-key))))
