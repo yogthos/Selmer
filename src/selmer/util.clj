@@ -300,9 +300,7 @@ so it can access vectors as well as maps."
 
 (defonce ^:private warned-keys (atom #{}))
 
-(defn- default-deprecation-warning-handler
-  "Default handler that tries clojure.tools.logging first, falls back to stderr."
-  [message]
+(def ^:private tools-logging-log*
   (try
     (require 'clojure.tools.logging)
     (require 'clojure.tools.logging.impl)
@@ -310,10 +308,18 @@ so it can access vectors as well as maps."
           factory    @(resolve 'clojure.tools.logging/*logger-factory*)
           logger     (get-logger factory "selmer.util")
           log*       (resolve 'clojure.tools.logging/log*)]
-      (log* logger :warn nil message))
+      (fn [message]
+        (log* logger :warn nil message)))
     (catch Exception _
-      (binding [*out* *err*]
-        (println "DEPRECATION WARNING:" message)))))
+      nil)))
+
+(defn- default-deprecation-warning-handler
+  "Default handler that tries clojure.tools.logging first, falls back to stderr."
+  [message]
+  (if tools-logging-log*
+    (tools-logging-log* message)
+    (binding [*out* *err*]
+      (println "DEPRECATION WARNING:" message))))
 
 (def ^:dynamic *deprecation-warning-handler* default-deprecation-warning-handler)
 
