@@ -48,8 +48,13 @@
 
 (defn- wrap-in-with-tag [template bindings]
   (let [include-binding-temp-name
-        (fn [id] 
-          (str "selmer.include." id))
+        (fn [id]
+          ;; Namespace the temp binding under the `selmer` keyword namespace
+          ;; (mirroring `compile-args-namespaced`) so it can't collide with—or
+          ;; throw on—a user-supplied `:selmer` context key. Dots are flattened
+          ;; so the name resolves to a single namespaced keyword rather than a
+          ;; nested accessor path.
+          (str "selmer/include-" (clojure.string/replace id "." "_")))
 
         self-referential-include-binding?
         (fn [id value]
@@ -60,6 +65,13 @@
           (str (include-binding-temp-name id) 
                "=" value))
 
+        ;; Precedence note: the inner `with` decides whether the binding or the
+        ;; caller's context wins for the bound name.
+        ;;   - self-referential (e.g. `x=x|upper`): the computed value wins,
+        ;;     otherwise the filter would be a no-op whenever the caller has `x`.
+        ;;   - everything else (e.g. `x=heading`): the binding is treated as a
+        ;;     default, preserving Selmer's historic include-with semantics where
+        ;;     a caller-provided value for the bound name wins.
         inner-with-binding-arg
         (fn [[id value]]
           (if (self-referential-include-binding? id value)

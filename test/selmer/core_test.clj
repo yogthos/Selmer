@@ -97,7 +97,7 @@
       (= (fix-line-sep "<html>\n<body>{% block header %}\nB header\n\n<h1>child-a header</h1>\n<<\noriginal header\n>>\n\n{% endblock %}\n\n<div>{% block content %}\nSome content\n{% endblock %}</div>\n\n{% block footer %}\n<p>footer</p>\n{% endblock %}</body>\n</html>")
          (preprocess-template "templates/inheritance/child-b.html")))
     (is
-      (= "{%with selmer.include.name=\"Jane Doe\" selmer.include.greeting=\"Hello!\"%}{%with name=name|default:@selmer.include.name greeting=greeting|default:@selmer.include.greeting%}{%ifequal greeting name%} {{greeting}} {{name}} {%endifequal%}{%endwith%}{%endwith%}"
+      (= "{%with selmer/include-name=\"Jane Doe\" selmer/include-greeting=\"Hello!\"%}{%with name=name|default:@selmer/include-name greeting=greeting|default:@selmer/include-greeting%}{%ifequal greeting name%} {{greeting}} {{name}} {%endifequal%}{%endwith%}{%endwith%}"
          (preprocess-template "templates/inheritance/parent.html")))
     (is
       (= (fix-line-sep "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n            Hello \n         World\n{% endblock %}\n    </body>\n</html>")
@@ -183,11 +183,34 @@
        (str/trim
         (render-file "templates/inheritance/include/dynamic-parent.html"
                      {:baz "baz"}))))
-  (is 
+  (is
    (= "FOO bar baz"
       (str/trim
-       (render-file "templates/inheritance/include/dynamic-parent.html" 
-                    {:foo "foo" :bar "BAR" :baz "baz"})))))
+       (render-file "templates/inheritance/include/dynamic-parent.html"
+                    {:foo "foo" :bar "BAR" :baz "baz"}))))
+  (testing "include `with` temp bindings don't collide with a user `:selmer` context key"
+    (is
+      (= "FOO bar baz"
+         (str/trim
+          (render-file "templates/inheritance/include/dynamic-parent.html"
+                       {:foo "foo" :bar "BAR" :baz "baz" :selmer "user-data"}))))))
+
+(deftest include-with-non-self-referential-precedence
+  ;; For a binding whose value references a *different* name (e.g. x=heading),
+  ;; Selmer's historic include-with semantics apply: the binding acts as a
+  ;; default, so a caller-provided value for the bound name wins.
+  (testing "binding supplies the value when the caller has no such key"
+    (is
+      (= "[H]"
+         (str/trim
+          (render-file "templates/inheritance/include/precedence-parent.html"
+                       {:heading "H"})))))
+  (testing "caller-provided value wins over a non-self-referential binding"
+    (is
+      (= "[callerX]"
+         (str/trim
+          (render-file "templates/inheritance/include/precedence-parent.html"
+                       {:x "callerX" :heading "H"}))))))
 
 (deftest nested-includes
   (testing "bindings made using built-in tag `with` should propagate down nested includes"
