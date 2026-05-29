@@ -17,6 +17,27 @@
   (let [tag-id (re-pattern (str "^.+?" tag-id "\\s*"))]
     (-> block-str (s/replace tag-id "") (split *tag-second-pattern*) first trim)))
 
+;; ----------------------------------------------------------------------------
+;; Public utilities.
+;;
+;; These general-purpose helpers are part of the documented `selmer.template-parser`
+;; API and are kept available for downstream consumers even though the internal
+;; include/extends machinery no longer relies on all of them.
+;; ----------------------------------------------------------------------------
+
+(defn parse-defaults [defaults]
+  (when defaults
+    (->> defaults
+         (interpose " ")
+         (apply str)
+         split-by-args
+         (partition 2)
+         (map vec)
+         (into {}))))
+
+(defn split-include-tag [^String tag-str]
+  (seq (.split ^String (get-tag-params "include" (.replace tag-str "\\" "/")) " ")))
+
 (defn string->reader [string]
   (reader (StringReader. string)))
 
@@ -199,6 +220,60 @@
 
 (defn wrap-in-expression-tag [string]
   (str *tag-open* *tag-second* string *tag-second* *tag-close*))
+
+(defn wrap-in-variable-tag [string]
+  (str *tag-open* *filter-open* string *filter-close* *tag-close*))
+
+(defn trim-regex [string & regexes]
+  (reduce #(clojure.string/replace %1 %2 "") string regexes))
+
+(defn trim-variable-tag [string]
+  (trim-regex string *filter-open-pattern* *filter-close-pattern*))
+
+(defn trim-expression-tag [string]
+  (trim-regex string *tag-open-pattern* *tag-close-pattern*))
+
+(defn- unparse-defaults [defaults]
+  (when defaults
+    (trim
+     (reduce-kv
+      (fn [s k v]
+        (str s k "=\"" v "\" "))
+      ""
+      defaults))))
+
+(defn to-expression-string [tag-name args defaults]
+  (let [tag-name' (name tag-name)
+        args'     (clojure.string/join \space args)
+        defaults' (when (= tag-name' "include")             ;; forwards any defined defaults down to the children to be evaluated in context
+                    (unparse-defaults defaults))
+        joined    (str tag-name'
+                       (when (seq args)
+                         (str \space args'))
+                       (when defaults'
+                         (str \space "with" \space defaults')))]
+    (wrap-in-expression-tag joined)))
+
+(defn add-default [identifier default]
+  (str identifier "|default:" \" default \"))
+
+(defn try-add-default [identifier defaults]
+  (if-let [default (get defaults identifier)]
+    (add-default identifier default)
+    identifier))
+
+(defn add-defaults-to-variable-tag [tag-str defaults]
+  (let [tag-name (trim-variable-tag tag-str)]
+    (wrap-in-variable-tag (try-add-default tag-name defaults))))
+
+(defn add-defaults-to-expression-tag [tag-str defaults]
+  (let [tag-str'            (->> (trim-expression-tag tag-str)
+                                 ;; NOTE: we add a character here since read-tag-info
+                                 ;; consumes the first character before parsing.
+                                 (str *tag-second*))
+        {:keys [tag-name args]} (read-tag-info (string->reader tag-str'))
+        identifier+defaults (map #(try-add-default % defaults) args)]
+    (to-expression-string tag-name identifier+defaults defaults)))
 
 (defn get-template-path [template]
   (resource-path template))
