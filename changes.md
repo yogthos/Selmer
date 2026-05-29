@@ -1,3 +1,4 @@
+* 1.13.2 - [Fix dynamic values in include with bindings](https://github.com/yogthos/Selmer/pull/330)
 * 1.13.1 - [remove runtime require of clojure.tools.logging](https://github.com/yogthos/Selmer/pull/329)
 
 * 1.13.0 - [namespace script tag context keys to avoid collisions](https://github.com/yogthos/Selmer/issues/325): `script` tag now uses `:selmer/type`, `:selmer/async`, and `:selmer/defer` context keys; non-namespaced `:async` and `:defer` are deprecated with warnings, `:type` requires `:selmer/type` - **breaking change**
