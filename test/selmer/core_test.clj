@@ -97,7 +97,7 @@
       (= (fix-line-sep "<html>\n<body>{% block header %}\nB header\n\n<h1>child-a header</h1>\n<<\noriginal header\n>>\n\n{% endblock %}\n\n<div>{% block content %}\nSome content\n{% endblock %}</div>\n\n{% block footer %}\n<p>footer</p>\n{% endblock %}</body>\n</html>")
          (preprocess-template "templates/inheritance/child-b.html")))
     (is
-      (= "{%ifequal greeting|default:\"Hello!\" name|default:\"Jane Doe\"%} {{greeting|default:\"Hello!\"}} {{name|default:\"Jane Doe\"}} {%endifequal%}"
+      (= "{%with selmer.include.name=\"Jane Doe\" selmer.include.greeting=\"Hello!\"%}{%with name=name|default:@selmer.include.name greeting=greeting|default:@selmer.include.greeting%}{%ifequal greeting name%} {{greeting}} {{name}} {%endifequal%}{%endwith%}{%endwith%}"
          (preprocess-template "templates/inheritance/parent.html")))
     (is
       (= (fix-line-sep "<html>\n    <head></head>\n    <body>\n        {% block hello %}\n\n            Hello \n         World\n{% endblock %}\n    </body>\n</html>")
@@ -176,6 +176,18 @@
     (is
       (= "foo baz some-value some-other-value" (render-file "templates/inheritance/include/another-parent.html" {:my-variable "some-value"
                                                                                                                  :my-other-variable "some-other-value"})))))
+
+(deftest include-with-form-supports-dynamic-content
+  (is
+    (= "baz"
+       (str/trim
+        (render-file "templates/inheritance/include/dynamic-parent.html"
+                     {:baz "baz"}))))
+  (is 
+   (= "FOO bar baz"
+      (str/trim
+       (render-file "templates/inheritance/include/dynamic-parent.html" 
+                    {:foo "foo" :bar "BAR" :baz "baz"})))))
 
 (deftest nested-includes
   (testing "bindings made using built-in tag `with` should propagate down nested includes"

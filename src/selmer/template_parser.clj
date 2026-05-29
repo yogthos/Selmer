@@ -5,29 +5,17 @@
   composed from the result of `extends` inheritance and `include` mixins. "
   (:require
    [clojure.java.io :refer [reader] :as io]
+   [selmer.filter-parser :refer [split-value]]
    [selmer.util :refer :all]
    [clojure.string :as s :refer [split trim]]
    [selmer.validator :as validator])
   (:import java.io.StringReader))
 
-(declare consume-block preprocess-template)
+(declare consume-block preprocess-template wrap-in-expression-tag)
 
 (defn get-tag-params [tag-id block-str]
   (let [tag-id (re-pattern (str "^.+?" tag-id "\\s*"))]
     (-> block-str (s/replace tag-id "") (split *tag-second-pattern*) first trim)))
-
-(defn parse-defaults [defaults]
-  (when defaults
-    (->> defaults
-         (interpose " ")
-         (apply str)
-         split-by-args
-         (partition 2)
-         (map vec)
-         (into {}))))
-
-(defn split-include-tag [^String tag-str]
-  (seq (.split ^String (get-tag-params "include" (.replace tag-str "\\" "/")) " ")))
 
 (defn string->reader [string]
   (reader (StringReader. string)))
@@ -43,11 +31,72 @@
             (not existing-block)
             (> blocks-to-close (if omit-close-tag? 1 0))))))
 
-(defn- process-includes [tag-str buf blocks]
-  (let [params   (split-include-tag tag-str)
-        source   (.replaceAll ^String (first params) "\"" "")
-        defaults (parse-defaults (nnext params))]
-    (preprocess-template source blocks defaults)))
+(defn- parse-include-tag [tag-str]
+  (let [params
+        (tokenize-tag-args
+         (get-tag-params "include"
+                         (.replace ^String tag-str "\\" "/")))
+
+        [source & include-args] params
+
+        include-args
+        (if (= "with" (first include-args))
+          (rest include-args)
+          include-args)]
+    {:source   (.replaceAll ^String source "\"" "")
+     :bindings (partition 2 include-args)}))
+
+(defn- wrap-in-with-tag [template bindings]
+  (let [include-binding-temp-name
+        (fn [id] 
+          (str "selmer.include." id))
+
+        self-referential-include-binding?
+        (fn [id value]
+          (= id (-> value split-value first)))
+
+        outer-with-binding-arg
+        (fn [[id value]]
+          (str (include-binding-temp-name id) 
+               "=" value))
+
+        inner-with-binding-arg
+        (fn [[id value]]
+          (if (self-referential-include-binding? id value)
+            (str id "=" 
+                 (include-binding-temp-name id) 
+                 "|default:@" 
+                 id)
+            (str id "=" id 
+                 "|default:@" 
+                 (include-binding-temp-name id))))
+
+        outer-args
+        (->> bindings
+             (map outer-with-binding-arg)
+             (clojure.string/join \space))
+        
+        inner-args
+        (->> bindings
+             (map inner-with-binding-arg)
+             (clojure.string/join \space))]
+    (str (wrap-in-expression-tag 
+          (str "with " outer-args))
+         (wrap-in-expression-tag 
+          (str "with " inner-args))
+         template
+         (wrap-in-expression-tag "endwith")
+         (wrap-in-expression-tag "endwith"))))
+
+(defn- process-includes [tag-str blocks]
+  (let [{:keys [source bindings]} 
+        (parse-include-tag tag-str)
+
+        template                  
+        (preprocess-template source blocks)]
+    (if (seq bindings)
+      (wrap-in-with-tag template bindings)
+      template)))
 
 (defn consume-block [rdr & [^StringBuilder buf blocks omit-close-tag?]]
   (loop [blocks-to-close 1
@@ -65,7 +114,7 @@
             (when buf
               (cond
                 includes?
-                (.append buf (process-includes tag-str buf blocks))
+                (.append buf (process-includes tag-str blocks))
 
                 ;;check if we wish to write the closing tag for the block. If we're
                 ;;injecting block.super, then we want to omit it
@@ -139,64 +188,10 @@
 (defn wrap-in-expression-tag [string]
   (str *tag-open* *tag-second* string *tag-second* *tag-close*))
 
-(defn wrap-in-variable-tag [string]
-  (str *tag-open* *filter-open* string *filter-close* *tag-close*))
-
-(defn trim-regex [string & regexes]
-  (reduce #(clojure.string/replace %1 %2 "") string regexes))
-
-(defn trim-variable-tag [string]
-  (trim-regex string *filter-open-pattern* *filter-close-pattern*))
-
-(defn trim-expression-tag [string]
-  (trim-regex string *tag-open-pattern* *tag-close-pattern*))
-
-(defn- unparse-defaults [defaults]
-  (when defaults
-    (trim
-     (reduce-kv
-      (fn [s k v]
-        (str s k "=\"" v "\" "))
-      ""
-      defaults))))
-
-(defn to-expression-string [tag-name args defaults]
-  (let [tag-name' (name tag-name)
-        args'     (clojure.string/join \space args)
-        defaults' (when (= tag-name' "include")             ;; forwards any defined defaults down to the children to be evaluated in context
-                    (unparse-defaults defaults))
-        joined    (str tag-name'
-                       (when (seq args)
-                         (str \space args'))
-                       (when defaults'
-                         (str \space "with" \space defaults')))]
-    (wrap-in-expression-tag joined)))
-
-(defn add-default [identifier default]
-  (str identifier "|default:" \" default \"))
-
-(defn try-add-default [identifier defaults]
-  (if-let [default (get defaults identifier)]
-    (add-default identifier default)
-    identifier))
-
-(defn add-defaults-to-variable-tag [tag-str defaults]
-  (let [tag-name (trim-variable-tag tag-str)]
-    (wrap-in-variable-tag (try-add-default tag-name defaults))))
-
-(defn add-defaults-to-expression-tag [tag-str defaults]
-  (let [tag-str'            (->> (trim-expression-tag tag-str)
-                                 ;; NOTE: we add a character here since read-tag-info
-                                 ;; consumes the first character before parsing.
-                                 (str *tag-second*))
-        {:keys [tag-name args]} (read-tag-info (string->reader tag-str'))
-        identifier+defaults (map #(try-add-default % defaults) args)]
-    (to-expression-string tag-name identifier+defaults defaults)))
-
 (defn get-template-path [template]
   (resource-path template))
 
-(defn read-template [template blocks defaults]
+(defn read-template [template blocks]
   (let [path (if (instance? (Class/forName "[C") template)
                template
                (let [path (resource-path template)]
@@ -219,27 +214,8 @@
               (open-tag? ch rdr)
               (let [tag-str (read-tag-content rdr)]
                 (cond
-                  (and defaults
-                       (re-matches *filter-pattern* tag-str))
-                  (do (.append buf (add-defaults-to-variable-tag tag-str defaults))
-                      (recur blocks (read-char rdr) parent))
-
-                  (and defaults
-                       (re-matches *tag-pattern* tag-str)
-                       (not (re-matches *include-pattern* tag-str)))
-                  (do (.append buf (add-defaults-to-expression-tag tag-str defaults))
-                      (recur blocks (read-char rdr) parent))
-
-                  ;;if the template includes another, pre-process it and
-                  ;;add the contents to the front of the buffer.
-                  (and defaults
-                       (re-matches *include-pattern* tag-str))
-                  (let [tag-str' (add-defaults-to-expression-tag tag-str defaults)]
-                    (.append buf (process-includes tag-str' buf blocks))
-                    (recur blocks (read-char rdr) parent))
-
                   (re-matches *include-pattern* tag-str)
-                  (do (.append buf (process-includes tag-str buf blocks))
+                  (do (.append buf (process-includes tag-str blocks))
                       (recur blocks (read-char rdr) parent))
 
                   ;;if the template extends another it's not the root
@@ -272,8 +248,8 @@
                 (when (nil? parent) (.append buf ch))
                 (recur blocks (read-char rdr) parent)))))]
     (if parent
-      (recur parent blocks defaults)
+      (recur parent blocks)
       (.toString buf))))
 
-(defn preprocess-template [template & [blocks defaults]]
-  (read-template template blocks defaults))
+(defn preprocess-template [template & [blocks]]
+  (read-template template blocks))

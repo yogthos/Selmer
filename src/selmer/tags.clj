@@ -327,10 +327,7 @@
 (defn with-handler [args tag-content render rdr]
   (let [content (get-in (tag-content rdr :with :endwith) [:with :content])
         args    (->> args
-                     ; Split on = signs, but preserving those = signs that occur inside quotes.
-                     ; Inspiration from https://stackoverflow.com/a/24450127/1568714
-                     (mapcat #(re-seq #"\"[^\"]*\"|[^= ]+" %))
-                     (remove nil?)
+                     tokenize-tag-args
                      (compile-args))]
     (fn [context-map]
       (render content
