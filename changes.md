@@ -1,3 +1,4 @@
+* 1.13.4 - fix relfection warning, drop Java 8 from the test matrix (it still works but will not be supported going forward)
 * 1.13.3 - restore previously removed public `selmer.template-parser` utility functions (`parse-defaults`, `split-include-tag`, `wrap-in-variable-tag`, `trim-regex`, `trim-variable-tag`, `trim-expression-tag`, `to-expression-string`, `add-default`, `try-add-default`, `add-defaults-to-variable-tag`, `add-defaults-to-expression-tag`)
 * 1.13.2 - [Fix dynamic values in include with bindings](https://github.com/yogthos/Selmer/pull/330)
 * 1.13.1 - [remove runtime require of clojure.tools.logging](https://github.com/yogthos/Selmer/pull/329)
