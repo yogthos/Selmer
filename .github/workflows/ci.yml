@@ -20,7 +20,7 @@ jobs:
           java-version: ${{ matrix.java }}
 
       - name: Install Leiningen
-        uses: DeLaGuardo/setup-clojure@v13
+        uses: DeLaGuardo/setup-clojure@13
         with:
           lein: '2.11.2'
 
