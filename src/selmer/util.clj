@@ -189,20 +189,20 @@
                 args)
         rdr   (StringReader. input)
         buf   (StringBuilder.)]
-    (loop [items []
-           ch    (read-char rdr)
-           open? false]
-      (cond
-        (nil? ch)
-        (let [value (.trim (.toString buf))]
-          (cond-> items (not (empty? value)) (conj value)))
+     (loop [items []
+            ^Character ch    (read-char rdr)
+            open? false]
+       (cond
+         (nil? ch)
+         (let [value (.trim (.toString buf))]
+           (cond-> items (not (empty? value)) (conj value)))
 
-        (= ch \")
-        (do
-          (.append buf ch)
-          (recur items (read-char rdr) (not open?)))
+         (= ch \")
+         (do
+           (.append buf ch)
+           (recur items (read-char rdr) (not open?)))
 
-        (and (not open?) (or (Character/isWhitespace ch) (= ch \=)))
+         (and (not open?) (or (Character/isWhitespace ^Character ch) (= ch \=)))
         (let [value (.trim (.toString buf))]
           (.setLength buf 0)
           (recur (cond-> items (not (empty? value)) (conj value))
