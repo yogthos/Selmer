@@ -28,6 +28,7 @@
     (set! *url-stream-handler* path)))
 
 (def ^:dynamic *escape-variables* true)
+(def ^:dynamic *escape-fn* nil)
 
 (defn turn-off-escaping! []
   (alter-var-root #'*escape-variables*

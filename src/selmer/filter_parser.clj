@@ -14,17 +14,18 @@
   arguments."
   (:require
    [selmer.filters :refer [get-filter]]
-   [selmer.util :refer [*escape-variables* parse-accessor]]
+   [selmer.util :refer [*escape-variables* *escape-fn* parse-accessor]]
    [clojure.string :as str]))
 
 ;;; More Utils
 (defn escape-html*
   "HTML-escapes the given string. Escapes the same characters as django's escape."
-  [^String s]
+  [input]
   ;; This method is "Java in Clojure" for serious speedups.
   ;; Stolen from davidsantiago/quoin and modified.
   (if *escape-variables*
-    (let [slength (count s)
+    (let [s       (str input)
+          slength (count s)
           sb      (StringBuilder. slength)]
       (loop [idx 0]
         (if (>= idx slength)
@@ -38,7 +39,9 @@
               \' (.append sb "&#39;")
               (.append sb c))
             (recur (inc idx))))))
-    s))
+    (str input)))
+
+
 
 (defn strip-doublequotes
   "Removes doublequotes from the start and end of a string if any."
@@ -58,8 +61,8 @@
   (if (and (vector? x)
            (= :safe (first x)))
     (second x)
-    (let [s (str x)]
-      (escape-html* s))))
+    (let [escape-fn (or *escape-fn* escape-html*)]
+      (escape-fn x))))
 
 ;;; Compile filters
 
