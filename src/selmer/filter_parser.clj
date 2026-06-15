@@ -18,30 +18,6 @@
    [clojure.string :as str]))
 
 ;;; More Utils
-(defn escape-html*
-  "HTML-escapes the given string. Escapes the same characters as django's escape."
-  [input]
-  ;; This method is "Java in Clojure" for serious speedups.
-  ;; Stolen from davidsantiago/quoin and modified.
-  (if *escape-variables*
-    (let [s       (str input)
-          slength (count s)
-          sb      (StringBuilder. slength)]
-      (loop [idx 0]
-        (if (>= idx slength)
-          (.toString sb)
-          (let [c (char (.charAt s idx))]
-            (case c
-              \& (.append sb "&amp;")
-              \< (.append sb "&lt;")
-              \> (.append sb "&gt;")
-              \" (.append sb "&quot;")
-              \' (.append sb "&#39;")
-              (.append sb c))
-            (recur (inc idx))))))
-    (str input)))
-
-
 
 (defn strip-doublequotes
   "Removes doublequotes from the start and end of a string if any."
@@ -61,8 +37,9 @@
   (if (and (vector? x)
            (= :safe (first x)))
     (second x)
-    (let [escape-fn (or *escape-fn* escape-html*)]
-      (escape-fn x))))
+    (if *escape-variables*
+      (*escape-fn* x)
+      (str x))))
 
 ;;; Compile filters
 
