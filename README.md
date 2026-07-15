@@ -965,15 +965,15 @@ Only render the body if the two args are unequal (according to clojure.core/=).
 #### for
 Render the body one time for each element in the list. Each render will introduce the following variables into the context:
 
-* `forloop.first`
-* `forloop.last`
-* `forloop.counter`
-* `forloop.counter0`
-* `forloop.revcounter`
-* `forloop.revcounter0`
-* `forloop.length`
-* `forloop.parentloop`
-* `forloop.previous`
+* `forloop.first` — true only for the first iteration
+* `forloop.last` — true only for the last iteration
+* `forloop.counter` — 1-based index from the start (1, 2, 3, …)
+* `forloop.counter0` — 0-based index from the start (0, 1, 2, …)
+* `forloop.revcounter` — 1-based complement of `counter`; together they sum to `length` (e.g. for a 3-element list: 2, 1, 0)
+* `forloop.revcounter0` — 0-based complement of `counter0`; together they sum to `length` (e.g. for a 3-element list: 3, 2, 1)
+* `forloop.length` — total number of elements in the sequence
+* `forloop.parentloop` — the parent loop's `forloop` map when inside nested loops
+* `forloop.previous` — a map containing the previous iteration's loop variable value (see below)
 
 `forloop.previous` is a hash map that contains the loop variable name:
 
