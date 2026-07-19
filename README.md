@@ -38,7 +38,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 
 ## Marginalia documentation
 
-[Marginalia documentation](https://rawgithub.com/yogthos/Selmer/master/docs/uberdoc.html)
+[Marginalia documentation](https://cljdoc.org/d/selmer/selmer/1.13.4/doc/readme)
 
 ## Usage
 
