@@ -15,10 +15,11 @@
   :test-selectors {:default (complement :benchmark)
                    :benchmark :benchmark
                    :all (constantly true)}
+  :aliases {"docs" ["marg"]}
   :profiles {:dev {:global-vars {*warn-on-reflection* true}
                    :repl-options {:port 10123}
                    :source-paths ["src" "dev"]
-                   :plugins [[lein-marginalia "0.9.0"]]
+                   :plugins [[lein-marginalia "0.9.2"]]
                    :dependencies [[environ "1.2.0"]
                                   [org.clojure/tools.namespace "1.3.0"]
                                   [criterium "0.4.6"]]}
