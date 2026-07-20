@@ -29,6 +29,31 @@
 
 (def ^:dynamic *escape-variables* true)
 
+(defn escape-html*
+  "HTML-escapes the given string. Escapes the same characters as django's escape."
+  [input]
+  ;; This method is "Java in Clojure" for serious speedups.
+  ;; Stolen from davidsantiago/quoin and modified.
+  (if *escape-variables*
+    (let [s       (str input)
+          slength (count s)
+          sb      (StringBuilder. slength)]
+      (loop [idx 0]
+        (if (>= idx slength)
+          (.toString sb)
+          (let [c (char (.charAt s idx))]
+            (case c
+              \& (.append sb "&amp;")
+              \< (.append sb "&lt;")
+              \> (.append sb "&gt;")
+              \" (.append sb "&quot;")
+              \' (.append sb "&#39;")
+              (.append sb c))
+            (recur (inc idx))))))
+    (str input)))
+
+(def ^:dynamic *escape-fn* escape-html*)
+
 (defn turn-off-escaping! []
   (alter-var-root #'*escape-variables*
                   (constantly false)))

@@ -1364,6 +1364,28 @@
       (is (= "I <3 ponies" (render "{{name}}" {:name "I <3 ponies"})))
       (finally (turn-on-escaping!)))))
 
+(deftest escape-fn-test
+  (testing "default escaping coerces non-string values to strings"
+    (is (= "123" (render "{{n}}" {:n 123})))
+    (is (= "true" (render "{{b}}" {:b true}))))
+
+  (testing "*escape-fn* overrides the default escaping function"
+    (binding [*escape-fn* str/upper-case]
+      (is (= "I <3 PONIES" (render "{{name}}" {:name "i <3 ponies"}))))
+    ;; ensure default escaping resumes outside the binding
+    (is (= "I &lt;3 ponies" (render "{{name}}" {:name "I <3 ponies"}))))
+
+  (testing "*escape-fn* is not applied to values marked safe"
+    (binding [*escape-fn* str/upper-case]
+      (is (= "I <3 ponies" (render "{{name|safe}}" {:name "I <3 ponies"})))))
+
+  (testing "*escape-fn* is bypassed when escaping is turned off"
+    (try
+      (turn-off-escaping!)
+      (binding [*escape-fn* str/upper-case]
+        (is (= "I <3 ponies" (render "{{name}}" {:name "I <3 ponies"}))))
+      (finally (turn-on-escaping!)))))
+
 (deftest name-test
   (testing "converts keywords to strings"
     (is (= "foobar" (render "{{foo|name}}" {:foo :foobar})))
