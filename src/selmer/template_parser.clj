@@ -11,7 +11,7 @@
    [selmer.validator :as validator])
   (:import java.io.StringReader))
 
-(declare consume-block preprocess-template wrap-in-expression-tag)
+(declare read-block consume-block preprocess-template wrap-in-expression-tag)
 
 (defn get-tag-params [tag-id block-str]
   (let [tag-id (re-pattern (str "^.+?" tag-id "\\s*"))]
@@ -131,6 +131,30 @@
       (wrap-in-with-tag template bindings)
       template)))
 
+(defn- process-embed-tag [tag-str]
+  (.replaceAll ^String
+               (first (tokenize-tag-args
+                        (get-tag-params "embed"
+                                        (.replace ^String tag-str "\\" "/")))) "\"" ""))
+
+(defn- process-embed [rdr buf embed-tag-str]
+  (let [file (process-embed-tag embed-tag-str)
+        blocks
+        (loop [blocks {}]
+          (let [ch (read-char rdr)
+                tag? (open-tag? ch rdr)
+                tag-str (when tag? (read-tag-content rdr))]
+            (cond
+              (and tag? (re-matches *block-pattern* tag-str))
+              (recur (read-block rdr tag-str blocks))
+
+              (and tag? (re-matches *endembed-pattern* tag-str))
+              blocks
+
+              :else
+              (recur blocks))))]
+    (preprocess-template file blocks)))
+
 (defn consume-block [rdr & [^StringBuilder buf blocks omit-close-tag?]]
   (loop [blocks-to-close 1
          has-super?      false]
@@ -140,6 +164,7 @@
           (let [tag-str        (read-tag-content rdr)
                 includes?      (re-matches *include-pattern* tag-str)
                 block?         (re-matches *block-pattern* tag-str)
+                embed?         (re-matches *embed-pattern* tag-str)
                 block-name     (when block? (get-tag-params "block" tag-str))
                 super-tag?     (re-matches *block-super-pattern* tag-str)
                 existing-block (when block-name (get-in blocks [block-name :content]))]
@@ -148,6 +173,9 @@
               (cond
                 includes?
                 (.append buf (process-includes tag-str blocks))
+
+                embed?
+                (.append buf (process-embed rdr buf tag-str))
 
                 ;;check if we wish to write the closing tag for the block. If we're
                 ;;injecting block.super, then we want to omit it
@@ -303,6 +331,10 @@
                 (cond
                   (re-matches *include-pattern* tag-str)
                   (do (.append buf (process-includes tag-str blocks))
+                      (recur blocks (read-char rdr) parent))
+
+                  (re-matches *embed-pattern* tag-str)
+                  (do (.append buf (process-embed rdr buf tag-str))
                       (recur blocks (read-char rdr) parent))
 
                   ;;if the template extends another it's not the root

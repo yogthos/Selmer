@@ -79,8 +79,8 @@
   (let [s "{a b c} \nd"]
     (is (= s (render s {})))))
 
-(deftest inheritance
-  (binding
+(defmacro with-pattern-bindings [& body]
+  `(binding
     [*tag-second-pattern* (pattern *tag-second*)
      *filter-open-pattern* (pattern "\\" *tag-open* "\\" *filter-open* "\\s*")
      *filter-close-pattern* (pattern "\\s*\\" *filter-close* "\\" *tag-close*)
@@ -92,7 +92,14 @@
      *extends-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*extends.*")
      *block-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*block.*")
      *block-super-pattern* (pattern "\\" *tag-open* "\\" *filter-open* "\\s*block.super\\s*\\" *filter-close* "\\" *tag-close*)
-     *endblock-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*endblock.*")]
+     *endblock-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*endblock.*")
+     *embed-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*embed.*")
+     *endembed-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*endembed.*")]
+    ~@body))
+
+
+(deftest inheritance
+  (with-pattern-bindings
     (is
       (= (fix-line-sep "<html>\n<body>{% block header %}\nB header\n\n<h1>child-a header</h1>\n<<\noriginal header\n>>\n\n{% endblock %}\n\n<div>{% block content %}\nSome content\n{% endblock %}</div>\n\n{% block footer %}\n<p>footer</p>\n{% endblock %}</body>\n</html>")
          (preprocess-template "templates/inheritance/child-b.html")))
@@ -1651,3 +1658,12 @@
   (is (= "29.99"
          (resolve-arg "29.99" {}))
       "When arg is a literal number, returns it as is."))
+
+(deftest simple-embed
+  (with-pattern-bindings
+    (is
+      (= (fix-line-sep "Before\nEmbed before\nEmbed content\nEmbed after\n\nAfter\n")
+         (render-file "templates/embed/main.html" {})))
+    (is
+      (= (fix-line-sep "Before\nEmbed before\n\nEmbed before\n\nNested\n\nShould be overriden!\n\n\nEmbed after\n\n\nEmbed after\n\nAfter\n")
+         (render-file "templates/embed/nested.html" {})))))

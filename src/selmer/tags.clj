@@ -526,7 +526,8 @@
                 :safe      safe-handler
                 :debug     debug-handler
                 :extends   nil
-                :include   nil}))
+                :include   nil
+                :embed     nil}))
 
 ; For each tag, does it have any follow-up tags that are part of the same tag construct? If so it goes here.
 (defonce closing-tags
@@ -541,7 +542,8 @@
                 :comment   [:endcomment]
                 :safe      [:endsafe]
                 :verbatim  [:endverbatim]
-                :with      [:endwith]}))
+                :with      [:endwith]
+                :embed     [:endembed]}))
 
 ;;helpers for custom tag definition
 (defn render-tags [context-map tags]

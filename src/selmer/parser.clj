@@ -368,6 +368,8 @@
             *block-pattern*        (pattern "\\" tag-open "\\" tag-second "\\s*block.*")
             *block-super-pattern*  (pattern "\\" tag-open "\\" filter-open "\\s*block.super\\s*\\" filter-close "\\" tag-close)
             *endblock-pattern*     (pattern "\\" tag-open "\\" tag-second "\\s*endblock.*")
+            *embed-pattern*        (pattern "\\" tag-open "\\" tag-second "\\s*embed.*")
+            *endembed-pattern*     (pattern "\\" tag-open "\\" tag-second "\\s*endembed.*")
             *tags*                 (atom [])]
     (with-meta
       (parse-fn input params)

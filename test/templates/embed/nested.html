@@ -1,0 +1,16 @@
+Before
+{% embed "templates/embed/embedded.html" %}
+Ignored
+{% block content %}
+{% embed "templates/embed/embedded.html" %}
+Also ignored
+{% block content %}
+Nested
+{{block.super}}
+{% endblock %}
+Also ignored
+{% endembed %}
+{% endblock %}
+Ignored
+{% endembed %}
+After
