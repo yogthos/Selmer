@@ -123,6 +123,7 @@ A fast, [Django](https://docs.djangoproject.com/en/dev/ref/templates/builtins/) 
 [style](#style)
 [verbatim](#verbatim)
 [with](#with)
+[embed](#embed)
 
 ### [Jump to Template Inheritance](#template-inheritance)
 
@@ -1120,6 +1121,33 @@ prevents any tags inside from being parsed:
 injects the specified keys into the context map:
 
 `(render "{% with total=business.employees|count %}{{ total }}{% endwith %}" {:business {:employees (range 5)}})` => `"5 employees"`
+
+### embed
+`embed` is a block that allows you to do lexical inheritance. It works like a scoped `extends` block, allowing you to override blocks of a reusable template.
+With the reusable template being `card_template.html` as:
+```
+<div class="left_panel">{% block left_panel %}{% endblock %}</div>
+<div class="main_panel">{% block main_panel %}{% endblock %}</div>
+```
+You can then use the `embed` tag to reuse this template multiple times, top-level or inside of a block:
+```
+{% extends "layout.html" %}
+
+{% block content %}
+  <h1>Cards</h1>
+  {% for card in cards %}
+    {% embed "card_template.html" %}
+      {% block left_panel %}{{card.image}}{% endblock %}
+      {% block main_panel %}
+        <h3>{{card.name}}</h3>
+        <pre>{{card.stats}}</pre>
+      {% endblock %}
+    {% endembed %}
+  {% endfor %}
+{% endblock %}
+```
+This works recursively: you can use `embed` inside a block override of another `embed`.
+You can also use [block.super](#blocksuper) in the `block`s of an `embed`.
 
 ## Template Inheritance
 
