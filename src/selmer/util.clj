@@ -81,6 +81,8 @@
 (def ^:dynamic ^Pattern *block-pattern* nil)
 (def ^:dynamic ^Pattern *block-super-pattern* nil)
 (def ^:dynamic ^Pattern *endblock-pattern* nil)
+(def ^:dynamic ^Pattern *embed-pattern* nil)
+(def ^:dynamic ^Pattern *endembed-pattern* nil)
 
 (def ^:dynamic *tags* nil)
 
