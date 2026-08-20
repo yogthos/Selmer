@@ -1147,7 +1147,9 @@ You can then use the `embed` tag to reuse this template multiple times, top-leve
 {% endblock %}
 ```
 This works recursively: you can use `embed` inside a block override of another `embed`.
-You can also use [block.super](#blocksuper) in the `block`s of an `embed`.
+You can use [block.super](#blocksuper) in the `block`s of an `embed`.
+
+You can also add a `with` clause to your `embed`, much like an `include`, and those variables will be available in the embedded template.
 
 ## Template Inheritance
 
