@@ -1,0 +1,5 @@
+{% with value=1 %}
+{% embed "templates/embed/embedded.html" %}
+{% block content %}{{value}}{% endblock %}
+{% endembed %}
+{% endwith %}

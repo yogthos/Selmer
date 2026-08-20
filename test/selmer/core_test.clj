@@ -1666,4 +1666,10 @@
          (render-file "templates/embed/main.html" {})))
     (is
       (= (fix-line-sep "Before\nEmbed before\n\nEmbed before\n\nNested\n\nShould be overriden!\n\n\nEmbed after\n\n\nEmbed after\n\nAfter\n")
-         (render-file "templates/embed/nested.html" {})))))
+         (render-file "templates/embed/nested.html" {})))
+    (is
+      (= (fix-line-sep "\nEmbed before\n1\nEmbed after\n\n\n")
+         (render-file "templates/embed/lexical.html" {})))
+   (is
+      (= (fix-line-sep "Render a block with value\n\n")
+         (render-file "templates/embed/with.html" {})))))

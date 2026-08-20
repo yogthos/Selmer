@@ -52,10 +52,10 @@
             (not existing-block)
             (> blocks-to-close (if omit-close-tag? 1 0))))))
 
-(defn- parse-include-tag [tag-str]
+(defn- parse-including-tag [tag-name tag-str]
   (let [params
         (tokenize-tag-args
-         (get-tag-params "include"
+         (get-tag-params tag-name
                          (.replace ^String tag-str "\\" "/")))
 
         [source & include-args] params
@@ -123,7 +123,7 @@
 
 (defn- process-includes [tag-str blocks]
   (let [{:keys [source bindings]} 
-        (parse-include-tag tag-str)
+        (parse-including-tag "include" tag-str)
 
         template                  
         (preprocess-template source blocks)]
@@ -131,14 +131,8 @@
       (wrap-in-with-tag template bindings)
       template)))
 
-(defn- process-embed-tag [tag-str]
-  (.replaceAll ^String
-               (first (tokenize-tag-args
-                        (get-tag-params "embed"
-                                        (.replace ^String tag-str "\\" "/")))) "\"" ""))
-
 (defn- process-embed [rdr buf embed-tag-str]
-  (let [file (process-embed-tag embed-tag-str)
+  (let [{:keys [source bindings]} (parse-including-tag "embed" embed-tag-str)
         blocks
         (loop [blocks {}]
           (let [ch (read-char rdr)
@@ -152,8 +146,13 @@
               blocks
 
               :else
-              (recur blocks))))]
-    (preprocess-template file blocks)))
+              (recur blocks))))
+
+        template
+        (preprocess-template source blocks)]
+    (if (seq bindings)
+      (wrap-in-with-tag template bindings)
+      template)))
 
 (defn consume-block [rdr & [^StringBuilder buf blocks omit-close-tag?]]
   (loop [blocks-to-close 1
