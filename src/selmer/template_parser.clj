@@ -14,7 +14,7 @@
 (declare read-block consume-block preprocess-template wrap-in-expression-tag)
 
 (defn get-tag-params [tag-id block-str]
-  (let [tag-id (re-pattern (str "^.+?" tag-id "\\s*"))]
+  (let [tag-id (re-pattern (str "(?s)^.+?" tag-id "\\s*"))]
     (-> block-str (s/replace tag-id "") (split *tag-second-pattern*) first trim)))
 
 ;; ----------------------------------------------------------------------------

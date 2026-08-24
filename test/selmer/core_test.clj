@@ -84,17 +84,17 @@
     [*tag-second-pattern* (pattern *tag-second*)
      *filter-open-pattern* (pattern "\\" *tag-open* "\\" *filter-open* "\\s*")
      *filter-close-pattern* (pattern "\\s*\\" *filter-close* "\\" *tag-close*)
-     *filter-pattern* (pattern "\\" *tag-open* "\\" *filter-open* "\\s*.*\\s*\\" *filter-close* "\\" *tag-close*)
-     *tag-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*.*\\s*\\" *tag-second* "\\" *tag-close*)
+     *filter-pattern* (pattern "\\" *tag-open* "\\" *filter-open* "\\s*[\\s\\S]*\\s*\\" *filter-close* "\\" *tag-close*)
+     *tag-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*[\\s\\S]*\\s*\\" *tag-second* "\\" *tag-close*)
      *tag-open-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*")
      *tag-close-pattern* (pattern "\\s*\\" *tag-second* "\\" *tag-close*)
-     *include-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*include.*")
-     *extends-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*extends.*")
-     *block-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*block.*")
+     *include-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*include[\\s\\S]*")
+     *extends-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*extends[\\s\\S]*")
+     *block-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*block[\\s\\S]*")
      *block-super-pattern* (pattern "\\" *tag-open* "\\" *filter-open* "\\s*block.super\\s*\\" *filter-close* "\\" *tag-close*)
-     *endblock-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*endblock.*")
-     *embed-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*embed.*")
-     *endembed-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*endembed.*")]
+     *endblock-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*endblock[\\s\\S]*")
+     *embed-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*embed[\\s\\S]*")
+     *endembed-pattern* (pattern "\\" *tag-open* "\\" *tag-second* "\\s*endembed[\\s\\S]*")]
     ~@body))
 
 
