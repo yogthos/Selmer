@@ -3,7 +3,7 @@
     clojure.java.io
     [clojure.string :as str]
     selmer.node
-    [selmer.filter-parser :refer [literal? parse-literal safe-filter compile-filter-body get-accessor escape-html*]]
+    [selmer.filter-parser :refer [literal? parse-literal safe-filter compile-filter-body get-accessor]]
     [selmer.filters :refer [filters]]
     [selmer.util :refer :all])
   (:import [selmer.node TextNode]))
